@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 
-const DEV_API_URL_WEB = 'http://localhost:3000';
-const DEV_API_URL_NATIVE = 'http://10.0.2.2:3000';
-const PROD_API_URL = 'https://sgroup-erp.onrender.com';
+const DEV_API_URL_WEB = 'http://localhost:3000/api';
+const DEV_API_URL_NATIVE = 'http://10.0.2.2:3000/api';
+const PROD_API_URL = 'https://sgroup-erp.onrender.com/api';
 
 const __DEV__ = process.env.NODE_ENV !== 'production';
 
