@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: sgroup-erp-backend
+    runtime: docker
+    dockerfilePath: ./sgroup-erp-backend/Dockerfile
+    dockerContext: ./sgroup-erp-backend
+    plan: free
+    region: singapore
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Set manually in Render Dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: FRONTEND_URL
+        sync: false  # Set after Vercel deployment

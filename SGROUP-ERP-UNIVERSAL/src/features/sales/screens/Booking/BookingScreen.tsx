@@ -50,8 +50,9 @@ function StatusBadge({ status }: { status: string }) {
     PENDING: { bg: '#fef3c7', text: '#d97706', label: 'CHỜ DUYỆT' },
     APPROVED: { bg: '#dcfce7', text: '#16a34a', label: 'ĐÃ DUYỆT' },
     REJECTED: { bg: '#fee2e2', text: '#dc2626', label: 'TỪ CHỐI' },
+    CANCELED: { bg: '#f1f5f9', text: '#64748b', label: 'ĐÃ HUỶ' },
   };
-  const c = config[status] || config.PENDING;
+  const c = config[status] || { bg: '#f1f5f9', text: '#64748b', label: status };
   return (
     <View style={{ backgroundColor: c.bg, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10, alignSelf: 'center' }}>
       <Text style={{ fontSize: 11, fontWeight: '800', color: c.text, letterSpacing: 0.3 }}>{c.label}</Text>
@@ -71,6 +72,8 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
   const {
     period, setPeriod,
     customFrom, setCustomFrom, customTo, setCustomTo,
+    searchQuery, setSearchQuery,
+    statusFilter, setStatusFilter,
     totals, chartData, rawBookings,
   } = useBookingFilter();
 
@@ -194,11 +197,15 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
       ) : (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <User size={14} color="#0ea5e9" />
-          <Text style={{ fontSize: 13, fontWeight: '700', color: cText }} numberOfLines={1}>{v}</Text>
+          {v ? (
+            <Text style={{ fontSize: 13, fontWeight: '700', color: cText }} numberOfLines={1}>{v}</Text>
+          ) : (
+            <Text style={{ fontSize: 13, fontWeight: '500', color: '#94a3b8', fontStyle: 'italic' }}>Chưa cập nhật</Text>
+          )}
         </View>
       )
     )},
-    { key: 'customerPhone', title: 'SĐT', width: 130, render: (v: string, row: any) => (
+    { key: 'customerPhone', title: 'SĐT', width: 130, align: 'center' as const, render: (v: string, row: any) => (
       editingId === row.id ? (
         <TextInput
           value={editPhone}
@@ -207,17 +214,17 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
             fontSize: 13, fontWeight: '700', color: cText,
             backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
             borderWidth: 2, borderColor: '#22c55e', borderRadius: 8,
-            paddingHorizontal: 8, paddingVertical: 4, minWidth: 100,
+            paddingHorizontal: 8, paddingVertical: 4, minWidth: 100, textAlign: 'center',
           }}
         />
       ) : (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
           <Phone size={14} color="#22c55e" />
           <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>{v}</Text>
         </View>
       )
     )},
-    { key: 'bookingAmount', title: 'SỐ TIỀN (VNĐ)', width: 140, align: 'right' as const, render: (v: number, row: any) => (
+    { key: 'bookingAmount', title: 'SỐ TIỀN (VNĐ)', width: 140, align: 'center' as const, render: (v: number, row: any) => (
       editingId === row.id ? (
         <TextInput
           value={editAmount}
@@ -227,11 +234,11 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
             fontSize: 13, fontWeight: '700', color: cText,
             backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
             borderWidth: 2, borderColor: '#f59e0b', borderRadius: 8,
-            paddingHorizontal: 8, paddingVertical: 4, minWidth: 100, textAlign: 'right',
+            paddingHorizontal: 8, paddingVertical: 4, minWidth: 100, textAlign: 'center',
           }}
         />
       ) : (
-        <Text style={{ fontSize: 13, fontWeight: '800', color: '#f59e0b' }}>
+        <Text style={{ fontSize: 13, fontWeight: '800', color: '#f59e0b', textAlign: 'center' }}>
           {new Intl.NumberFormat('vi-VN').format(v || 0)}
         </Text>
       )
@@ -309,6 +316,7 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
   };
 
   const periodLabel = PERIOD_TABS.find(t => t.value === period)?.label || '';
+  const isFormValid = selectedProject && customerName.trim() && customerPhone.trim() && bookingAmount;
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
@@ -537,8 +545,20 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
                   placeholder="Ví dụ: 50.000.000"
                   placeholderTextColor="#94a3b8"
                   keyboardType="numeric"
-                  value={bookingAmount ? new Intl.NumberFormat('vi-VN').format(Number(bookingAmount.toString().replace(/\\D/g, ''))) : ''}
-                  onChangeText={(t) => setBookingAmount(t.replace(/\\D/g, ''))}
+                  value={bookingAmount}
+                  onChangeText={(t) => {
+                    const digits = t.replace(/\\D/g, '');
+                    if (!digits) {
+                      setBookingAmount('');
+                      return;
+                    }
+                    const num = Number(digits);
+                    if (isNaN(num)) {
+                      setBookingAmount('');
+                      return;
+                    }
+                    setBookingAmount(new Intl.NumberFormat('vi-VN').format(num));
+                  }}
                 />
               </View>
 
@@ -571,20 +591,79 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
                 title="GỬI PHÊ DUYỆT"
                 icon={Send as any}
                 onPress={handleSubmit}
-                style={{ backgroundColor: '#8b5cf6', borderRadius: 16, height: 56 }}
+                disabled={!isFormValid}
+                style={{ backgroundColor: isFormValid ? '#8b5cf6' : '#cbd5e1', borderRadius: 16, height: 56 }}
               />
             </View>
           </View>
 
           {/* History Table */}
           <View style={[cardStyle, { flex: 2 }]}>
-            <SGPlanningSectionTitle
-              icon={History as any}
-              title="Lịch Sử Giữ Chỗ"
-              accent="#8b5cf6"
-              badgeText={`${rawBookings.length} MỤC`}
-              style={{ marginBottom: 20 }}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+              <SGPlanningSectionTitle
+                icon={History as any}
+                title="Lịch Sử Giữ Chỗ"
+                accent="#8b5cf6"
+                badgeText={`${rawBookings.length} MỤC`}
+                style={{ marginBottom: 0 }}
+              />
+              
+              {/* History Search Filter */}
+              <View style={{
+                flexDirection: 'row', alignItems: 'center', gap: 8,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8,
+                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+                width: isWideScreen ? 300 : '100%',
+              }}>
+                <Search size={16} color="#94a3b8" />
+                <TextInput
+                  style={{
+                    flex: 1, fontSize: 13, fontWeight: '600', color: cText,
+                    ...(Platform.OS === 'web' ? { outlineStyle: 'none' } : {}),
+                  } as any}
+                  placeholder="Tìm dự án, khách hàng, SĐT..."
+                  placeholderTextColor="#94a3b8"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery !== '' && (
+                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                    <X size={14} color="#94a3b8" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* Status Filter Tabs */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Tất cả', value: 'ALL' },
+                { label: 'Chờ duyệt', value: 'PENDING' },
+                { label: 'Đã duyệt', value: 'APPROVED' },
+                { label: 'Từ chối', value: 'REJECTED' },
+              ].map(tab => {
+                const active = statusFilter === tab.value;
+                return (
+                  <TouchableOpacity
+                    key={tab.value}
+                    onPress={() => setStatusFilter(tab.value as any)}
+                    style={{
+                      paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+                      backgroundColor: active ? (isDark ? 'rgba(139,92,246,0.15)' : '#f5f3ff') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
+                      borderWidth: 1,
+                      borderColor: active ? '#8b5cf6' : (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'),
+                      ...(Platform.OS === 'web' ? { cursor: 'pointer', transition: 'all 150ms ease' } : {}),
+                    } as any}
+                  >
+                    <Text style={{
+                      fontSize: 13, fontWeight: '700',
+                      color: active ? '#8b5cf6' : cSub,
+                    }}>{tab.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
             {/* Delete confirmation banner */}
             {deletingId && (
@@ -602,12 +681,16 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
             )}
 
             {rawBookings.length > 0 ? (
-              <SGTable
-                columns={BOOKING_COLUMNS}
-                data={rawBookings}
-                onRowPress={() => {}}
-                style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-              />
+              <ScrollView horizontal showsHorizontalScrollIndicator={Platform.OS === 'web'} style={{ width: '100%' }}>
+                <View style={{ minWidth: 1050, paddingBottom: 8 }}>
+                  <SGTable
+                    columns={BOOKING_COLUMNS}
+                    data={rawBookings}
+                    onRowPress={() => {}}
+                    style={{ borderWidth: 0, backgroundColor: 'transparent' }}
+                  />
+                </View>
+              </ScrollView>
             ) : (
               <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
                 <Ticket size={56} color={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} style={{ marginBottom: 12 }} />

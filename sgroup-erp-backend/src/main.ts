@@ -9,8 +9,29 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(helmet());
+
+  // CORS: Allow localhost (dev) + Vercel/Custom domains (production)
+  const allowedOrigins = [
+    'http://localhost:8081',
+    'http://localhost:8082',
+    'http://localhost:8083',
+    'http://localhost:19006',
+  ];
+  // Add production frontend URL from env if set
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+  }
+
   app.enableCors({
-    origin: ['http://localhost:8081', 'http://localhost:8082', 'http://localhost:8083', 'http://localhost:19006'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, server-to-server)
+      if (!origin) return callback(null, true);
+      // Allow listed origins
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      // Allow any *.vercel.app subdomain
+      if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+      callback(null, false);
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -21,8 +42,8 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`🚀 SGROUP ERP Backend running on http://localhost:${port}`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 SGROUP ERP Backend running on port ${port} (${process.env.NODE_ENV || 'development'})`);
 }
 bootstrap();
 

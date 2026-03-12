@@ -114,7 +114,26 @@ export function SalesQuickForms({ visible, onClose, dataHook }: SalesQuickFormsP
                 <TextInput style={inputStyle} placeholder="Dự án (VD: Vinhomes Ocean Park...)" placeholderTextColor="#94a3b8" value={bookingProject} onChangeText={setBookingProject} />
                 <TextInput style={inputStyle} placeholder="Tên khách hàng" placeholderTextColor="#94a3b8" value={bookingCustomer} onChangeText={setBookingCustomer} />
                 <TextInput style={inputStyle} placeholder="Số điện thoại" placeholderTextColor="#94a3b8" keyboardType="phone-pad" value={bookingPhone} onChangeText={setBookingPhone} />
-                <TextInput style={inputStyle} placeholder="Số tiền giữ chỗ (VD: 50.000.000)" placeholderTextColor="#94a3b8" keyboardType="numeric" value={bookingAmount ? new Intl.NumberFormat('vi-VN').format(Number(bookingAmount.toString().replace(/\\D/g, ''))) : ''} onChangeText={(t) => setBookingAmount(t.replace(/\\D/g, ''))} />
+                <TextInput 
+                  style={inputStyle} 
+                  placeholder="Số tiền giữ chỗ (VD: 50.000.000)" 
+                  placeholderTextColor="#94a3b8" 
+                  keyboardType="numeric" 
+                  value={bookingAmount} 
+                  onChangeText={(t) => {
+                    const digits = t.replace(/\\D/g, '');
+                    if (!digits) {
+                      setBookingAmount('');
+                      return;
+                    }
+                    const num = Number(digits);
+                    if (isNaN(num)) {
+                      setBookingAmount('');
+                      return;
+                    }
+                    setBookingAmount(new Intl.NumberFormat('vi-VN').format(num));
+                  }} 
+                />
                 <View style={{ marginTop: 8 }}>
                   <SGPlanningNumberField value={bookingCount} onChangeValue={setBookingCount} label="SỐ LƯỢNG GIỮ CHỖ" max={10} min={1} />
                 </View>

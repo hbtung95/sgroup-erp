@@ -7,7 +7,7 @@ import { View, Text, ScrollView, Platform, TouchableOpacity, TextInput, useWindo
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import {
   Plus, Send, History, Calendar, Landmark, Users, CheckCircle, Clock,
-  BarChart2, ArrowRight, Filter, Pencil, Trash2, X, Check, XCircle,
+  BarChart2, ArrowRight, Filter, Trash2, X,
   Building2, Phone, User, Hash, AlertTriangle, Search, DollarSign,
   Grid, Edit2
 } from 'lucide-react-native';
@@ -49,8 +49,10 @@ function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; label: string }> = {
     PENDING_DEPOSIT: { bg: '#fef3c7', text: '#d97706', label: 'CHỜ DUYỆT' },
     DEPOSIT: { bg: '#dcfce7', text: '#16a34a', label: 'ĐÃ DUYỆT' },
+    REJECTED: { bg: '#fee2e2', text: '#ef4444', label: 'TỪ CHỐI' },
+    CANCELED: { bg: '#f1f5f9', text: '#64748b', label: 'ĐÃ HUỶ' },
   };
-  const c = config[status] || config.PENDING_DEPOSIT;
+  const c = config[status] || { bg: '#f1f5f9', text: '#64748b', label: status };
   return (
     <View style={{ backgroundColor: c.bg, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10, alignSelf: 'center' }}>
       <Text style={{ fontSize: 11, fontWeight: '800', color: c.text, letterSpacing: 0.3 }}>{c.label}</Text>
@@ -65,18 +67,20 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
 
-  const { addTransaction, updateTransaction, deleteTransaction, approveTransaction, rejectTransaction } = useSalesStore();
+  const { addTransaction } = useSalesStore();
   const availableProjects = useSalesStore(s => s.availableProjects);
-  const propertyInventory = useSalesStore(s => s.propertyInventory);
+  const propertyInventory = useSalesStore(s => s.units);
   
   const {
     period, setPeriod,
     customFrom, setCustomFrom, customTo, setCustomTo,
+    statusFilter, setStatusFilter,
     totals, chartData, rawDeposits,
   } = useDepositFilter();
 
   // Project search/filter
   const [projectSearch, setProjectSearch] = useState('');
+  const [historySearch, setHistorySearch] = useState('');
   const openProjects = useMemo(() =>
     availableProjects
       .filter(p => p.status === 'OPEN')
@@ -154,42 +158,6 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
     setActiveTab('input');
   }, []);
 
-  const startEdit = useCallback((t: TransactionEntry) => {
-    setEditingId(t.id);
-    setEditUnitCode(t.unitCode);
-    setEditCustomer(t.customerName);
-    setEditPhone(t.customerPhone);
-    setEditValue(t.transactionValue);
-    setDeletingId(null);
-  }, []);
-
-  const cancelEdit = useCallback(() => { setEditingId(null); }, []);
-
-  const confirmEdit = useCallback(() => {
-    if (editingId) {
-      updateTransaction(editingId, {
-        unitCode: editUnitCode,
-        customerName: editCustomer,
-        customerPhone: editPhone,
-        transactionValue: editValue
-      });
-      setEditingId(null);
-    }
-  }, [editingId, editUnitCode, editCustomer, editPhone, editValue, updateTransaction]);
-
-  const handleDelete = useCallback((id: string) => {
-    setDeletingId(id);
-    setEditingId(null);
-  }, []);
-
-  const confirmDelete = useCallback(() => {
-    if (deletingId) { deleteTransaction(deletingId); setDeletingId(null); }
-  }, [deletingId, deleteTransaction]);
-
-  const cancelDelete = useCallback(() => { setDeletingId(null); }, []);
-
-  const isAdmin = userRole === 'sales_admin' || userRole === 'sales_manager' || userRole === 'sales_director' || userRole === 'ceo';
-
   // Table columns
   const DEPOSIT_COLUMNS = [
     { key: 'date', title: 'THỜI GIAN', width: 140, render: (v: string) => (
@@ -200,82 +168,40 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
         </Text>
       </View>
     )},
-    { key: 'unitCode', title: 'MÃ CĂN', width: 120, render: (v: string, row: any) => (
-      editingId === row.id ? (
-        <TextInput
-          value={editUnitCode}
-          onChangeText={setEditUnitCode}
-          style={{
-            fontSize: 13, fontWeight: '800', color: '#ea580c',
-            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
-            borderWidth: 2, borderColor: '#ea580c', borderRadius: 8,
-            paddingHorizontal: 8, paddingVertical: 4, minWidth: 90,
-          }}
-        />
-      ) : (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Hash size={14} color="#ea580c" />
-          <Text style={{ fontSize: 13, fontWeight: '800', color: '#ea580c' }} numberOfLines={1}>{v}</Text>
-        </View>
-      )
+    { key: 'project', title: 'DỰ ÁN', width: 160, render: (v: string) => (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Building2 size={14} color="#3b82f6" />
+        <Text style={{ fontSize: 13, fontWeight: '700', color: '#1e293b' }} numberOfLines={1}>{v}</Text>
+      </View>
     )},
-    { key: 'customerName', title: 'KHÁCH HÀNG', width: 140, render: (v: string, row: any) => (
-      editingId === row.id ? (
-        <TextInput
-          value={editCustomer}
-          onChangeText={setEditCustomer}
-          style={{
-            fontSize: 13, fontWeight: '700', color: cText,
-            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
-            borderWidth: 2, borderColor: '#0ea5e9', borderRadius: 8,
-            paddingHorizontal: 8, paddingVertical: 4, minWidth: 120,
-          }}
-        />
-      ) : (
+    { key: 'unitCode', title: 'MÃ CĂN', width: 120, render: (v: string) => (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Hash size={14} color="#ea580c" />
+        <Text style={{ fontSize: 13, fontWeight: '800', color: '#ea580c' }} numberOfLines={1}>{v}</Text>
+      </View>
+    )},
+    { key: 'customerName', title: 'KHÁCH HÀNG', width: 140, render: (v: string) => (
+      v ? (
         <Text style={{ fontSize: 13, fontWeight: '700', color: cText }} numberOfLines={1}>{v}</Text>
+      ) : (
+        <Text style={{ fontSize: 13, fontWeight: '500', color: '#94a3b8', fontStyle: 'italic' }}>Chưa cập nhật</Text>
       )
     )},
-    { key: 'transactionValue', title: 'GIÁ TRỊ (TỶ)', width: 100, align: 'center' as const, render: (v: number, row: any) => (
-      editingId === row.id ? (
-        <EditableCell value={editValue} onChange={setEditValue} color="#10b981" bgColor="#ecfdf5" isFloat />
-      ) : (
-        <Text style={{ fontSize: 14, fontWeight: '900', color: '#10b981' }}>{v}</Text>
-      )
+    { key: 'customerPhone', title: 'SĐT', width: 120, render: (v: string) => (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Phone size={14} color="#22c55e" />
+        {v ? (
+          <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>{v}</Text>
+        ) : (
+          <Text style={{ fontSize: 13, fontWeight: '500', color: '#94a3b8', fontStyle: 'italic' }}>Chưa cập nhật</Text>
+        )}
+      </View>
+    )},
+    { key: 'transactionValue', title: 'GIÁ TRỊ (VNĐ)', width: 140, align: 'right' as const, render: (v: number) => (
+      <Text style={{ fontSize: 13, fontWeight: '900', color: '#10b981' }}>{new Intl.NumberFormat('vi-VN').format(Math.round(v * 1000000000))}</Text>
     )},
     { key: 'status', title: 'TRẠNG THÁI', width: 120, align: 'center' as const, render: (v: string) => (
       <StatusBadge status={v} />
-    )},
-    { key: 'id', title: '', width: 150, align: 'center' as const, render: (_v: string, row: any) => (
-      <View style={{ flexDirection: 'row', gap: 4, justifyContent: 'center', flexWrap: 'wrap' }}>
-        {editingId === row.id ? (
-          <>
-            <ActionButton icon={Check} color="#10b981" bg="#ecfdf5" onPress={confirmEdit} />
-            <ActionButton icon={X} color="#94a3b8" bg={isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'} onPress={cancelEdit} />
-          </>
-        ) : deletingId === row.id ? (
-          <>
-            <ActionButton icon={Check} color="#ef4444" bg="#fef2f2" onPress={confirmDelete} />
-            <ActionButton icon={X} color="#94a3b8" bg={isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'} onPress={cancelDelete} />
-          </>
-        ) : (
-          <>
-            {/* Admin approve/reject */}
-            {isAdmin && row.status === 'PENDING_DEPOSIT' && (
-              <>
-                <ActionButton icon={CheckCircle} color="#10b981" bg="#ecfdf5" onPress={() => approveTransaction(row.id)} />
-                <ActionButton icon={XCircle} color="#ef4444" bg="#fef2f2" onPress={() => rejectTransaction(row.id)} />
-              </>
-            )}
-            {/* Edit/Delete for own pending entries */}
-            {row.status === 'PENDING_DEPOSIT' && (
-              <>
-                <ActionButton icon={Pencil} color="#f59e0b" bg={isDark ? 'rgba(245,158,11,0.1)' : '#fffbeb'} onPress={() => startEdit(row)} />
-                <ActionButton icon={Trash2} color="#ef4444" bg={isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2'} onPress={() => handleDelete(row.id)} />
-              </>
-            )}
-          </>
-        )}
-      </View>
     )},
   ];
 
@@ -306,6 +232,7 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
   };
 
   const periodLabel = PERIOD_TABS.find(t => t.value === period)?.label || '';
+  const isFormValid = selectedProject && unitCode.trim() && customerName.trim() && customerPhone.trim();
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
@@ -563,11 +490,11 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
               {/* Transaction Value */}
               <View>
                 <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                   GIÁ TRỊ CĂN (TỶ VNĐ)
+                   GIÁ TRỊ CĂN (VNĐ)
                 </Text>
                 <View style={[inputStyle, { backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f1f5f9', borderColor: '#cbd5e1' }]}>
                   <Text style={{ color: transactionValue > 0 ? '#10b981' : '#94a3b8', fontSize: 16, fontWeight: '900' }}>
-                    {transactionValue > 0 ? transactionValue : "Tự động điền theo mã căn"}
+                    {transactionValue > 0 ? new Intl.NumberFormat('vi-VN').format(Math.round(transactionValue * 1000000000)) : "Tự động điền theo mã căn"}
                   </Text>
                 </View>
               </View>
@@ -593,20 +520,78 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
                 title="GỬI PHÊ DUYỆT"
                 icon={Send as any}
                 onPress={handleSubmit}
-                style={{ backgroundColor: '#ea580c', borderRadius: 16, height: 56 }}
+                disabled={!isFormValid}
+                style={{ backgroundColor: isFormValid ? '#ea580c' : '#cbd5e1', borderRadius: 16, height: 56 }}
               />
             </View>
           </View>
 
           {/* History Table */}
           <View style={[cardStyle, { flex: 1.8 }]}>
-            <SGPlanningSectionTitle
-              icon={History as any}
-              title="Danh Sách Giao Dịch"
-              accent="#ea580c"
-              badgeText={`${rawDeposits.length} MỤC`}
-              style={{ marginBottom: 20 }}
-            />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
+              <SGPlanningSectionTitle
+                icon={History as any}
+                title="Danh Sách Giao Dịch"
+                accent="#ea580c"
+                badgeText={`${rawDeposits.length} MỤC`}
+                style={{ marginBottom: 0 }}
+              />
+              
+              <View style={{
+                flexDirection: 'row', alignItems: 'center', gap: 8,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8,
+                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+                width: 240,
+              }}>
+                <Search size={16} color="#94a3b8" />
+                <TextInput
+                  style={{
+                    flex: 1, fontSize: 13, fontWeight: '600', color: cText,
+                    ...(Platform.OS === 'web' ? { outlineStyle: 'none' } : {}),
+                  } as any}
+                  placeholder="Tìm kiếm nhanh..."
+                  placeholderTextColor="#94a3b8"
+                  value={historySearch}
+                  onChangeText={setHistorySearch}
+                />
+                {historySearch !== '' && (
+                  <TouchableOpacity onPress={() => setHistorySearch('')}>
+                    <X size={14} color="#94a3b8" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* Status Filter Tabs */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Tất cả', value: 'ALL' },
+                { label: 'Chờ duyệt', value: 'PENDING_DEPOSIT' },
+                { label: 'Đã duyệt', value: 'DEPOSIT' },
+                { label: 'Từ chối', value: 'REJECTED' },
+              ].map(tab => {
+                const active = statusFilter === tab.value;
+                return (
+                  <TouchableOpacity
+                    key={tab.value}
+                    onPress={() => setStatusFilter(tab.value as any)}
+                    style={{
+                      paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+                      backgroundColor: active ? (isDark ? 'rgba(234,88,12,0.15)' : '#fff7ed') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
+                      borderWidth: 1,
+                      borderColor: active ? '#ea580c' : (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'),
+                      ...(Platform.OS === 'web' ? { cursor: 'pointer', transition: 'all 150ms ease' } : {}),
+                    } as any}
+                  >
+                    <Text style={{
+                      fontSize: 13, fontWeight: '700',
+                      color: active ? '#ea580c' : cSub,
+                    }}>{tab.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
             {/* Delete confirmation banner */}
             {deletingId && (
@@ -623,20 +608,37 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
               </View>
             )}
 
-            {rawDeposits.length > 0 ? (
-              <SGTable
-                columns={DEPOSIT_COLUMNS}
-                data={rawDeposits}
-                onRowPress={() => {}}
-                style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-              />
-            ) : (
-              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
-                <Landmark size={56} color={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} style={{ marginBottom: 12 }} />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#94a3b8' }}>Chưa có giao dịch cọc nào trong kỳ này</Text>
-                <Text style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>Hãy tạo giao dịch mới ở khung bên trái</Text>
-              </View>
-            )}
+            {(() => {
+              const filteredList = rawDeposits.filter(d => 
+                !historySearch || 
+                d.customerPhone?.includes(historySearch) || 
+                d.customerName?.toLowerCase().includes(historySearch.toLowerCase()) || 
+                d.unitCode?.toLowerCase().includes(historySearch.toLowerCase()) ||
+                d.project?.toLowerCase().includes(historySearch.toLowerCase())
+              );
+              
+              if (filteredList.length > 0) {
+                return (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={Platform.OS === 'web'} style={{ width: '100%' }}>
+                    <View style={{ minWidth: 1050, paddingBottom: 8 }}>
+                      <SGTable
+                        columns={DEPOSIT_COLUMNS}
+                        data={filteredList}
+                        onRowPress={() => {}}
+                        style={{ borderWidth: 0, backgroundColor: 'transparent' }}
+                      />
+                    </View>
+                  </ScrollView>
+                );
+              } else {
+                return (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
+                    <Landmark size={56} color={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} style={{ marginBottom: 12 }} />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: '#94a3b8' }}>Chưa có giao dịch nào phù hợp</Text>
+                  </View>
+                );
+              }
+            })()}
           </View>
         </View>
           </>

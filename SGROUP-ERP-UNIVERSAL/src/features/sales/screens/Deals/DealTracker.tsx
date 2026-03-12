@@ -1,12 +1,12 @@
 /**
  * DealTracker — Tiến Độ Giao Dịch
  * Connected to useDeals hook with real pipeline management
+ * Redesigned with a Kanban board focusing on closing stages
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity, Modal, TextInput } from 'react-native';
-import { ShoppingBag, Clock, FileText, CheckCircle2, ChevronRight, Calculator, AlertCircle, Plus, X } from 'lucide-react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { FileText, CheckCircle2, ChevronRight, Calculator, AlignLeft, TrendingUp, AlertCircle, Clock } from 'lucide-react-native';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
-import { SGButton, SGPlanningSectionTitle } from '../../../../shared/ui/components';
 import { useDeals, Deal, DealStage } from '../../hooks/useDeals';
 
 const STAGE_CONFIG: Record<DealStage, { label: string; color: string; bg: string; icon: any }> = {
@@ -19,228 +19,150 @@ const STAGE_CONFIG: Record<DealStage, { label: string; color: string; bg: string
   CANCELLED: { label: 'ĐÃ HỦY', color: '#dc2626', bg: '#fee2e2', icon: AlertCircle },
 };
 
-const STAGE_FLOW: DealStage[] = ['LEAD', 'MEETING', 'BOOKING', 'DEPOSIT', 'CONTRACT', 'COMPLETED'];
+const STAGE_FLOW: DealStage[] = ['DEPOSIT', 'CONTRACT', 'COMPLETED'];
 
 export function DealTracker() {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
-  const [filterStage, setFilterStage] = useState<DealStage | 'ALL'>('ALL');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newDeal, setNewDeal] = useState({ customerName: '', customerPhone: '', projectName: '', productCode: '', dealValue: '', feeRate: '2' });
+  const cBg = isDark ? theme.colors.background : theme.colors.backgroundAlt;
 
-  const { deals, loading, createDeal, updateDeal } = useDeals();
+  const { deals, loading, updateDeal } = useDeals();
 
-  const filtered = filterStage === 'ALL' ? deals : deals.filter(d => d.stage === filterStage);
-  const pendingCount = deals.filter(d => d.stage === 'DEPOSIT').length;
+  // Filter deals to only show deals in STAGE_FLOW
+  const pipelineDeals = deals.filter(d => STAGE_FLOW.includes(d.stage));
+  const totalValue = pipelineDeals.reduce((sum, d) => sum + d.dealValue, 0);
 
-  const handleAdvanceStage = async (deal: Deal) => {
-    const idx = STAGE_FLOW.indexOf(deal.stage);
-    if (idx >= 0 && idx < STAGE_FLOW.length - 1) {
-      await updateDeal(deal.id, { stage: STAGE_FLOW[idx + 1] });
-    }
-  };
 
-  const handleCreateDeal = async () => {
-    if (!newDeal.customerName || !newDeal.dealValue) return;
-    const now = new Date();
-    await createDeal({
-      customerName: newDeal.customerName,
-      customerPhone: newDeal.customerPhone,
-      projectName: newDeal.projectName,
-      productCode: newDeal.productCode,
-      dealValue: parseFloat(newDeal.dealValue),
-      feeRate: parseFloat(newDeal.feeRate || '2'),
-      commission: parseFloat(newDeal.dealValue) * parseFloat(newDeal.feeRate || '2') / 100,
-      stage: 'LEAD',
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
-      status: 'ACTIVE',
-      source: 'MANUAL',
-    });
-    setNewDeal({ customerName: '', customerPhone: '', projectName: '', productCode: '', dealValue: '', feeRate: '2' });
-    setShowCreateModal(false);
-  };
 
+
+  const isWeb = Platform.OS === 'web';
   const cardStyle: any = {
-    backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 24, padding: 32,
-    borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(20px)' } : {}),
+    backgroundColor: isDark ? 'rgba(20,24,35,0.7)' : '#fff',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+    ...(isWeb ? { backdropFilter: 'blur(16px)' } : {}),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0.3 : 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+  };
+
+  // Render Deal Card
+  const renderDealCard = (deal: Deal) => {
+    const cfg = STAGE_CONFIG[deal.stage];
+    const Icon = cfg.icon;
+    const nextIdx = STAGE_FLOW.indexOf(deal.stage);
+    const canAdvance = nextIdx >= 0 && nextIdx < STAGE_FLOW.length - 1;
+
+    return (
+      <View key={deal.id} style={{
+        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc',
+        borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1,
+        borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
+        ...(isWeb ? { cursor: 'pointer', transition: 'all 0.2s' } as any : {})
+      }}>
+        {/* Header: Project & Code */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: cfg.color, marginBottom: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>{deal.productCode || 'Căn Hộ'}</Text>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: cText }} numberOfLines={1}>{deal.projectName || 'Chưa cập nhật dự án'}</Text>
+          </View>
+          <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: isDark ? `${cfg.color}20` : cfg.bg, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon size={16} color={cfg.color} />
+          </View>
+        </View>
+
+        {/* Info: Customer & Value */}
+        <View style={{ backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#fff', borderRadius: 12, padding: 12, marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Khách hàng</Text>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: cText }}>{deal.customerName}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Giá trị</Text>
+            <Text style={{ fontSize: 14, fontWeight: '900', color: '#10b981' }}>{deal.dealValue} Tỷ</Text>
+          </View>
+        </View>
+
+        {/* Status Chip */}
+        <View style={{
+          flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+          height: 40, borderRadius: 10, backgroundColor: isDark ? `${cfg.color}15` : cfg.bg,
+        }}>
+          {canAdvance ? (
+             <Clock size={16} color={cfg.color} />
+          ) : (
+             <CheckCircle2 size={16} color={cfg.color} />
+          )}
+          <Text style={{ fontSize: 13, fontWeight: '800', color: cfg.color, textTransform: 'uppercase' }}>
+            {deal.stage === 'COMPLETED' ? 'GIAO DỊCH HOÀN TẤT' : `ĐANG Ở BƯỚC ${cfg.label}`}
+          </Text>
+        </View>
+      </View>
+    );
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
-      <ScrollView contentContainerStyle={{ padding: 32, gap: 32, paddingBottom: 120 }}>
-        {/* Header */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+    <View style={{ flex: 1, backgroundColor: cBg }}>
+      {/* Top Summary Bar */}
+      <View style={{ paddingHorizontal: 32, paddingTop: 32, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#3b82f6', textTransform: 'uppercase', marginBottom: 4 }}>Quản lý hợp đồng</Text>
-            <Text style={{ fontSize: 28, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>Tiến Độ Giao Dịch</Text>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: cSub, marginTop: 4 }}>
-              {deals.length} giao dịch • {deals.reduce((s, d) => s + d.dealValue, 0).toFixed(1)} Tỷ GMV
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <TrendingUp size={20} color="#3b82f6" />
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#3b82f6', textTransform: 'uppercase', letterSpacing: 0.5 }}>Quản lý hợp đồng</Text>
+            </View>
+            <Text style={{ fontSize: 32, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>Pipeline Giao Dịch</Text>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: cSub, marginTop: 4 }}>
+              Đang theo dõi <Text style={{ color: cText, fontWeight: '800' }}>{pipelineDeals.length}</Text> giao dịch trọng điểm • Quy mô <Text style={{ color: '#10b981', fontWeight: '800' }}>{totalValue.toFixed(1)} Tỷ</Text>
             </Text>
           </View>
-          <TouchableOpacity onPress={() => setShowCreateModal(true)} style={{
-            flexDirection: 'row', alignItems: 'center', gap: 8, height: 48, paddingHorizontal: 24,
-            borderRadius: 16, backgroundColor: '#3b82f6',
-          }}>
-            <Plus size={18} color="#fff" strokeWidth={3} />
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff' }}>Tạo Giao Dịch</Text>
-          </TouchableOpacity>
+
         </View>
+      </View>
 
-        {/* Stage Filter */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
-          <TouchableOpacity onPress={() => setFilterStage('ALL')} style={{
-            paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14,
-            backgroundColor: filterStage === 'ALL' ? '#1e293b' : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
-            borderWidth: 1, borderColor: filterStage === 'ALL' ? '#1e293b' : (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'),
-          }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: filterStage === 'ALL' ? '#fff' : cSub }}>Tất Cả ({deals.length})</Text>
-          </TouchableOpacity>
-          {STAGE_FLOW.map(stage => {
-            const cfg = STAGE_CONFIG[stage];
-            const count = deals.filter(d => d.stage === stage).length;
-            return (
-              <TouchableOpacity key={stage} onPress={() => setFilterStage(stage)} style={{
-                paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 8,
-                backgroundColor: filterStage === stage ? cfg.color : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
-                borderWidth: 1, borderColor: filterStage === stage ? cfg.color : (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'),
-              }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: filterStage === stage ? '#fff' : cfg.color }} />
-                <Text style={{ fontSize: 13, fontWeight: '700', color: filterStage === stage ? '#fff' : cSub }}>{cfg.label} ({count})</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+      {/* Kanban Board */}
+      <ScrollView horizontal bounces={false} style={{ flex: 1 }} contentContainerStyle={{ padding: 32, gap: 24 }}>
+        {STAGE_FLOW.map((stage) => {
+          const cfg = STAGE_CONFIG[stage];
+          const stageDeals = pipelineDeals.filter(d => d.stage === stage);
+          const stageGMV = stageDeals.reduce((sum, d) => sum + d.dealValue, 0);
 
-        {/* Deal List */}
-        <View style={[cardStyle, { flex: 1 }]}>
-          <SGPlanningSectionTitle
-            icon={ShoppingBag}
-            title="Danh sách Giao dịch"
-            accent="#3b82f6"
-            badgeText={`${filtered.length} DEALS`}
-            style={{ marginBottom: 24 }}
-          />
-
-          <View style={{ gap: 16 }}>
-            {filtered.map(deal => {
-              const cfg = STAGE_CONFIG[deal.stage] || STAGE_CONFIG.LEAD;
-              const Icon = cfg.icon;
-              const nextIdx = STAGE_FLOW.indexOf(deal.stage);
-              const canAdvance = nextIdx >= 0 && nextIdx < STAGE_FLOW.length - 1;
-              return (
-                <View key={deal.id} style={{
-                  flexDirection: 'row',
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-                  borderRadius: 20, padding: 20, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
-                  alignItems: 'center'
-                }}>
-                  <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: isDark ? `${cfg.color}15` : cfg.bg, alignItems: 'center', justifyContent: 'center', marginRight: 20 }}>
-                    <Icon size={28} color={cfg.color} />
+          return (
+            <View key={stage} style={[cardStyle, { width: 340, padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }]}>
+              {/* Kanban Column Header */}
+              <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#f8fafc' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: cfg.color }} />
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: cText }}>{cfg.label}</Text>
                   </View>
-
-                  <View style={{ flex: 2 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                      <Text style={{ fontSize: 18, fontWeight: '900', color: cText }}>{deal.productCode || deal.dealCode}</Text>
-                      <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: isDark ? `${cfg.color}20` : cfg.bg, borderWidth: 1, borderColor: `${cfg.color}30` }}>
-                        <Text style={{ fontSize: 11, fontWeight: '800', color: cfg.color, letterSpacing: 0.3 }}>{cfg.label}</Text>
-                      </View>
-                    </View>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: '#64748b' }}>
-                      {deal.projectName} <Text style={{ color: '#cbd5e1' }}>•</Text> {deal.customerPhone}
-                    </Text>
-                  </View>
-
-                  <View style={{ flex: 1.5 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Khách Hàng</Text>
-                    <Text style={{ fontSize: 15, fontWeight: '800', color: cText }}>{deal.customerName}</Text>
-                  </View>
-
-                  <View style={{ flex: 1, alignItems: 'flex-end', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>Giá Trị</Text>
-                    <Text style={{ fontSize: 20, fontWeight: '900', color: '#10b981' }}>{deal.dealValue} <Text style={{ fontSize: 14, fontWeight: '700' }}>Tỷ</Text></Text>
-                  </View>
-
-                  <View style={{ marginLeft: 24, minWidth: 140, alignItems: 'flex-end' }}>
-                    {canAdvance ? (
-                      <SGButton
-                        title={`→ ${STAGE_CONFIG[STAGE_FLOW[nextIdx + 1]].label}`}
-                        onPress={() => handleAdvanceStage(deal)}
-                        style={{ backgroundColor: '#10b981', borderRadius: 12, height: 40, paddingHorizontal: 16 }}
-                      />
-                    ) : deal.stage === 'COMPLETED' ? (
-                      <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: '#dcfce7' }}>
-                        <Text style={{ fontSize: 12, fontWeight: '800', color: '#16a34a' }}>✓ HOÀN TẤT</Text>
-                      </View>
-                    ) : (
-                      <ChevronRight size={24} color={isDark ? '#475569' : '#cbd5e1'} />
-                    )}
+                  <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: cText }}>{stageDeals.length}</Text>
                   </View>
                 </View>
-              );
-            })}
-          </View>
-        </View>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Tổng trị giá: <Text style={{ color: cfg.color, fontWeight: '800' }}>{stageGMV.toFixed(1)} Tỷ</Text></Text>
+              </View>
+
+              {/* Kanban Column Body */}
+              <ScrollView style={{ flex: 1, padding: 16 }} showsVerticalScrollIndicator={false}>
+                {stageDeals.length > 0 ? (
+                  stageDeals.map(d => renderDealCard(d))
+                ) : (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40, opacity: 0.5 }}>
+                    <AlignLeft size={32} color={cSub} style={{ marginBottom: 12 }} />
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: cSub, textAlign: 'center' }}>Chưa có giao dịch nào{'\n'}trong giai đoạn này</Text>
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          );
+        })}
       </ScrollView>
 
-      {/* Create Deal Modal */}
-      {showCreateModal && (
-        <Modal transparent animationType="fade" visible onRequestClose={() => setShowCreateModal(false)}>
-          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' } as any}>
-            <View style={[cardStyle, { width: '90%', maxWidth: 520, padding: 32, borderRadius: 28 }]}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
-                <Text style={{ fontSize: 22, fontWeight: '900', color: cText }}>Tạo Giao Dịch Mới</Text>
-                <TouchableOpacity onPress={() => setShowCreateModal(false)} style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}>
-                  <X size={18} color={cSub} />
-                </TouchableOpacity>
-              </View>
-
-              {[
-                { key: 'customerName', label: 'Tên Khách Hàng *', placeholder: 'Nguyễn Văn A' },
-                { key: 'customerPhone', label: 'SĐT', placeholder: '0901 234 567' },
-                { key: 'projectName', label: 'Dự Án', placeholder: 'Vinhomes Ocean Park' },
-                { key: 'productCode', label: 'Mã Căn', placeholder: 'S4.01-1205' },
-                { key: 'dealValue', label: 'Giá Trị (Tỷ) *', placeholder: '3.5' },
-                { key: 'feeRate', label: 'Phí MG (%)', placeholder: '2' },
-              ].map(f => (
-                <View key={f.key} style={{ marginBottom: 16 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{f.label}</Text>
-                  <TextInput
-                    value={(newDeal as any)[f.key]}
-                    onChangeText={v => setNewDeal(prev => ({ ...prev, [f.key]: v }))}
-                    placeholder={f.placeholder}
-                    placeholderTextColor="#94a3b8"
-                    keyboardType={f.key === 'dealValue' || f.key === 'feeRate' ? 'numeric' : 'default'}
-                    style={{
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc',
-                      borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14,
-                      fontSize: 14, fontWeight: '600', color: cText,
-                      borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
-                      outlineStyle: 'none',
-                    } as any}
-                  />
-                </View>
-              ))}
-
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                <TouchableOpacity onPress={() => setShowCreateModal(false)} style={{
-                  flex: 1, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
-                }}>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: cSub }}>Hủy</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleCreateDeal} style={{
-                  flex: 1, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: '#3b82f6',
-                }}>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff' }}>Tạo Giao Dịch</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-      )}
     </View>
   );
 }

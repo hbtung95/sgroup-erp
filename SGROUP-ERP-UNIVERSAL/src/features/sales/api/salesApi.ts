@@ -2,8 +2,9 @@
  * SGROUP ERP — Sales API Client
  * Centralized API wrapper for all Sales module endpoints
  */
+import { API_BASE_URL } from '../../core/api/api';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = API_BASE_URL;
 
 let _authToken: string | null = null;
 

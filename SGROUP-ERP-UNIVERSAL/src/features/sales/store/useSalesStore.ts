@@ -108,6 +108,8 @@ const INITIAL_BOOKINGS: BookingEntry[] = [
 const INITIAL_TRANSACTIONS: TransactionEntry[] = [
   { id: 't1', date: new Date().toISOString(), project: 'Masteri Waterfront', unitCode: 'M2-1205', customerName: 'Lê Thị B', customerPhone: '0987654321', transactionValue: 4.5, status: 'WAITING_CONTRACT', notes: 'Chờ ký HĐMB' },
   { id: 't2', date: new Date().toISOString(), project: 'Vinhomes Smart City', unitCode: 'S4-0812', customerName: 'Trần Văn C', customerPhone: '0912345678', transactionValue: 3.2, status: 'COMPLETED', notes: 'Đã hoàn tất thủ tục' },
+  { id: 't3', date: new Date().toISOString(), project: 'Vinhomes Ocean Park', unitCode: 'O2-0511', customerName: 'Nguyễn Văn D', customerPhone: '0900000000', transactionValue: 2.1, status: 'PENDING_DEPOSIT', notes: 'Mới tạo cọc' },
+  { id: 't4', date: new Date().toISOString(), project: 'Vinhomes Smart City', unitCode: 'S4-1005', customerName: 'Hoàng Thị E', customerPhone: '0911111111', transactionValue: 2.8, status: 'DEPOSIT', notes: 'Đã chuyển khoản thành công' },
 ];
 
 // --- ZUSTAND STORE ---
@@ -115,7 +117,6 @@ interface SalesState {
   // Inventory
   selectedProject: string;
   units: PropertyUnit[];
-  propertyInventory: PropertyUnit[]; // Alias for all units across projects
   
   // Deals & Activities
   activities: ActivityEntry[];
@@ -154,7 +155,6 @@ interface SalesState {
 export const useSalesStore = create<SalesState>((set, get) => ({
   selectedProject: 'Vinhomes Smart City',
   units: MOCK_INVENTORY,
-  propertyInventory: MOCK_INVENTORY,
   activities: INITIAL_ACTIVITIES,
   bookings: INITIAL_BOOKINGS,
   transactions: INITIAL_TRANSACTIONS,

@@ -7,6 +7,7 @@ export function useDepositFilter() {
   const [period, setPeriod] = useState<BookingPeriod>('MONTH');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING_DEPOSIT' | 'DEPOSIT' | 'REJECTED'>('ALL');
 
   const filteredData = useMemo(() => {
     // Only care about PENDING_DEPOSIT and DEPOSIT
@@ -50,9 +51,19 @@ export function useDepositFilter() {
       endDate.setHours(23, 59, 59, 999);
     }
 
-    const validDeposits = allDeposits.filter(t => {
+    const validDeposits = transactions.filter(t => {
       const d = new Date(t.date);
-      return d >= startDate && d <= endDate;
+      const inDateRange = d >= startDate && d <= endDate;
+      if (!inDateRange) return false;
+      
+      // Determine validity based on statusFilter
+      if (statusFilter === 'ALL') {
+        // Show all transaction types that relate to deposits
+        const validStatuses = ['PENDING_DEPOSIT', 'DEPOSIT', 'REJECTED'];
+        return validStatuses.includes(t.status as string); 
+      }
+      
+      return t.status === (statusFilter as any);
     });
 
     // Totals
@@ -107,7 +118,7 @@ export function useDepositFilter() {
       chartData: Array.from(chartDataMap.values()),
       rawDeposits: validDeposits,
     };
-  }, [transactions, period, customFrom, customTo]);
+  }, [transactions, period, customFrom, customTo, statusFilter]);
 
   return {
     period,
@@ -116,6 +127,8 @@ export function useDepositFilter() {
     setCustomFrom,
     customTo,
     setCustomTo,
+    statusFilter,
+    setStatusFilter,
     ...filteredData,
   };
 }

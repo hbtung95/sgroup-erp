@@ -7,7 +7,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install all dependencies including dev dependencies for building
-RUN npm install
+RUN npm ci
 
 # Generate Prisma Client
 RUN npx prisma generate
@@ -28,11 +28,11 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm install --only=production
+RUN npm ci --omit=dev
 
-# Copy Prisma schema and generated client from builder
+# Copy Prisma schema and generate client in production
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+RUN npx prisma generate
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
@@ -40,5 +40,9 @@ COPY --from=builder /app/dist ./dist
 # Expose port
 EXPOSE 3000
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD wget -qO- http://localhost:3000/api || exit 1
+
 # Start the application
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main"]

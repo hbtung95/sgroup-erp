@@ -8,6 +8,8 @@ export function useBookingFilter() {
   const [period, setPeriod] = useState<BookingPeriod>('WEEK');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
 
   const filteredData = useMemo(() => {
     const now = new Date();
@@ -50,7 +52,21 @@ export function useBookingFilter() {
 
     const validBookings = bookings.filter(b => {
       const d = new Date(b.date);
-      return d >= startDate && d <= endDate;
+      const inDateRange = d >= startDate && d <= endDate;
+      if (!inDateRange) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchProject = b.project.toLowerCase().includes(q);
+        const matchName = b.customerName?.toLowerCase().includes(q);
+        const matchPhone = b.customerPhone?.toLowerCase().includes(q);
+        return matchProject || matchName || matchPhone;
+      }
+      
+      if (statusFilter !== 'ALL' && b.status !== statusFilter) {
+        return false;
+      }
+      
+      return true;
     });
 
     // Totals
@@ -114,7 +130,7 @@ export function useBookingFilter() {
       chartData: Array.from(chartDataMap.values()),
       rawBookings: validBookings,
     };
-  }, [bookings, period, customFrom, customTo]);
+  }, [bookings, period, customFrom, customTo, searchQuery, statusFilter]);
 
   return {
     period,
@@ -123,6 +139,10 @@ export function useBookingFilter() {
     setCustomFrom,
     customTo,
     setCustomTo,
+    searchQuery,
+    setSearchQuery,
+    statusFilter,
+    setStatusFilter,
     ...filteredData,
   };
 }

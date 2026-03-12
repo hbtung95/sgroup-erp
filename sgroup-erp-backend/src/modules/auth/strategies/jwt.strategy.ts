@@ -16,13 +16,34 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, email: true, role: true, name: true },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        name: true,
+        department: true,
+        salesRole: true,
+        teamId: true,
+      },
     });
 
     if (!user) {
       throw new UnauthorizedException('Tài khoản không tồn tại hoặc đã bị xóa');
     }
-    
-    return user; // Inject directly to request.user
+
+    // Look up SalesStaff ID if user is in Sales department
+    let salesStaffId: string | null = null;
+    if (user.department === 'SALES' || user.salesRole) {
+      const staff = await this.prisma.salesStaff.findFirst({
+        where: { userId: user.id },
+        select: { id: true },
+      });
+      salesStaffId = staff?.id || null;
+    }
+
+    return {
+      ...user,
+      salesStaffId,
+    };
   }
 }

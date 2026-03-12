@@ -68,7 +68,7 @@ export function SGTable({
       </Text>
     );
     return (
-      <View key={col.key} style={[styles.cell, col.width ? { width: col.width } : { flex: col.flex || 1 }]}>
+      <View key={col.key} style={[styles.cell, col.width ? { width: col.width, flexShrink: 0 } : { flex: col.flex || 1 }]}>
         {content}
       </View>
     );
@@ -95,7 +95,7 @@ export function SGTable({
             }
           ]}>
             {columns.map(col => (
-              <View key={col.key} style={[styles.cell, col.width ? { width: col.width } : { flex: col.flex || 1 }]}>
+              <View key={col.key} style={[styles.cell, col.width ? { width: col.width, flexShrink: 0 } : { flex: col.flex || 1 }]}>
                 <Text style={[typography.label, { color: c.textSecondary, textAlign: col.align || 'left', fontSize: 12 }]}>
                   {col.title}
                 </Text>

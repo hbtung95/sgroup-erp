@@ -14,16 +14,16 @@ datasource db {
 // AUTH
 // ══════════════════════════════════════════════════════════════════
 model User {
-  id          String   @id @default(uuid(7))
-  email       String   @unique
-  name        String
-  password    String
-  role        String   @default("employee") // admin, hr, employee
-  department  String?  // SALES, MARKETING, HR, FINANCE, OPS
-  salesRole   String?  // sales, sales_manager, sales_director, ceo, sales_admin
-  teamId      String?  // FK → SalesTeam.id (for sales/sales_manager)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid(7))
+  email      String   @unique
+  name       String
+  password   String
+  role       String   @default("employee") // admin, hr, employee
+  department String? // SALES, MARKETING, HR, FINANCE, OPS
+  salesRole  String? // sales, sales_manager, sales_director, ceo, sales_admin
+  teamId     String? // FK → SalesTeam.id (for sales/sales_manager)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -33,7 +33,7 @@ model PlanScenarioLog {
   id            String   @id @default(uuid(7))
   planId        String
   moduleKey     String   @default("EXEC")
-  scenario      String   // base, optimistic, pessimistic
+  scenario      String // base, optimistic, pessimistic
   year          Int
   createdAt     DateTime @default(now())
   createdBy     String
@@ -49,7 +49,7 @@ model PlanBundleLog {
   moduleKey     String   @default("EXEC")
   scenario      String
   year          Int
-  tabKey        String   // PLAN_TOTAL, PLAN_MARKETING, etc.
+  tabKey        String // PLAN_TOTAL, PLAN_MARKETING, etc.
   createdAt     DateTime @default(now())
   createdBy     String
   schemaVersion String   @default("1")
@@ -59,159 +59,159 @@ model PlanBundleLog {
 }
 
 model ExecPlanLatest {
-  id              String   @id @default(uuid(7))
-  year            Int
-  scenarioKey     String
-  tabKey          String
-  latestPlanId    String?
-  latestBundleId  String?
-  updatedAt       DateTime @default(now())
-  updatedBy       String?
-  schemaVersion   String   @default("1")
-  rawJson         String?
-  note            String?
+  id             String   @id @default(uuid(7))
+  year           Int
+  scenarioKey    String
+  tabKey         String
+  latestPlanId   String?
+  latestBundleId String?
+  updatedAt      DateTime @default(now())
+  updatedBy      String?
+  schemaVersion  String   @default("1")
+  rawJson        String?
+  note           String?
 
   @@unique([year, scenarioKey, tabKey])
 }
 
 model ExecKpiLatest {
-  id            String   @id @default(uuid(7))
-  year          Int
-  scenarioKey   String
-  tabKey        String
-  kpiKey        String
-  value         Float    @default(0)
-  unit          String?
-  sourcePlanId  String?
-  calcVersion   String?
-  updatedAt     DateTime @default(now())
-  updatedBy     String?
-  note          String?
+  id           String   @id @default(uuid(7))
+  year         Int
+  scenarioKey  String
+  tabKey       String
+  kpiKey       String
+  value        Float    @default(0)
+  unit         String?
+  sourcePlanId String?
+  calcVersion  String?
+  updatedAt    DateTime @default(now())
+  updatedBy    String?
+  note         String?
 
   @@unique([year, scenarioKey, tabKey, kpiKey])
 }
 
 model ExecKpiLog {
-  id            String   @id @default(uuid(7))
-  snapshotId    String
-  year          Int
-  scenarioKey   String
-  tabKey        String
-  kpiKey        String
-  value         Float    @default(0)
-  unit          String?
-  sourcePlanId  String?
-  calcVersion   String?
-  createdAt     DateTime @default(now())
-  createdBy     String?
-  rawJson       String?
-  note          String?
+  id           String   @id @default(uuid(7))
+  snapshotId   String
+  year         Int
+  scenarioKey  String
+  tabKey       String
+  kpiKey       String
+  value        Float    @default(0)
+  unit         String?
+  sourcePlanId String?
+  calcVersion  String?
+  createdAt    DateTime @default(now())
+  createdBy    String?
+  rawJson      String?
+  note         String?
 }
 
 // ══════════════════════════════════════════════════════════════════
 // SALES PLANNING (port from GAS Service_SalesPlanning.js)
 // ══════════════════════════════════════════════════════════════════
 model SalePlanLatest {
-  id           String   @id @default(uuid(7))
-  year         Int
-  scenarioKey  String
-  planId       String
-  updatedAt    DateTime @default(now())
-  updatedBy    String?
-  version      String?
-  rawJson      String?
-  note         String?
+  id          String   @id @default(uuid(7))
+  year        Int
+  scenarioKey String
+  planId      String
+  updatedAt   DateTime @default(now())
+  updatedBy   String?
+  version     String?
+  rawJson     String?
+  note        String?
 
   @@unique([year, scenarioKey])
 }
 
 model SalePlanHeader {
-  id             String   @id @default(uuid(7))
-  planId         String
-  year           Int
-  scenarioKey    String
-  ownerEmail     String?
-  status         String   @default("DRAFT")
-  targetGMV      Float    @default(0)
-  avgDealValue   Float    @default(0)
-  headcount      Int      @default(0)
-  marketingRate  Float    @default(0)
-  rateDeal       Float    @default(0)
-  rateBooking    Float    @default(0)
-  rateMeeting    Float    @default(0)
-  note           String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(uuid(7))
+  planId        String
+  year          Int
+  scenarioKey   String
+  ownerEmail    String?
+  status        String   @default("DRAFT")
+  targetGMV     Float    @default(0)
+  avgDealValue  Float    @default(0)
+  headcount     Int      @default(0)
+  marketingRate Float    @default(0)
+  rateDeal      Float    @default(0)
+  rateBooking   Float    @default(0)
+  rateMeeting   Float    @default(0)
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model SalePlanMonth {
-  id           String   @id @default(uuid(7))
-  planId       String
-  year         Int
-  scenarioKey  String
-  month        Int
-  weight       Float    @default(0)
-  gmv          Float    @default(0)
-  deals        Int      @default(0)
-  bookings     Int      @default(0)
-  meetings     Int      @default(0)
-  leadsSale    Int      @default(0)
-  note         String?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid(7))
+  planId      String
+  year        Int
+  scenarioKey String
+  month       Int
+  weight      Float    @default(0)
+  gmv         Float    @default(0)
+  deals       Int      @default(0)
+  bookings    Int      @default(0)
+  meetings    Int      @default(0)
+  leadsSale   Int      @default(0)
+  note        String?
+  createdAt   DateTime @default(now())
 }
 
 model SalePlanTeam {
-  id           String   @id @default(uuid(7))
-  planId       String
-  year         Int
-  scenarioKey  String
-  teamId       String?
-  name         String
-  leaderId     String?
-  leaderName   String?
-  status       String   @default("active")
-  activeFrom   Int      @default(1)
-  activeTo     Int      @default(12)
-  sortOrder    Int      @default(0)
-  note         String?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid(7))
+  planId      String
+  year        Int
+  scenarioKey String
+  teamId      String?
+  name        String
+  leaderId    String?
+  leaderName  String?
+  status      String   @default("active")
+  activeFrom  Int      @default(1)
+  activeTo    Int      @default(12)
+  sortOrder   Int      @default(0)
+  note        String?
+  createdAt   DateTime @default(now())
 }
 
 model SalePlanStaff {
-  id           String   @id @default(uuid(7))
-  planId       String
-  year         Int
-  scenarioKey  String
-  staffId      String?
-  hoTen        String
-  role         String   @default("Sales")
-  team         String?
-  status       String   @default("active")
-  activeFrom   Int      @default(1)
-  activeTo     Int      @default(12)
-  leadsCapacity Float   @default(0)
-  rateMeeting  Float    @default(0)
-  rateBooking  Float    @default(0)
-  rateDeal     Float    @default(0)
-  note         String?
-  createdAt    DateTime @default(now())
+  id            String   @id @default(uuid(7))
+  planId        String
+  year          Int
+  scenarioKey   String
+  staffId       String?
+  hoTen         String
+  role          String   @default("Sales")
+  team          String?
+  status        String   @default("active")
+  activeFrom    Int      @default(1)
+  activeTo      Int      @default(12)
+  leadsCapacity Float    @default(0)
+  rateMeeting   Float    @default(0)
+  rateBooking   Float    @default(0)
+  rateDeal      Float    @default(0)
+  note          String?
+  createdAt     DateTime @default(now())
 }
 
 // ══════════════════════════════════════════════════════════════════
 // MARKETING PLANNING (port from GAS Service_MarketingPlanning.js)
 // ══════════════════════════════════════════════════════════════════
 model MktPlanHeader {
-  id              String   @id @default(uuid(7))
-  planId          String   @unique
-  year            Int
-  scenarioKey     String
-  ownerEmail      String?
-  status          String   @default("DRAFT")
-  totalBudgetVnd  Float    @default(0)
-  currency        String   @default("VND")
-  note            String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid(7))
+  planId         String   @unique
+  year           Int
+  scenarioKey    String
+  ownerEmail     String?
+  status         String   @default("DRAFT")
+  totalBudgetVnd Float    @default(0)
+  currency       String   @default("VND")
+  note           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model MktPlanChannelBudget {
@@ -230,43 +230,43 @@ model MktPlanChannelBudget {
 }
 
 model MktPlanKpiTarget {
-  id           String   @id @default(uuid(7))
-  planId       String
-  year         Int
-  scenarioKey  String
-  kpiKey       String
-  kpiLabel     String?
-  targetValue  Float    @default(0)
-  unit         String?
-  note         String?
-  updatedAt    DateTime @default(now())
+  id          String   @id @default(uuid(7))
+  planId      String
+  year        Int
+  scenarioKey String
+  kpiKey      String
+  kpiLabel    String?
+  targetValue Float    @default(0)
+  unit        String?
+  note        String?
+  updatedAt   DateTime @default(now())
 }
 
 model MktPlanAssumption {
-  id           String   @id @default(uuid(7))
-  planId       String
-  year         Int
-  scenarioKey  String
-  key          String
-  label        String?
-  value        Float    @default(0)
-  unit         String?
-  note         String?
-  updatedAt    DateTime @default(now())
+  id          String   @id @default(uuid(7))
+  planId      String
+  year        Int
+  scenarioKey String
+  key         String
+  label       String?
+  value       Float    @default(0)
+  unit        String?
+  note        String?
+  updatedAt   DateTime @default(now())
 }
 
 // ══════════════════════════════════════════════════════════════════
 // SHARED: Audit & Snapshot
 // ══════════════════════════════════════════════════════════════════
 model FactPlanSnapshotLog {
-  id           String   @id @default(uuid(7))
-  snapshotId   String
-  planId       String
-  year         Int
-  scenarioKey  String
-  ownerEmail   String?
-  json         String?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid(7))
+  snapshotId  String
+  planId      String
+  year        Int
+  scenarioKey String
+  ownerEmail  String?
+  json        String?
+  createdAt   DateTime @default(now())
 }
 
 model AuditLog {
@@ -285,54 +285,69 @@ model AuditLog {
 // ══════════════════════════════════════════════════════════════════
 
 model DimProject {
-  id            String    @id @default(uuid(7))
-  projectCode   String    @unique
-  name          String
-  developer     String?
-  location      String?
-  type          String?               // "Chung cư", "Biệt thự", "Shophouse"
-  feeRate       Float     @default(0) // Phí MG mặc định (%)
-  avgPrice      Float     @default(0) // Giá bán TB (Tỷ)
-  totalUnits    Int       @default(0)
-  soldUnits     Int       @default(0)
-  status        String    @default("ACTIVE") // ACTIVE, PAUSED, CLOSED
-  startDate     DateTime?
-  endDate       DateTime?
-  note          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String    @id @default(uuid(7))
+  projectCode String    @unique
+  name        String
+  developer   String?
+  location    String?
+  type        String? // "Chung cư", "Biệt thự", "Shophouse"
+  feeRate     Float     @default(0) // Phí MG mặc định (%)
+  avgPrice    Float     @default(0) // Giá bán TB (Tỷ)
+  totalUnits  Int       @default(0)
+  soldUnits   Int       @default(0)
+  status      String    @default("ACTIVE") // ACTIVE, PAUSED, CLOSED
+  startDate   DateTime?
+  endDate     DateTime?
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model SalesTeam {
-  id          String   @id @default(uuid(7))
-  code        String   @unique
-  name        String
-  leaderId    String?
-  leaderName  String?
-  region      String?
-  status      String   @default("ACTIVE")
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String        @id @default(uuid(7))
+  code         String        @unique
+  name         String
+  leaderId     String?
+  leaderName   String?
+  departmentId String?
+  department   HrDepartment? @relation(fields: [departmentId], references: [id])
+  region       String?
+  status       String        @default("ACTIVE")
+  sortOrder    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  members    SalesStaff[]
+  deals      FactDeal[]
+  dailyStats FactSalesDaily[]
+  targets    SalesTargetMonthly[]
 }
 
 model SalesStaff {
-  id              String    @id @default(uuid(7))
-  userId          String?
-  employeeCode    String?   @unique
-  fullName        String
-  phone           String?
-  email           String?
-  teamId          String?
-  role            String    @default("sales") // sales, senior_sales, team_lead
-  status          String    @default("ACTIVE")
-  joinDate        DateTime?
-  leaveDate       DateTime?
-  leadsCapacity   Float     @default(30)
-  personalTarget  Float     @default(0) // Target GMV tháng (Tỷ)
-  note            String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String      @id @default(uuid(7))
+  userId         String?
+  hrEmployeeId   String?     @unique
+  hrEmployee     HrEmployee? @relation(fields: [hrEmployeeId], references: [id])
+  employeeCode   String?     @unique
+  fullName       String
+  phone          String?
+  email          String?
+  teamId         String?
+  team           SalesTeam?  @relation(fields: [teamId], references: [id])
+  role           String      @default("sales") // sales, senior_sales, team_lead
+  status         String      @default("ACTIVE")
+  joinDate       DateTime?
+  leaveDate      DateTime?
+  leadsCapacity  Float       @default(30)
+  personalTarget Float       @default(0) // Target GMV tháng (Tỷ)
+  note           String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  deals      FactDeal[]
+  dailyStats FactSalesDaily[]
+  activities SalesActivity[]
+  targets    SalesTargetMonthly[]
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -340,75 +355,79 @@ model SalesStaff {
 // ══════════════════════════════════════════════════════════════════
 
 model FactDeal {
-  id              String    @id @default(uuid(7))
-  dealCode        String?   @unique
-  bizflyCrmId     String?
-  projectId       String?
-  projectName     String?
-  staffId         String?
-  staffName       String?
-  teamId          String?
-  teamName        String?
-  customerName    String?
-  customerPhone   String?
-  productCode     String?
-  productType     String?
-  dealValue       Float     @default(0) // Tỷ
-  feeRate         Float     @default(0) // %
-  commission      Float     @default(0) // Tỷ
-  stage           String    @default("LEAD") // LEAD, MEETING, BOOKING, DEPOSIT, CONTRACT, COMPLETED, CANCELLED
-  dealDate        DateTime?
-  bookingDate     DateTime?
-  contractDate    DateTime?
-  source          String?               // MARKETING, SELF_GEN, REFERRAL
-  note            String?
-  year            Int
-  month           Int
-  status          String    @default("ACTIVE")
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String      @id @default(uuid(7))
+  dealCode      String?     @unique
+  bizflyCrmId   String?
+  projectId     String?
+  projectName   String?
+  staffId       String?
+  staff         SalesStaff? @relation(fields: [staffId], references: [id])
+  staffName     String?
+  teamId        String?
+  team          SalesTeam?  @relation(fields: [teamId], references: [id])
+  teamName      String?
+  customerName  String?
+  customerPhone String?
+  productCode   String?
+  productType   String?
+  dealValue     Float       @default(0) // Tỷ
+  feeRate       Float       @default(0) // %
+  commission    Float       @default(0) // Tỷ
+  stage         String      @default("LEAD") // LEAD, MEETING, BOOKING, DEPOSIT, CONTRACT, COMPLETED, CANCELLED
+  dealDate      DateTime?
+  bookingDate   DateTime?
+  contractDate  DateTime?
+  source        String? // MARKETING, SELF_GEN, REFERRAL
+  note          String?
+  year          Int
+  month         Int
+  status        String      @default("ACTIVE")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model FactSalesDaily {
-  id              String    @id @default(uuid(7))
-  date            DateTime
-  year            Int
-  month           Int
-  week            Int
-  teamId          String?
-  staffId         String?
-  newLeads        Int       @default(0)
-  meetings        Int       @default(0)
-  bookings        Int       @default(0)
-  deposits        Int       @default(0)
-  contracts       Int       @default(0)
-  completedDeals  Int       @default(0)
-  cancelledDeals  Int       @default(0)
-  gmv             Float     @default(0)
-  revenue         Float     @default(0)
-  source          String    @default("MANUAL") // MANUAL, BIZFLY_SYNC
-  syncedAt        DateTime?
-  createdAt       DateTime  @default(now())
+  id             String      @id @default(uuid(7))
+  date           DateTime
+  year           Int
+  month          Int
+  week           Int
+  teamId         String?
+  team           SalesTeam?  @relation(fields: [teamId], references: [id])
+  staffId        String?
+  staff          SalesStaff? @relation(fields: [staffId], references: [id])
+  newLeads       Int         @default(0)
+  meetings       Int         @default(0)
+  bookings       Int         @default(0)
+  deposits       Int         @default(0)
+  contracts      Int         @default(0)
+  completedDeals Int         @default(0)
+  cancelledDeals Int         @default(0)
+  gmv            Float       @default(0)
+  revenue        Float       @default(0)
+  source         String      @default("MANUAL") // MANUAL, BIZFLY_SYNC
+  syncedAt       DateTime?
+  createdAt      DateTime    @default(now())
 
   @@unique([date, teamId, staffId])
 }
 
 model FactPipelineSnapshot {
-  id              String   @id @default(uuid(7))
-  snapshotDate    DateTime
-  year            Int
-  month           Int
-  teamId          String?
-  leadCount       Int      @default(0)
-  contactedCount  Int      @default(0)
-  meetingCount    Int      @default(0)
-  bookingCount    Int      @default(0)
-  depositCount    Int      @default(0)
-  contractCount   Int      @default(0)
-  completedCount  Int      @default(0)
-  totalPipelineValue Float @default(0)
-  source          String   @default("MANUAL")
-  createdAt       DateTime @default(now())
+  id                 String   @id @default(uuid(7))
+  snapshotDate       DateTime
+  year               Int
+  month              Int
+  teamId             String?
+  leadCount          Int      @default(0)
+  contactedCount     Int      @default(0)
+  meetingCount       Int      @default(0)
+  bookingCount       Int      @default(0)
+  depositCount       Int      @default(0)
+  contractCount      Int      @default(0)
+  completedCount     Int      @default(0)
+  totalPipelineValue Float    @default(0)
+  source             String   @default("MANUAL")
+  createdAt          DateTime @default(now())
 
   @@unique([snapshotDate, teamId])
 }
@@ -423,12 +442,12 @@ model CommissionRecord {
   staffId          String
   staffName        String?
   teamId           String?
-  role             String               // SALES, MANAGER, DIRECTOR
+  role             String // SALES, MANAGER, DIRECTOR
   dealValue        Float     @default(0)
   commissionRate   Float     @default(0)
   commissionAmount Float     @default(0)
   status           String    @default("PENDING") // PENDING, APPROVED, PAID
-  period           String?   // "2026-03"
+  period           String? // "2026-03"
   approvedBy       String?
   approvedAt       DateTime?
   paidAt           DateTime?
@@ -440,20 +459,22 @@ model CommissionRecord {
 }
 
 model SalesTargetMonthly {
-  id             String   @id @default(uuid(7))
+  id             String      @id @default(uuid(7))
   year           Int
   month          Int
   teamId         String?
+  team           SalesTeam?  @relation(fields: [teamId], references: [id])
   staffId        String?
-  targetGMV      Float    @default(0)
-  targetDeals    Int      @default(0)
-  targetLeads    Int      @default(0)
-  targetMeetings Int      @default(0)
-  targetBookings Int      @default(0)
-  scenarioKey    String   @default("base")
+  staff          SalesStaff? @relation(fields: [staffId], references: [id])
+  targetGMV      Float       @default(0)
+  targetDeals    Int         @default(0)
+  targetLeads    Int         @default(0)
+  targetMeetings Int         @default(0)
+  targetBookings Int         @default(0)
+  scenarioKey    String      @default("base")
   note           String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   @@unique([year, month, teamId, staffId, scenarioKey])
 }
@@ -464,7 +485,7 @@ model SalesTargetMonthly {
 
 model BizflySyncLog {
   id            String    @id @default(uuid(7))
-  syncType      String               // LEADS, DEALS, PIPELINE
+  syncType      String // LEADS, DEALS, PIPELINE
   syncDirection String    @default("PULL")
   status        String    @default("PENDING") // PENDING, RUNNING, SUCCESS, FAILED
   recordsTotal  Int       @default(0)
@@ -486,11 +507,11 @@ model Customer {
   fullName        String
   phone           String?
   email           String?
-  source          String?               // FACEBOOK_ADS, GOOGLE_ADS, HOTLINE, REFERRAL, WALK_IN, WEBSITE
+  source          String? // FACEBOOK_ADS, GOOGLE_ADS, HOTLINE, REFERRAL, WALK_IN, WEBSITE
   projectInterest String?
   budget          String?
   status          String    @default("NEW") // NEW, CONTACTED, INTERESTED, MEETING, NEGOTIATION, WON, LOST
-  assignedTo      String?               // staffId
+  assignedTo      String? // staffId
   assignedName    String?
   isVip           Boolean   @default(false)
   lastContactAt   DateTime?
@@ -506,19 +527,20 @@ model Customer {
 // ══════════════════════════════════════════════════════════════════
 
 model SalesActivity {
-  id            String    @id @default(uuid(7))
-  date          DateTime  @default(now())
-  staffId       String
-  staffName     String?
-  postsCount    Int       @default(0)
-  callsCount    Int       @default(0)
-  newLeads      Int       @default(0)
-  meetingsMade  Int       @default(0)
-  note          String?
-  year          Int
-  month         Int
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String     @id @default(uuid(7))
+  date         DateTime   @default(now())
+  staffId      String
+  staff        SalesStaff @relation(fields: [staffId], references: [id])
+  staffName    String?
+  postsCount   Int        @default(0)
+  callsCount   Int        @default(0)
+  newLeads     Int        @default(0)
+  meetingsMade Int        @default(0)
+  note         String?
+  year         Int
+  month        Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -526,23 +548,23 @@ model SalesActivity {
 // ══════════════════════════════════════════════════════════════════
 
 model Appointment {
-  id              String    @id @default(uuid(7))
-  staffId         String
-  staffName       String?
-  customerId      String?
-  customerName    String?
-  customerPhone   String?
-  projectId       String?
-  projectName     String?
-  type            String    @default("MEETING") // MEETING, SITE_VISIT, FOLLOW_UP, SIGNING
-  scheduledAt     DateTime
-  duration        Int       @default(60) // minutes
-  location        String?
-  status          String    @default("SCHEDULED") // SCHEDULED, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
-  outcome         String?
-  note            String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String   @id @default(uuid(7))
+  staffId       String
+  staffName     String?
+  customerId    String?
+  customerName  String?
+  customerPhone String?
+  projectId     String?
+  projectName   String?
+  type          String   @default("MEETING") // MEETING, SITE_VISIT, FOLLOW_UP, SIGNING
+  scheduledAt   DateTime
+  duration      Int      @default(60) // minutes
+  location      String?
+  status        String   @default("SCHEDULED") // SCHEDULED, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+  outcome       String?
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -550,21 +572,185 @@ model Appointment {
 // ══════════════════════════════════════════════════════════════════
 
 model PropertyProduct {
-  id              String    @id @default(uuid(7))
-  projectId       String
-  projectName     String?
-  code            String    @unique
-  block           String?
-  floor           Int       @default(0)
-  area            Float     @default(0)
-  price           Float     @default(0)       // Tỷ VND
-  direction       String?
-  bedrooms        Int       @default(0)
-  status          String    @default("AVAILABLE") // AVAILABLE, BOOKED, LOCKED, PENDING_DEPOSIT, DEPOSIT, SOLD, COMPLETED
-  bookedBy        String?
-  lockedUntil     DateTime?
-  customerPhone   String?
-  note            String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String    @id @default(uuid(7))
+  projectId     String
+  projectName   String?
+  code          String    @unique
+  block         String?
+  floor         Int       @default(0)
+  area          Float     @default(0)
+  price         Float     @default(0) // Tỷ VND
+  direction     String?
+  bedrooms      Int       @default(0)
+  status        String    @default("AVAILABLE") // AVAILABLE, BOOKED, LOCKED, PENDING_DEPOSIT, DEPOSIT, SOLD, COMPLETED
+  bookedBy      String?
+  lockedUntil   DateTime?
+  customerPhone String?
+  note          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HR MODULE
+// ══════════════════════════════════════════════════════════════════
+
+// 1. Tổ chức nhân sự
+model HrDepartment {
+  id          String   @id @default(uuid(7))
+  code        String   @unique
+  name        String
+  description String?
+  managerId   String? // FK to HrEmployee
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees  HrEmployee[]
+  salesTeams SalesTeam[]
+}
+
+model HrPosition {
+  id          String   @id @default(uuid(7))
+  code        String   @unique
+  name        String
+  level       String? // Staff, Leader, Manager, Director
+  description String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees HrEmployee[]
+}
+
+// 2. Hồ sơ nhân viên trung tâm
+model HrEmployee {
+  id             String        @id @default(uuid(7))
+  userId         String?       @unique // Link to User account if they have app access
+  employeeCode   String        @unique
+  fullName       String
+  gender         String? // MALE, FEMALE, OTHER
+  dateOfBirth    DateTime?
+  phone          String?
+  email          String?
+  personalEmail  String?
+  address        String?
+  identityNumber String?       @unique // CMND/CCCD
+  bankName       String?
+  bankAccount    String?
+  departmentId   String?
+  department     HrDepartment? @relation(fields: [departmentId], references: [id])
+  positionId     String?
+  position       HrPosition?   @relation(fields: [positionId], references: [id])
+  managerId      String?
+  manager        HrEmployee?   @relation("EmployeeToManager", fields: [managerId], references: [id])
+  subordinates   HrEmployee[]  @relation("EmployeeToManager")
+  joinDate       DateTime
+  leaveDate      DateTime?
+  status         String        @default("PROBATION") // PROBATION, ACTIVE, ON_LEAVE, TERMINATED
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  contracts     HrContract[]
+  attendances   HrAttendance[]
+  leaveRequests HrLeaveRequest[]
+  salaryRecords HrSalaryRecord[]
+  reviews       HrPerformanceReview[]
+  salesProfile  SalesStaff?
+}
+
+// 3. Hợp đồng lao động
+model HrContract {
+  id           String     @id @default(uuid(7))
+  employeeId   String
+  employee     HrEmployee @relation(fields: [employeeId], references: [id])
+  contractCode String     @unique
+  contractType String // PROBATION, DEFINITE, INDEFINITE, FREELANCE
+  startDate    DateTime
+  endDate      DateTime?
+  baseSalary   Float      @default(0) // Lương cơ bản/Vùng
+  grossSalary  Float      @default(0) // Lương thoả thuận
+  status       String     @default("ACTIVE") // DRAFT, ACTIVE, EXPIRED, TERMINATED
+  documentUrl  String? // Link to PDF
+  note         String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+// 4. Chấm công & Nghỉ phép
+model HrAttendance {
+  id           String     @id @default(uuid(7))
+  employeeId   String
+  employee     HrEmployee @relation(fields: [employeeId], references: [id])
+  date         DateTime
+  checkInTime  DateTime?
+  checkOutTime DateTime?
+  workingHours Float      @default(0)
+  status       String     @default("PRESENT") // PRESENT, LATE, ABSENT, HALF_DAY, DAY_OFF
+  locationInfo String? // GPS or IP tracking if needed
+  note         String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([employeeId, date])
+}
+
+model HrLeaveRequest {
+  id         String     @id @default(uuid(7))
+  employeeId String
+  employee   HrEmployee @relation(fields: [employeeId], references: [id])
+  leaveType  String // ANNUAL, SICK, UNPAID, MATERNITY
+  startDate  DateTime
+  endDate    DateTime
+  totalDays  Float
+  reason     String
+  status     String     @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  approverId String?
+  approvedAt DateTime?
+  note       String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+// 5. Tiền lương (Bảng lương chuẩn hoá)
+model HrSalaryRecord {
+  id               String     @id @default(uuid(7))
+  employeeId       String
+  employee         HrEmployee @relation(fields: [employeeId], references: [id])
+  period           String // e.g., "2026-03"
+  year             Int
+  month            Int
+  standardWorkDays Float      @default(0) // Ngày công chuẩn
+  actualWorkDays   Float      @default(0) // Ngày đi làm
+  paidLeaveDays    Float      @default(0) // Ngày nghỉ có phép
+  baseSalaryValue  Float      @default(0)
+  totalAllowance   Float      @default(0)
+  totalDeduction   Float      @default(0) // Phạt, trễ giờ...
+  taxBhiT          Float      @default(0) // Thuế, BHXH, BHYT trích trừ
+  commission       Float      @default(0) // Bonus/Hoa hồng tự động map từ module Sales sang
+  netPay           Float      @default(0) // Thực lãnh
+  status           String     @default("DRAFT") // DRAFT, REVIEWING, APPROVED, PAID
+  paidAt           DateTime?
+  note             String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@unique([employeeId, period])
+}
+
+// 6. Đánh giá hiệu suất
+model HrPerformanceReview {
+  id           String     @id @default(uuid(7))
+  employeeId   String
+  employee     HrEmployee @relation(fields: [employeeId], references: [id])
+  reviewerId   String
+  period       String // e.g., "Q1-2026"
+  overallScore Float      @default(0) // scale 1-5 or 1-100
+  kpiSnapshot  String? // JSON of KPIs attained
+  strengths    String?
+  weaknesses   String?
+  goals        String?
+  status       String     @default("DRAFT") // DRAFT, SUBMITTED, ACKNOWLEDGED
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
