@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { sgds } from '../../../shared/theme/theme';
 import { useAuthStore } from '../store/authStore';
-import { demoAuthProvider } from '../services/providers/demoAuth';
+import { apiAuthProvider } from '../services/providers/apiAuth';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react-native';
 
 const R = '#D42027';
@@ -78,7 +78,7 @@ export function LoginScreen() {
     if (!email || !pw) { setError('Vui lòng nhập email và mật khẩu'); return; }
     setLoading(true);
     try {
-      const r = await demoAuthProvider.login(email, pw);
+      const r = await apiAuthProvider.login(email, pw);
       login(r.user, r.token);
     } catch (e: any) { setError(e.message || 'Đăng nhập thất bại'); }
   };
