@@ -25,10 +25,12 @@ export function StaffManagement({ userRole }: { userRole?: SalesRole }) {
   const isDirectorPlus = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
   const canEdit = isDirectorPlus || userRole === 'sales_manager';
 
-  // Team Lead only sees their team's staff, Director+ sees all
+  // Team Lead sees their team, Director+ sees all
   const allStaff = (rawStaff || []) as any[];
-  const visibleStaff = (userRole === 'team_lead' && user?.teamId)
-    ? allStaff.filter((s: any) => s.teamId === user.teamId)
+  const myStaffRecord = allStaff.find((s: any) => s.email === user?.email || s.fullName === user?.name);
+  const myTeamId = myStaffRecord?.teamId || user?.teamId;
+  const visibleStaff = (userRole === 'team_lead' && myTeamId)
+    ? allStaff.filter((s: any) => s.teamId === myTeamId)
     : allStaff;
 
   // Map staff to table data
