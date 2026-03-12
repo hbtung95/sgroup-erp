@@ -68,7 +68,7 @@ export class BaseSheetsRepository<T extends { id: string }> {
     };
 
     await this.client.appendRow(this.sheetName, this.toRow(entity as any));
-    return entity as T;
+    return entity as unknown as T;
   }
 
   async update(id: string, data: Partial<T>): Promise<T> {

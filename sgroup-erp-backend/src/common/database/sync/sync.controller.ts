@@ -14,7 +14,7 @@ export class SyncController {
    * Body: { entities?: string[] } — optional filter (e.g. ["Customer", "Deal"])
    */
   @Post('sheets-to-db')
-  async sheetsToDB(@Body() body?: { entities?: string[] }) {
+  async sheetsToDB(@Body() body?: { entities?: string[] }): Promise<any> {
     return {
       message: 'Sync started: Sheets → Database',
       results: await this.syncService.syncSheetsToDB(body?.entities),
@@ -26,7 +26,7 @@ export class SyncController {
    * Body: { entities?: string[] }
    */
   @Post('db-to-sheets')
-  async dbToSheets(@Body() body?: { entities?: string[] }) {
+  async dbToSheets(@Body() body?: { entities?: string[] }): Promise<any> {
     return {
       message: 'Sync started: Database → Sheets',
       results: await this.syncService.syncDBToSheets(body?.entities),
@@ -37,7 +37,7 @@ export class SyncController {
    * Get last sync status
    */
   @Get('status')
-  getStatus() {
+  getStatus(): any {
     return this.syncService.getStatus();
   }
 
