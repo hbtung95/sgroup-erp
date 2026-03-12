@@ -60,4 +60,27 @@ export class AuthService {
       password: hashPassword,
     } as any);
   }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.userRepo.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('Không tìm thấy tài khoản');
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      // Support legacy plain text during dev
+      if (currentPassword !== user.password) {
+        throw new UnauthorizedException('Mật khẩu hiện tại không chính xác');
+      }
+    }
+
+    // Hash and save new password
+    const salt = await bcrypt.genSalt();
+    const hashed = await bcrypt.hash(newPassword, salt);
+    await this.userRepo.update(userId, { password: hashed } as any);
+
+    return { message: 'Đổi mật khẩu thành công' };
+  }
 }

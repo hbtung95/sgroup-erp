@@ -68,7 +68,10 @@ export function SalesShell() {
   const { isDark } = useThemeStore();
   const { user } = useAuthStore();
 
-  const userRole = (user?.salesRole || user?.role === 'admin' ? 'sales_admin' : 'sales') as SalesRole;
+  // Determine sales role: use salesRole from JWT, fallback to role-based mapping
+  const userRole: SalesRole = user?.salesRole
+    ? (user.salesRole as SalesRole)
+    : (user?.role === 'admin' ? 'sales_admin' : 'sales');
 
   const handleSelect = (item: SalesSidebarItem) => {
     setActiveKey(item.key);
