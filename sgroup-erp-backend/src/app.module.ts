@@ -17,6 +17,7 @@ import { ActivitiesModule } from './modules/activities/activities.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { ProductsModule } from './modules/products/products.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -36,11 +37,16 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     ActivitiesModule,
     AppointmentsModule,
     ProductsModule,
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

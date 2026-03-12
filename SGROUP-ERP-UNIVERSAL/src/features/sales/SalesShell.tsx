@@ -2,7 +2,7 @@
  * SGROUP ERP — Sales Module Shell
  * Main app shell with role-based Sidebar + TopBar + Content Area
  */
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, ScrollView, Text, StyleSheet, Platform } from 'react-native';
 import { SalesSidebar, SalesSidebarItem, SalesRole } from './SalesSidebar';
 import { SGTopBar } from '../../shared/ui';
@@ -11,6 +11,7 @@ import { useThemeStore } from '../../shared/theme/themeStore';
 import { useAuthStore } from '../auth/store/authStore';
 import { SalesErrorBoundary } from './components/SalesErrorBoundary';
 import { ToastProvider } from './components/ToastProvider';
+import { useSalesRoute } from './hooks/useSalesRoute';
 
 // Lazy screens
 import { SalesDashboard } from './screens/SalesDashboard';
@@ -64,7 +65,8 @@ const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
 };
 
 export function SalesShell() {
-  const [activeKey, setActiveKey] = useState('SALES_DASHBOARD');
+  const validKeys = useMemo(() => Object.keys(KEY_TO_COMPONENT), []);
+  const { activeKey, navigate } = useSalesRoute(validKeys);
   const [activeLabel, setActiveLabel] = useState('Dashboard');
   const [activeSection, setActiveSection] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
@@ -78,7 +80,7 @@ export function SalesShell() {
     : (user?.role === 'admin' ? 'sales_admin' : 'sales');
 
   const handleSelect = (item: SalesSidebarItem) => {
-    setActiveKey(item.key);
+    navigate(item.key);
     setActiveLabel(item.label);
     setActiveSection(item.section);
   };

@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './common/filters';
 import { LoggingInterceptor, TransformInterceptor } from './common/interceptors';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 
 async function bootstrap() {
@@ -40,6 +41,16 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
   app.setGlobalPrefix('api');
+
+  // Swagger API Documentation
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('SGROUP ERP API')
+    .setDescription('Sales Module API — Customers, Deals, Teams, Reports')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');

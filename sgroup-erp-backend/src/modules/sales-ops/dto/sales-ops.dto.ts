@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsInt, IsNumber, IsIn, Min } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsNumber, IsIn, IsDate, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 // ── Teams ──
 export class CreateTeamDto {
@@ -148,8 +149,8 @@ export class CreateDealDto {
   @IsIn(['LEAD', 'MEETING', 'BOOKING', 'DEPOSIT', 'CONTRACT', 'COMPLETED', 'CANCELLED'])
   stage?: string;
 
-  @IsOptional() @IsString()
-  dealDate?: string;
+  @IsOptional() @IsDate() @Type(() => Date)
+  dealDate?: Date;
 
   @IsOptional() @IsString()
   source?: string;
