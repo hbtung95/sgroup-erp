@@ -1,8 +1,9 @@
 /**
- * useCustomers — hook for Customer/Lead CRUD
+ * useCustomers — TanStack Query hook for Customer/Lead CRUD
+ * Migrated from useState + salesApi to useQuery/useMutation + apiClient
  */
-import { useState, useEffect, useCallback } from 'react';
-import { customersApi } from '../api/salesApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../../../core/api/apiClient';
 
 export type LeadStatus = 'NEW' | 'CONTACTED' | 'INTERESTED' | 'MEETING' | 'NEGOTIATION' | 'WON' | 'LOST';
 
@@ -26,48 +27,54 @@ export type Customer = {
   updatedAt: string;
 };
 
+const CUSTOMERS_KEY = 'customers';
+
 export function useCustomers(filters?: Record<string, any>) {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const qc = useQueryClient();
 
-  const fetchCustomers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await customersApi.list(filters);
-      setCustomers(data);
-    } catch (e: any) {
-      console.error('[useCustomers] Failed to fetch customers:', e.message);
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [JSON.stringify(filters)]);
+  const { data: customers = [], isLoading: loading, error } = useQuery({
+    queryKey: [CUSTOMERS_KEY, filters],
+    queryFn: async () => {
+      const res = await apiClient.get('/customers', { params: filters });
+      return res.data as Customer[];
+    },
+  });
 
-  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+  const createMutation = useMutation({
+    mutationFn: async (data: Partial<Customer>) => {
+      const now = new Date();
+      const res = await apiClient.post('/customers', {
+        ...data,
+        year: data.year || now.getFullYear(),
+        month: data.month || now.getMonth() + 1,
+      });
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [CUSTOMERS_KEY] }),
+  });
 
-  const createCustomer = useCallback(async (data: Partial<Customer>) => {
-    const now = new Date();
-    const created = await customersApi.create({
-      ...data,
-      year: data.year || now.getFullYear(),
-      month: data.month || now.getMonth() + 1,
-    });
-    setCustomers(prev => [created, ...prev]);
-    return created;
-  }, []);
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Customer> }) => {
+      const res = await apiClient.patch(`/customers/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [CUSTOMERS_KEY] }),
+  });
 
-  const updateCustomer = useCallback(async (id: string, data: Partial<Customer>) => {
-    const updated = await customersApi.update(id, data);
-    setCustomers(prev => prev.map(c => c.id === id ? { ...c, ...updated } : c));
-    return updated;
-  }, []);
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.delete(`/customers/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [CUSTOMERS_KEY] }),
+  });
 
-  const removeCustomer = useCallback(async (id: string) => {
-    await customersApi.remove(id);
-    setCustomers(prev => prev.filter(c => c.id !== id));
-  }, []);
-
-  return { customers, loading, error, fetchCustomers, createCustomer, updateCustomer, removeCustomer };
+  return {
+    customers,
+    loading,
+    error: error?.message || null,
+    fetchCustomers: () => qc.invalidateQueries({ queryKey: [CUSTOMERS_KEY] }),
+    createCustomer: (data: Partial<Customer>) => createMutation.mutateAsync(data),
+    updateCustomer: (id: string, data: Partial<Customer>) => updateMutation.mutateAsync({ id, data }),
+    removeCustomer: (id: string) => removeMutation.mutateAsync(id),
+  };
 }

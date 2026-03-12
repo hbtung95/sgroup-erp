@@ -1,8 +1,9 @@
 /**
- * useTeams — hook for SalesTeam management
+ * useTeams — TanStack Query hook for SalesTeam management + Staff
+ * Migrated from useState + salesApi to useQuery/useMutation + apiClient
  */
-import { useState, useEffect, useCallback } from 'react';
-import { teamsApi, staffApi } from '../api/salesApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../../../core/api/apiClient';
 
 export type SalesTeamEntry = {
   id: string;
@@ -29,60 +30,77 @@ export type SalesStaffEntry = {
   personalTarget: number;
 };
 
+const TEAMS_KEY = 'salesTeams';
+const STAFF_KEY = 'salesStaff';
+
 export function useTeams() {
-  const [teams, setTeams] = useState<SalesTeamEntry[]>([]);
-  const [staff, setStaff] = useState<SalesStaffEntry[]>([]);
-  const [loading, setLoading] = useState(false);
+  const qc = useQueryClient();
 
-  const fetchTeams = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await teamsApi.list();
-      setTeams(data);
-    } catch (e: any) {
-      console.error('[useTeams] Failed to fetch teams:', e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data: teams = [], isLoading: loadingTeams } = useQuery({
+    queryKey: [TEAMS_KEY],
+    queryFn: async () => {
+      const res = await apiClient.get('/sales-ops/teams');
+      return res.data as SalesTeamEntry[];
+    },
+  });
 
-  const fetchStaff = useCallback(async (filters?: Record<string, any>) => {
-    try {
-      const data = await staffApi.list(filters);
-      setStaff(data);
-    } catch (e: any) {
-      console.error('[useTeams] Failed to fetch staff:', e.message);
-    }
-  }, []);
+  const { data: staff = [], isLoading: loadingStaff } = useQuery({
+    queryKey: [STAFF_KEY],
+    queryFn: async () => {
+      const res = await apiClient.get('/sales-ops/staff');
+      return res.data as SalesStaffEntry[];
+    },
+  });
 
-  useEffect(() => { fetchTeams(); fetchStaff(); }, []);
+  const loading = loadingTeams || loadingStaff;
 
-  const createTeam = useCallback(async (data: Partial<SalesTeamEntry>) => {
-    const created = await teamsApi.create(data);
-    setTeams(prev => [...prev, created]);
-    return created;
-  }, []);
+  const createTeamMutation = useMutation({
+    mutationFn: async (data: Partial<SalesTeamEntry>) => {
+      const res = await apiClient.post('/sales-ops/teams', data);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [TEAMS_KEY] }),
+  });
 
-  const updateTeam = useCallback(async (id: string, data: Partial<SalesTeamEntry>) => {
-    await teamsApi.update(id, data);
-    setTeams(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
-  }, []);
+  const updateTeamMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<SalesTeamEntry> }) => {
+      await apiClient.patch(`/sales-ops/teams/${id}`, data);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [TEAMS_KEY] }),
+  });
 
-  const deleteTeam = useCallback(async (id: string) => {
-    await teamsApi.remove(id);
-    setTeams(prev => prev.filter(t => t.id !== id));
-  }, []);
+  const deleteTeamMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.delete(`/sales-ops/teams/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [TEAMS_KEY] }),
+  });
 
-  const createStaff = useCallback(async (data: Partial<SalesStaffEntry>) => {
-    const created = await staffApi.create(data);
-    setStaff(prev => [...prev, created]);
-    return created;
-  }, []);
+  const createStaffMutation = useMutation({
+    mutationFn: async (data: Partial<SalesStaffEntry>) => {
+      const res = await apiClient.post('/sales-ops/staff', data);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [STAFF_KEY] }),
+  });
 
-  const updateStaff = useCallback(async (id: string, data: Partial<SalesStaffEntry>) => {
-    await staffApi.update(id, data);
-    setStaff(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
-  }, []);
+  const updateStaffMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<SalesStaffEntry> }) => {
+      await apiClient.patch(`/sales-ops/staff/${id}`, data);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [STAFF_KEY] }),
+  });
 
-  return { teams, staff, loading, fetchTeams, fetchStaff, createTeam, updateTeam, deleteTeam, createStaff, updateStaff };
+  return {
+    teams,
+    staff,
+    loading,
+    fetchTeams: () => qc.invalidateQueries({ queryKey: [TEAMS_KEY] }),
+    fetchStaff: () => qc.invalidateQueries({ queryKey: [STAFF_KEY] }),
+    createTeam: (data: Partial<SalesTeamEntry>) => createTeamMutation.mutateAsync(data),
+    updateTeam: (id: string, data: Partial<SalesTeamEntry>) => updateTeamMutation.mutateAsync({ id, data }),
+    deleteTeam: (id: string) => deleteTeamMutation.mutateAsync(id),
+    createStaff: (data: Partial<SalesStaffEntry>) => createStaffMutation.mutateAsync(data),
+    updateStaff: (id: string, data: Partial<SalesStaffEntry>) => updateStaffMutation.mutateAsync({ id, data }),
+  };
 }

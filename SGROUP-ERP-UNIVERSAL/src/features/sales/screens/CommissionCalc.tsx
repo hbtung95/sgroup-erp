@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { DollarSign, TrendingUp, Gift, Download, Clock, CheckCircle2, AlertCircle } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGButton, SGPlanningSectionTitle } from '../../../shared/ui/components';
+import { useGetCommissionReport } from '../hooks/useSalesReport';
+import type { SalesRole } from '../SalesSidebar';
 
 type CommissionRecord = {
   id: string;
@@ -16,19 +18,32 @@ type CommissionRecord = {
   date: string;
 };
 
-const MOCK_COMMISSIONS: CommissionRecord[] = [
-  { id: '1', project: 'Vinhomes Smart City', customer: 'Nguyễn Văn A', transactionValue: 3.2, commissionRate: 1.5, commissionEstimated: 48, status: 'PAID', date: '01/03/2026' },
-  { id: '2', project: 'Masteri Waterfront', customer: 'Lê Thị B', transactionValue: 4.5, commissionRate: 1.5, commissionEstimated: 67.5, status: 'APPROVED', date: '10/03/2026' },
-  { id: '3', project: 'The Global City', customer: 'Trần Văn C', transactionValue: 15.6, commissionRate: 2.0, commissionEstimated: 312, status: 'PENDING', date: 'Hôm qua' },
-];
+const commissions: CommissionRecord[] = [];
 
-export function CommissionCalc() {
+export function CommissionCalc({ userRole }: { userRole?: SalesRole }) {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
 
-  const totalPaid = MOCK_COMMISSIONS.filter(c => c.status === 'PAID').reduce((sum, c) => sum + c.commissionEstimated, 0);
-  const totalPending = MOCK_COMMISSIONS.filter(c => c.status !== 'PAID').reduce((sum, c) => sum + c.commissionEstimated, 0);
+  const isDirector = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
+  const isLeader = userRole === 'team_lead' || userRole === 'sales_manager';
+  const scopeLabel = isDirector ? 'HOA HỒNG TOÀN BỘ' : isLeader ? 'HOA HỒNG TEAM' : 'VÍ THU NHẬP CÁ NHÂN';
+
+  const now = new Date();
+  const { data: rawData, isLoading } = useGetCommissionReport({ year: now.getFullYear(), month: now.getMonth() + 1 });
+  const records: CommissionRecord[] = (rawData || []).map((r: any) => ({
+    id: r.id,
+    project: r.project || r.projectName || '',
+    customer: r.customer || r.customerName || r.staffName || '',
+    transactionValue: r.transactionValue ?? r.dealValue ?? 0,
+    commissionRate: r.commissionRate ?? 0,
+    commissionEstimated: r.commissionEstimated ?? r.commissionAmount ?? 0,
+    status: r.status || 'PENDING',
+    date: r.date || r.createdAt || '',
+  }));
+
+  const totalPaid = records.filter(c => c.status === 'PAID').reduce((sum, c) => sum + c.commissionEstimated, 0);
+  const totalPending = records.filter(c => c.status !== 'PAID').reduce((sum, c) => sum + c.commissionEstimated, 0);
 
   const cardStyle: any = {
     backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 24, padding: 32,
@@ -41,7 +56,7 @@ export function CommissionCalc() {
         {/* Header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#10b981', textTransform: 'uppercase', marginBottom: 4 }}>Ví thu nhập cá nhân</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#10b981', textTransform: 'uppercase', marginBottom: 4 }}>{scopeLabel}</Text>
             <Text style={{ fontSize: 28, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>Hoa Hồng & Thưởng</Text>
           </View>
           <SGButton title="Xuất Báo Cáo" icon={Download as any} style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9' }} />
@@ -87,7 +102,16 @@ export function CommissionCalc() {
           />
           
           <View style={{ gap: 16 }}>
-            {MOCK_COMMISSIONS.map(record => {
+            {isLoading ? (
+              <View style={{ padding: 24, alignItems: 'center' }}><ActivityIndicator size="small" color="#3b82f6" /></View>
+            ) : records.length === 0 ? (
+              <View style={{ padding: 32, alignItems: 'center' }}>
+                <Text style={{ fontSize: 40, marginBottom: 12 }}>💰</Text>
+                <Text style={{ color: cSub, fontWeight: '700', fontSize: 15 }}>Chưa có giao dịch hoa hồng</Text>
+                <Text style={{ color: cSub, fontSize: 13, marginTop: 4 }}>Dữ liệu sẽ xuất hiện khi có giao dịch hoàn tất</Text>
+              </View>
+            ) : null}
+            {records.map(record => {
               const statusConfig = {
                 PAID: { label: 'ĐÃ CHI TRẢ', color: '#10b981', bg: '#dcfce7' },
                 APPROVED: { label: 'CHỜ KẾ TOÁN CHI', color: '#3b82f6', bg: '#eff6ff' },

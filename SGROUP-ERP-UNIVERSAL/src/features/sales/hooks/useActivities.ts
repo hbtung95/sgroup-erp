@@ -1,8 +1,9 @@
 /**
- * useActivities — hook for SalesActivity daily log CRUD
+ * useActivities — TanStack Query hook for SalesActivity daily log CRUD
+ * Migrated from useState + salesApi to useQuery/useMutation + apiClient
  */
-import { useState, useEffect, useCallback } from 'react';
-import { activitiesApi } from '../api/salesApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../../../core/api/apiClient';
 
 export type SalesActivityEntry = {
   id: string;
@@ -19,62 +20,73 @@ export type SalesActivityEntry = {
   createdAt: string;
 };
 
+const ACTIVITIES_KEY = 'activities';
+
 export function useActivities(filters?: Record<string, any>) {
-  const [activities, setActivities] = useState<SalesActivityEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState<any>(null);
+  const qc = useQueryClient();
 
-  const fetchActivities = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await activitiesApi.list(filters);
-      setActivities(data);
-    } catch (e: any) {
-      console.error('[useActivities] Failed to fetch activities:', e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [JSON.stringify(filters)]);
+  const { data: activities = [], isLoading: loading } = useQuery({
+    queryKey: [ACTIVITIES_KEY, filters],
+    queryFn: async () => {
+      const res = await apiClient.get('/activities', { params: filters });
+      return res.data as SalesActivityEntry[];
+    },
+  });
 
-  const fetchSummary = useCallback(async (sumFilters?: Record<string, any>) => {
-    try {
-      const data = await activitiesApi.summary(sumFilters || filters);
-      setSummary(data);
-      return data;
-    } catch {
-      // compute from local
-      const totals = activities.reduce(
-        (acc, a) => ({
-          postsCount: acc.postsCount + a.postsCount,
-          callsCount: acc.callsCount + a.callsCount,
-          newLeads: acc.newLeads + a.newLeads,
-          meetingsMade: acc.meetingsMade + a.meetingsMade,
-        }),
-        { postsCount: 0, callsCount: 0, newLeads: 0, meetingsMade: 0 },
-      );
-      const s = { totalEntries: activities.length, ...totals };
-      setSummary(s);
-      return s;
-    }
-  }, [activities, JSON.stringify(filters)]);
+  const { data: summary = null } = useQuery({
+    queryKey: [ACTIVITIES_KEY, 'summary', filters],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get('/activities/summary', { params: filters });
+        return res.data;
+      } catch {
+        // Compute from local activities
+        const totals = activities.reduce(
+          (acc, a) => ({
+            postsCount: acc.postsCount + a.postsCount,
+            callsCount: acc.callsCount + a.callsCount,
+            newLeads: acc.newLeads + a.newLeads,
+            meetingsMade: acc.meetingsMade + a.meetingsMade,
+          }),
+          { postsCount: 0, callsCount: 0, newLeads: 0, meetingsMade: 0 },
+        );
+        return { totalEntries: activities.length, ...totals };
+      }
+    },
+    enabled: activities.length > 0,
+  });
 
-  useEffect(() => { fetchActivities(); }, [fetchActivities]);
+  const addMutation = useMutation({
+    mutationFn: async (data: Omit<SalesActivityEntry, 'id' | 'createdAt'>) => {
+      const res = await apiClient.post('/activities', data);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [ACTIVITIES_KEY] }),
+  });
 
-  const addActivity = useCallback(async (data: Omit<SalesActivityEntry, 'id' | 'createdAt'>) => {
-    const created = await activitiesApi.create(data);
-    setActivities(prev => [created, ...prev]);
-    return created;
-  }, []);
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<SalesActivityEntry> }) => {
+      const res = await apiClient.patch(`/activities/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [ACTIVITIES_KEY] }),
+  });
 
-  const updateActivity = useCallback(async (id: string, data: Partial<SalesActivityEntry>) => {
-    const updated = await activitiesApi.update(id, data);
-    setActivities(prev => prev.map(a => a.id === id ? { ...a, ...updated } : a));
-  }, []);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.delete(`/activities/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [ACTIVITIES_KEY] }),
+  });
 
-  const deleteActivity = useCallback(async (id: string) => {
-    await activitiesApi.remove(id);
-    setActivities(prev => prev.filter(a => a.id !== id));
-  }, []);
-
-  return { activities, loading, summary, fetchActivities, fetchSummary, addActivity, updateActivity, deleteActivity };
+  return {
+    activities,
+    loading,
+    summary,
+    fetchActivities: () => qc.invalidateQueries({ queryKey: [ACTIVITIES_KEY] }),
+    fetchSummary: () => qc.invalidateQueries({ queryKey: [ACTIVITIES_KEY, 'summary'] }),
+    addActivity: (data: Omit<SalesActivityEntry, 'id' | 'createdAt'>) => addMutation.mutateAsync(data),
+    updateActivity: (id: string, data: Partial<SalesActivityEntry>) => updateMutation.mutateAsync({ id, data }),
+    deleteActivity: (id: string) => deleteMutation.mutateAsync(id),
+  };
 }

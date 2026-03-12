@@ -12,10 +12,12 @@ import type { SalesRole } from '../SalesSidebar';
 import { useSalesData } from '../hooks/useSalesData';
 import { SalesQuickForms } from '../components/forms/SalesQuickForms';
 import { useDeals } from '../hooks/useDeals';
+import { useGetKpiCards, useGetActualFunnel } from '../hooks/useSalesReport';
 
-// Data arrays — populated from API hooks
-const TEAM_KPI: { id: string; label: string; value: string; unit: string; change: number; color: string; icon: any }[] = [];
-const TEAM_FUNNEL: { stage: string; count: number; color: string; pct: number }[] = [];
+// Icon map for KPI cards from API
+const KPI_ICONS: Record<string, any> = { gmv: DollarSign, revenue: TrendingUp, deals: ShoppingCart, staff: Users, target: Target };
+const KPI_COLORS = ['#8b5cf6', '#3b82f6', '#22c55e', '#f59e0b'];
+const FUNNEL_COLORS = ['#94a3b8', '#60a5fa', '#818cf8', '#a78bfa', '#c084fc', '#8b5cf6', '#7c3aed'];
 
 const STAGE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   LEAD: { bg: '#f1f5f9', text: '#64748b', label: 'Lead' },
@@ -69,6 +71,40 @@ export function SalesDashboard({ userRole }: { userRole?: SalesRole }) {
   const salesDataHook = useSalesData();
   const { kpiData } = salesDataHook;
   const { deals } = useDeals();
+
+  // Team/Director KPI and Funnel from API
+  const now = new Date();
+  const { data: kpiCards, isLoading: kpiLoading } = useGetKpiCards({ year: now.getFullYear(), month: now.getMonth() + 1 });
+  const { data: funnelData, isLoading: funnelLoading } = useGetActualFunnel({ year: now.getFullYear(), month: now.getMonth() + 1 });
+
+  // Transform API data into display format
+  const teamKpi = (kpiCards || []).map((k: any, i: number) => ({
+    id: k.id || `kpi-${i}`,
+    label: k.label || k.title || '',
+    value: k.value?.toLocaleString?.('vi-VN') ?? String(k.value ?? 0),
+    unit: k.unit || '',
+    change: k.change ?? k.growthPct ?? 0,
+    color: KPI_COLORS[i % KPI_COLORS.length],
+    icon: KPI_ICONS[k.key] || Target,
+  }));
+
+  const teamFunnel = (funnelData || []).map((s: any, i: number) => ({
+    stage: s.stage || s.label || '',
+    count: s.count ?? s.value ?? 0,
+    color: FUNNEL_COLORS[i % FUNNEL_COLORS.length],
+    pct: s.pct ?? s.percentage ?? 0,
+  }));
+
+  const personalPipeline = deals.filter((d: any) => ['BOOKING', 'DEPOSIT', 'MEETING', 'LEAD'].includes(d.stage)).slice(0, 5).map((d: any) => ({
+    id: d.id,
+    customer: d.customerName || '',
+    project: d.projectName || '',
+    phone: d.customerPhone || '',
+    type: d.stage === 'DEPOSIT' ? 'urgent' : d.stage === 'MEETING' ? 'meeting' : 'call',
+    action: d.stage === 'DEPOSIT' ? `Nợ cọc — ${d.productCode || d.dealCode}` : d.stage === 'MEETING' ? `Hẹn gặp — ${d.productCode || d.dealCode}` : `Follow up — ${d.productCode || d.dealCode}`,
+    time: d.dealDate ? new Date(d.dealDate).toLocaleDateString('vi-VN') : '',
+    stage: d.stage,
+  }));
 
   const card: any = {
     backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 28, padding: 32,
@@ -135,9 +171,13 @@ export function SalesDashboard({ userRole }: { userRole?: SalesRole }) {
               </View>
             ))}
           </View>
+        ) : kpiLoading ? (
+          <View style={{ padding: 40, alignItems: 'center' }}><ActivityIndicator size="large" color="#3b82f6" /><Text style={{ color: cSub, marginTop: 12, fontWeight: '600' }}>Đang tải KPI...</Text></View>
+        ) : teamKpi.length === 0 ? (
+          <View style={{ padding: 40, alignItems: 'center' }}><Text style={{ fontSize: 40, marginBottom: 12 }}>📊</Text><Text style={{ color: cSub, fontWeight: '700', fontSize: 15 }}>Chưa có dữ liệu KPI</Text><Text style={{ color: cSub, fontSize: 13, marginTop: 4 }}>Dữ liệu sẽ hiển thị khi có giao dịch</Text></View>
         ) : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 24, marginTop: 10 }}>
-            {TEAM_KPI.map((k: any) => (
+            {teamKpi.map((k: any) => (
               <View key={k.id} style={{ 
                 flex: 1, minWidth: 240, backgroundColor: isDark ? 'rgba(30,41,59,0.5)' : '#ffffff', 
                 borderRadius: 24, padding: 24, 
@@ -205,12 +245,15 @@ export function SalesDashboard({ userRole }: { userRole?: SalesRole }) {
                   badgeText="MY PIPELINE"
                 />
                 <View style={{ backgroundColor: '#ef44441A', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
-                   <Text style={{ fontSize: 12, fontWeight: '800', color: '#ef4444' }}>{PERSONAL_PIPELINE.length} Nhiệm vụ</Text>
+                   <Text style={{ fontSize: 12, fontWeight: '800', color: '#ef4444' }}>{personalPipeline.length} Nhiệm vụ</Text>
                 </View>
               </View>
 
               <View style={{ gap: 16 }}>
-                {PERSONAL_PIPELINE.map((task) => {
+                {personalPipeline.length === 0 ? (
+                  <View style={{ padding: 24, alignItems: 'center' }}><Text style={{ color: cSub, fontSize: 14, fontWeight: '600' }}>🎉 Không có việc cần xử lý</Text></View>
+                ) : null}
+                {personalPipeline.map((task) => {
                   const s = STAGE_COLORS[task.stage] || STAGE_COLORS.LEAD;
                   return (
                     <View key={task.id} style={{ 
@@ -255,7 +298,12 @@ export function SalesDashboard({ userRole }: { userRole?: SalesRole }) {
                 badgeText="PIPELINE"
                 style={{ marginBottom: 28 }}
               />
-              {TEAM_FUNNEL.map((s, i) => (
+              {funnelLoading ? (
+                <View style={{ padding: 24, alignItems: 'center' }}><ActivityIndicator size="small" color="#8b5cf6" /></View>
+              ) : teamFunnel.length === 0 ? (
+                <View style={{ padding: 24, alignItems: 'center' }}><Text style={{ color: cSub, fontSize: 14, fontWeight: '600' }}>Chưa có dữ liệu phễu</Text></View>
+              ) : null}
+              {teamFunnel.map((s: any, i: number) => (
                 <View key={i} style={{ marginBottom: 18 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, alignItems: 'flex-end' }}>
                     <Text style={{ fontSize: 13, fontWeight: '700', color: cText, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.stage}</Text>

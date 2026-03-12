@@ -2,12 +2,15 @@
  * DealRecording — Ghi nhận giao dịch mới + Danh sách deals
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Platform, TextInput } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform, TextInput, ActivityIndicator } from 'react-native';
 import { ShoppingCart, Plus, Filter, ChevronDown } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
 import type { SalesRole } from '../SalesSidebar';
+import { useGetDeals } from '../hooks/useSalesOps';
+
+const fmt = (n: number) => n.toLocaleString('vi-VN', { minimumFractionDigits: n < 10 ? 1 : 0, maximumFractionDigits: 3 });
 
 const STAGE_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   LEAD: { bg: '#f1f5f9', text: '#64748b', label: 'Lead' },
@@ -19,21 +22,24 @@ const STAGE_COLORS: Record<string, { bg: string; text: string; label: string }> 
   CANCELLED: { bg: '#fef2f2', text: '#dc2626', label: 'Huỷ' },
 };
 
-const MOCK_DEALS = [
-  { id: '1', dealCode: 'GD-202603-A1X', customer: 'Nguyễn Văn A', phone: '0901234567', project: 'Vinhomes Ocean Park 3', product: 'S1-2005', value: 3.5, feeRate: 5.0, commission: 0.175, stage: 'COMPLETED', staff: 'Trần Thị B', team: 'Team Alpha', source: 'MARKETING', date: '10/03/2026' },
-  { id: '2', dealCode: 'GD-202603-B2Y', customer: 'Lê Minh C', phone: '0912345678', project: 'Masteri Waterfront', product: 'MW-1508', value: 5.5, feeRate: 4.5, commission: 0.248, stage: 'CONTRACT', staff: 'Phạm Đức D', team: 'Team Beta', source: 'SELF_GEN', date: '09/03/2026' },
-  { id: '3', dealCode: 'GD-202603-C3Z', customer: 'Hoàng Kim E', phone: '0923456789', project: 'Grand Marina', product: 'GM-B05', value: 15.0, feeRate: 3.5, commission: 0.525, stage: 'DEPOSIT', staff: 'Nguyễn Văn A', team: 'Team Alpha', source: 'REFERRAL', date: '08/03/2026' },
-  { id: '4', dealCode: 'GD-202603-D4W', customer: 'Vũ Thành F', phone: '0934567890', project: 'The Global City', product: 'TGC-SH012', value: 12.0, feeRate: 4.0, commission: 0.480, stage: 'BOOKING', staff: 'Trần Thị B', team: 'Team Alpha', source: 'MARKETING', date: '07/03/2026' },
-  { id: '5', dealCode: 'GD-202603-E5V', customer: 'Đặng Hải G', phone: '0945678901', project: 'Ecopark', product: 'EP-BT15', value: 8.0, feeRate: 5.5, commission: 0.440, stage: 'MEETING', staff: 'Lê Minh C', team: 'Team Gamma', source: 'SELF_GEN', date: '06/03/2026' },
-];
-
-const fmt = (n: number) => n.toLocaleString('vi-VN', { minimumFractionDigits: n < 10 ? 1 : 0, maximumFractionDigits: 3 });
-
 export function DealRecording({ userRole }: { userRole?: SalesRole }) {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
+  const isDirector = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
+  const isLeader = userRole === 'team_lead' || userRole === 'sales_manager';
+  const showStaffColumn = isDirector || isLeader;
+  const scopeLabel = isDirector ? 'TOÀN BỘ GIAO DỊCH' : isLeader ? 'GIAO DỊCH TEAM' : 'GIAO DỊCH CỦA TÔI';
   const canCreate = userRole === 'sales' || userRole === 'sales_manager' || userRole === 'sales_admin';
+  const now = new Date();
+  const { data: rawDeals, isLoading } = useGetDeals({ year: now.getFullYear(), month: now.getMonth() + 1 });
+  const dealsData = (rawDeals || []).map((d: any) => ({
+    id: d.id, dealCode: d.dealCode || '', customer: d.customerName || '', phone: d.customerPhone || '',
+    project: d.projectName || '', product: d.productCode || '', value: d.dealValue ?? 0,
+    feeRate: d.feeRate ?? 0, commission: d.commission ?? 0, stage: d.stage || 'LEAD',
+    staff: d.staffName || '', team: d.teamName || '', source: d.source || 'MARKETING',
+    date: d.dealDate ? new Date(d.dealDate).toLocaleDateString('vi-VN') : '',
+  }));
 
   const sourceLabels: Record<string, { bg: string; text: string; label: string }> = {
     MARKETING: { bg: '#dbeafe', text: '#2563eb', label: 'MKT' },
@@ -66,7 +72,7 @@ export function DealRecording({ userRole }: { userRole?: SalesRole }) {
         </View>
       );
     } },
-    { key: 'staff', title: 'SALES', flex: 1, render: (v: any) => <Text style={{ fontSize: 12, fontWeight: '600', color: cSub }}>{v}</Text> },
+    ...(showStaffColumn ? [{ key: 'staff', title: 'SALES', flex: 1, render: (v: any) => <Text style={{ fontSize: 12, fontWeight: '600', color: cSub }}>{v}</Text> }] : []),
     { key: 'source', title: 'NGUỒN', width: 70, align: 'center', render: (v: any) => {
       const srcInfo = sourceLabels[v] || sourceLabels.MARKETING;
       return (
@@ -86,8 +92,9 @@ export function DealRecording({ userRole }: { userRole?: SalesRole }) {
               <ShoppingCart size={22} color="#3b82f6" />
             </View>
             <View>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: '#3b82f6', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>{scopeLabel}</Text>
               <Text style={{ ...sgds.typo.h2, color: cText }}>Giao Dịch</Text>
-              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>{MOCK_DEALS.length} giao dịch — Tháng 03/2026</Text>
+              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>{dealsData.length} giao dịch — Tháng {String(now.getMonth() + 1).padStart(2, '0')}/{now.getFullYear()}</Text>
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -103,12 +110,18 @@ export function DealRecording({ userRole }: { userRole?: SalesRole }) {
         </View>
 
         <SGCard variant="glass" noPadding>
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}><ActivityIndicator size="large" color="#3b82f6" /><Text style={{ color: cSub, marginTop: 12, fontWeight: '600' }}>Đang tải giao dịch...</Text></View>
+          ) : dealsData.length === 0 ? (
+            <View style={{ padding: 40, alignItems: 'center' }}><Text style={{ fontSize: 40, marginBottom: 12 }}>📝</Text><Text style={{ color: cSub, fontWeight: '700', fontSize: 15 }}>Chưa có giao dịch nào</Text></View>
+          ) : (
           <SGTable 
             columns={DEAL_COLUMNS} 
-            data={MOCK_DEALS} 
+            data={dealsData} 
             onRowPress={(row) => console.log('Press deal', row)} 
             style={{ borderWidth: 0, backgroundColor: 'transparent' }}
           />
+          )}
         </SGCard>
       </ScrollView>
     </View>

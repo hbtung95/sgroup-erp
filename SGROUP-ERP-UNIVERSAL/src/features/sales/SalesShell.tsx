@@ -9,6 +9,8 @@ import { SGTopBar } from '../../shared/ui';
 import { useTheme, typography } from '../../shared/theme/theme';
 import { useThemeStore } from '../../shared/theme/themeStore';
 import { useAuthStore } from '../auth/store/authStore';
+import { SalesErrorBoundary } from './components/SalesErrorBoundary';
+import { ToastProvider } from './components/ToastProvider';
 
 // Lazy screens
 import { SalesDashboard } from './screens/SalesDashboard';
@@ -32,6 +34,7 @@ import { Appointments } from './screens/Appointments';
 import { LoanCalculator } from './screens/LoanCalculator';
 import { Training } from './screens/Training';
 import { DepositManagement } from './screens/DepositManagement';
+import { KpiDashboard } from './screens/KpiDashboard';
 
 const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
   SALES_DASHBOARD: SalesDashboard,
@@ -40,6 +43,7 @@ const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
   SALES_DEALS: DealTracker,
   SALES_BOOKING: BookingScreen,
   SALES_DEPOSIT: DepositManagement,
+  SALES_KPI: KpiDashboard,
   SALES_APPOINTMENTS: Appointments,
   SALES_ACTIVITY_LOG: ActivityLog,
   SALES_MY_PROFILE: EmployeeProfile,
@@ -103,6 +107,8 @@ export function SalesShell() {
   );
 
   return (
+    <ToastProvider>
+    <SalesErrorBoundary>
     <View style={[styles.shell, { backgroundColor: isDark ? '#05070A' : '#F8FAFC' }]}>
       {/* Aurora backdrop */}
       {Platform.OS === 'web' && (
@@ -162,6 +168,8 @@ export function SalesShell() {
         </View>
       </View>
     </View>
+    </SalesErrorBoundary>
+    </ToastProvider>
   );
 }
 

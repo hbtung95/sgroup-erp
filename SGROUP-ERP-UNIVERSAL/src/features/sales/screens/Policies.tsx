@@ -16,51 +16,56 @@ type PolicySection = {
   items: string[];
 };
 
-const MOCK_POLICIES: PolicySection[] = [
+const policies: PolicySection[] = [
   {
     id: '1', title: 'Chính Sách Hoa Hồng', icon: Gift, color: '#22c55e',
     items: [
-      '• Hoa hồng cơ bản: 1.5% – 2.0% giá trị HĐMB tùy dự án.',
-      '• Hệ số thưởng vượt target: ×1.2 khi đạt 120% KPI, ×1.5 khi đạt 150% KPI.',
-      '• Hoa hồng được giải ngân sau khi khách hoàn tất đợt thanh toán thứ 2.',
-      '• Trường hợp khách hủy cọc: hoa hồng bị thu hồi 100%.',
-    ]
+      '• Sales cá nhân: hoa hồng 1.5% – 2.5% tùy dự án',
+      '• Team Lead: bonus 0.3% trên GMV toàn team',
+      '• Sales Manager: bonus 0.15% trên GMV department',
+      '• Điều kiện: giao dịch hoàn tất (ký HĐ + nhận cọc)',
+      '• Thanh toán: cuối tháng sau kỳ chốt sổ',
+    ],
   },
   {
-    id: '2', title: 'Quy Trình Booking & Giao Dịch', icon: Shield, color: '#3b82f6',
+    id: '2', title: 'Quy Tắc Ứng Xử', icon: Shield, color: '#3b82f6',
     items: [
-      '• Thời gian giữ chỗ tối đa: 48 giờ kể từ lúc khóa căn trên hệ thống.',
-      '• Khách hàng phải đặt cọc tối thiểu 50 triệu VNĐ trong 48h.',
-      '• Mỗi NVKD được giữ chỗ tối đa 3 căn cùng lúc.',
-      '• Sau 48h không đặt cọc, căn hộ tự động mở bán lại.',
-    ]
+      '• Luôn mặc đồng phục khi tiếp khách tại showroom',
+      '• Không cam kết ngoài phạm vi chính sách chủ đầu tư',
+      '• Bảo mật thông tin khách hàng tuyệt đối',
+      '• Không tranh giành khách hàng giữa các Sales',
+      '• Tuân thủ quy trình CRM: cập nhật đầy đủ nhật ký',
+    ],
   },
   {
-    id: '3', title: 'Nội Quy Làm Việc', icon: Clock, color: '#f59e0b',
+    id: '3', title: 'Chính Sách Chấm Công', icon: Clock, color: '#f59e0b',
     items: [
-      '• Giờ làm việc: 8:00 – 17:30 (Thứ 2 – Thứ 7). Chủ nhật nghỉ luân phiên.',
-      '• Check-in qua ứng dụng trước 8:15. Đi trễ 3 lần/tháng = trừ 1 ngày phép.',
-      '• Báo cáo hoạt động hàng ngày trước 17:00 (qua Quick Add trên Dashboard).',
-      '• Tham gia họp Team Sales sáng thứ 2 hàng tuần (bắt buộc).',
-    ]
+      '• Giờ làm việc: 8:30 – 17:30 (thứ 2 – thứ 6)',
+      '• Trực showroom cuối tuần: xoay ca theo lịch team',
+      '• Đi trễ > 15 phút: tính 0.5 ngày nghỉ không phép',
+      '• Tổng nghỉ phép: 12 ngày/năm (sau thử việc)',
+      '• Check-in qua app: yêu cầu GPS tại địa điểm làm việc',
+    ],
   },
   {
-    id: '4', title: 'Xử Lý Vi Phạm', icon: AlertTriangle, color: '#ef4444',
+    id: '4', title: 'Tuân Thủ Pháp Luật', icon: AlertTriangle, color: '#ef4444',
     items: [
-      '• Cắt booking của NVKD khác: Cảnh cáo lần 1, kỷ luật lần 2.',
-      '• Tự ý giảm giá ngoài chính sách: Chịu bù phần chênh lệch.',
-      '• Không hoàn thành KPI 3 tháng liên tiếp: Xem xét chuyển vị trí.',
-      '• Vi phạm bảo mật thông tin khách hàng: Xử lý theo quy định pháp luật.',
-    ]
+      '• Tuân thủ Luật Kinh doanh BĐS 2023',
+      '• Không thu tiền mặt từ khách — mọi giao dịch qua tài khoản công ty',
+      '• Hợp đồng đặt cọc phải có chữ ký Giám đốc hoặc người được ủy quyền',
+      '• Lưu trữ chứng từ gốc tối thiểu 5 năm',
+      '• Báo cáo vi phạm: hotline nội bộ 1900-xxxx',
+    ],
   },
   {
-    id: '5', title: 'Chính Sách Đào Tạo & Phát Triển', icon: Users, color: '#8b5cf6',
+    id: '5', title: 'Quy Định Team', icon: Users, color: '#8b5cf6',
     items: [
-      '• NVKD mới được đào tạo 2 tuần về sản phẩm, quy trình và kỹ năng bán hàng.',
-      '• Mỗi quý tổ chức 1 workshop nâng cao kỹ năng (Đàm phán, Closing, CRM).',
-      '• Top 3 NVKD xuất sắc nhất quý được tham gia chương trình "Leadership Track".',
-      '• Hỗ trợ chi phí thi chứng chỉ BĐS (tối đa 5 triệu VNĐ/năm).',
-    ]
+      '• Họp team hàng tuần: thứ 2, 9:00 – 9:30',
+      '• Báo cáo hoạt động hàng ngày trước 18:00',
+      '• Chia sẻ leads mới trong 24h qua nhóm Zalo/Teams',
+      '• Target cá nhân: do Team Lead phân bổ từ target team',
+      '• Review hiệu suất: cuối mỗi tháng với Team Lead',
+    ],
   },
 ];
 
@@ -90,7 +95,7 @@ export function Policies() {
 
         {/* Accordion List */}
         <View style={{ gap: 12 }}>
-          {MOCK_POLICIES.map(section => {
+          {policies.map(section => {
             const isExpanded = expandedId === section.id;
             const SectionIcon = section.icon;
             return (

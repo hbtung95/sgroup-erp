@@ -11,6 +11,7 @@ import {
 } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { useCustomers, Customer, LeadStatus } from '../hooks/useCustomers';
+import type { SalesRole } from '../SalesSidebar';
 
 const STATUS_CFG: Record<LeadStatus, { label: string; color: string; bg: string }> = {
   NEW:         { label: 'MỚI',        color: '#6366f1', bg: '#eef2ff' },
@@ -24,10 +25,14 @@ const STATUS_CFG: Record<LeadStatus, { label: string; color: string; bg: string 
 
 const STATUS_ORDER: LeadStatus[] = ['NEW', 'CONTACTED', 'INTERESTED', 'MEETING', 'NEGOTIATION', 'WON', 'LOST'];
 
-export function CustomerLeads() {
+export function CustomerLeads({ userRole }: { userRole?: SalesRole }) {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
+
+  const isDirector = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
+  const isLeader = userRole === 'team_lead' || userRole === 'sales_manager';
+  const scopeLabel = isDirector ? 'TOÀN BỘ KHÁCH HÀNG' : isLeader ? 'KHÁCH HÀNG TEAM' : 'KHÁCH HÀNG CỦA TÔI';
   const [activeFilter, setActiveFilter] = useState<LeadStatus | 'ALL'>('ALL');
   const [searchText, setSearchText] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -84,7 +89,7 @@ export function CustomerLeads() {
         {/* Header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', marginBottom: 4 }}>QUẢN LÝ KHÁCH HÀNG</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', marginBottom: 4 }}>{scopeLabel}</Text>
             <Text style={{ fontSize: 28, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>Khách Hàng & Leads</Text>
             <Text style={{ fontSize: 13, fontWeight: '600', color: cSub, marginTop: 4 }}>
               {customers.length} khách hàng • {customers.filter(c => c.status === 'NEW').length} lead mới

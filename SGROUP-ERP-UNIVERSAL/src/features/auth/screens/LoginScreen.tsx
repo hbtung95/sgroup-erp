@@ -25,8 +25,8 @@ const INTER = isWeb ? { fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif"
 
 export function LoginScreen() {
   const { login, setLoading, setError, isLoading, error } = useAuthStore();
-  const [email, setEmail] = useState('admin@sgroup.vn');
-  const [pw, setPw] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [pw, setPw] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [fEmail, setFEmail] = useState(false);
   const [fPw, setFPw] = useState(false);
@@ -293,13 +293,7 @@ export function LoginScreen() {
                   </LinearGradient>
                 </Pressable>
 
-                {/* Demo Info */}
-                <View style={s.demoBox}>
-                  <ShieldCheck size={16} color="#A1A8B8" />
-                  <Text style={s.demoTxt}>
-                    Demo: <Text style={s.demoHL}>admin@sgroup.vn</Text> / <Text style={s.demoHL}>123456</Text>
-                  </Text>
-                </View>
+
               </View>
 
               <Text style={s.foot}>

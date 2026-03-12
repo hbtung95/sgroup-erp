@@ -5,6 +5,7 @@ import {
 import { CustomersService } from './customers.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CreateCustomerDto, UpdateCustomerDto } from './dto/customer.dto';
 
 @Controller('customers')
 @UseGuards(RolesGuard)
@@ -52,18 +53,13 @@ export class CustomersController {
 
   @Post()
   @Roles('admin', 'sales', 'sales_manager', 'sales_admin')
-  async create(@Body() body: {
-    fullName: string; phone?: string; email?: string;
-    source?: string; projectInterest?: string; budget?: string;
-    status?: string; assignedTo?: string; assignedName?: string;
-    isVip?: boolean; note?: string; year: number; month: number;
-  }) {
+  async create(@Body() body: CreateCustomerDto) {
     return this.service.create(body);
   }
 
   @Patch(':id')
   @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'sales_admin')
-  async update(@Param('id') id: string, @Body() body: any) {
+  async update(@Param('id') id: string, @Body() body: UpdateCustomerDto) {
     return this.service.update(id, body);
   }
 

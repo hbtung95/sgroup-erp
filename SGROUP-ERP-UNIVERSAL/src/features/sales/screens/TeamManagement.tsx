@@ -9,6 +9,7 @@ import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGButton, SGModal } from '../../../shared/ui/components';
 import type { SalesRole } from '../SalesSidebar';
 import { useTeams } from '../hooks/useTeams';
+import { useAuthStore } from '../../auth/store/authStore';
 
 
 
@@ -18,8 +19,21 @@ export function TeamManagement({ userRole }: { userRole?: SalesRole }) {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
-  const canEdit = userRole === 'sales_director' || userRole === 'sales_admin';
+  const { user } = useAuthStore();
+
+  // Role-based permissions
+  const isDirectorPlus = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
+  const isManagerPlus = isDirectorPlus || userRole === 'sales_manager';
+  const canEdit = isDirectorPlus;
   const { teams, staff } = useTeams();
+
+  // Team Lead only sees their own team, Director+ sees all
+  const visibleTeams = (userRole === 'team_lead' && user?.teamId)
+    ? teams.filter(t => t.id === user.teamId)
+    : teams;
+  const visibleStaff = (userRole === 'team_lead' && user?.teamId)
+    ? staff.filter(s => s.teamId === user.teamId)
+    : staff;
 
 
   return (
@@ -33,7 +47,7 @@ export function TeamManagement({ userRole }: { userRole?: SalesRole }) {
             </View>
             <View>
               <Text style={{ ...sgds.typo.h2, color: cText }}>Quản Lý Team Sales</Text>
-              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>{teams.length} team đang hoạt động</Text>
+              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>{visibleTeams.length} team {userRole === 'team_lead' ? '(team của bạn)' : 'đang hoạt động'}</Text>
             </View>
           </View>
           {canEdit && (
@@ -43,7 +57,7 @@ export function TeamManagement({ userRole }: { userRole?: SalesRole }) {
 
         {/* Team Cards Grid */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
-          {teams.map(team => (
+          {visibleTeams.map(team => (
             <SGCard variant="glass" key={team.id} style={{ flex: 1, minWidth: 320, padding: 32 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                 <View>
@@ -68,7 +82,7 @@ export function TeamManagement({ userRole }: { userRole?: SalesRole }) {
               <View style={{ flexDirection: 'row', gap: 16 }}>
                 <View style={{ flex: 1, alignItems: 'center' }}>
                   <Text style={{ fontSize: 10, fontWeight: '800', color: cSub }}>NHÂN SỰ</Text>
-                  <Text style={{ fontSize: 24, fontWeight: '900', color: cText, marginTop: 4 }}>{staff.filter(s => s.teamId === team.id).length}</Text>
+                  <Text style={{ fontSize: 24, fontWeight: '900', color: cText, marginTop: 4 }}>{visibleStaff.filter(s => s.teamId === team.id).length}</Text>
                 </View>
                 <View style={{ flex: 1, alignItems: 'center' }}>
                   <Text style={{ fontSize: 10, fontWeight: '800', color: cSub }}>KHU VỰC</Text>

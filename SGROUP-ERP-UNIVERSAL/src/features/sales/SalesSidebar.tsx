@@ -9,13 +9,13 @@ import {
   LayoutDashboard, Users, UserCog, Building, Target,
   BarChart3, RefreshCw, FileText, ChevronLeft, ChevronRight, LogOut, LayoutGrid,
   Users2, Briefcase, CalendarDays, UserCircle, Plus, Wallet, FolderOpen, BookOpen,
-  HandCoins, Ticket, CalendarCheck, Clock, Calculator, GraduationCap, Landmark
+  HandCoins, Ticket, CalendarCheck, Clock, Calculator, GraduationCap, Landmark, Trophy
 } from 'lucide-react-native';
 import { SGThemeToggle } from '../../shared/ui/components/SGThemeToggle';
 import { SGButton } from '../../shared/ui/components';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export type SalesRole = 'sales' | 'sales_manager' | 'sales_director' | 'ceo' | 'sales_admin';
+export type SalesRole = 'sales' | 'team_lead' | 'sales_manager' | 'sales_director' | 'ceo' | 'sales_admin';
 
 export interface SalesSidebarItem {
   key: string;
@@ -25,7 +25,7 @@ export interface SalesSidebarItem {
   minRole: SalesRole[];
 }
 
-const ALL_ROLES: SalesRole[] = ['sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin'];
+const ALL_ROLES: SalesRole[] = ['sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin'];
 
 const SIDEBAR_ITEMS: SalesSidebarItem[] = [
   // Dashboard
@@ -41,6 +41,7 @@ const SIDEBAR_ITEMS: SalesSidebarItem[] = [
   { key: 'SALES_BOOKING',       label: 'Giữ chỗ',            icon: Ticket,          section: 'sales_ops', minRole: ALL_ROLES },
   { key: 'SALES_DEPOSIT',       label: 'Đặt cọc',            icon: Landmark,        section: 'sales_ops', minRole: ALL_ROLES },
   { key: 'SALES_DEALS',         label: 'Giao dịch',          icon: Briefcase,       section: 'sales_ops', minRole: ALL_ROLES },
+  { key: 'SALES_KPI',           label: 'Bảng KPI',           icon: Trophy,          section: 'sales_ops', minRole: ALL_ROLES },
 
   // TÀI CHÍNH
   { key: 'SALES_TIMEKEEPING',   label: 'Chấm công',          icon: Clock,           section: 'finance',   minRole: ALL_ROLES },
@@ -54,12 +55,12 @@ const SIDEBAR_ITEMS: SalesSidebarItem[] = [
   { key: 'SALES_TRAINING',      label: 'Đào tạo',            icon: GraduationCap,   section: 'resources', minRole: ALL_ROLES },
   
   // ADMIN WORKSPACE (Manager+)
-  { key: 'SALES_TEAMS',         label: 'Quản lý Team',       icon: Users,           section: 'admin',     minRole: ['sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
-  { key: 'SALES_STAFF',         label: 'Nhân sự Sales',      icon: UserCog,         section: 'admin',     minRole: ['sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
+  { key: 'SALES_TEAMS',         label: 'Quản lý Team',       icon: Users,           section: 'admin',     minRole: ['team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
+  { key: 'SALES_STAFF',         label: 'Nhân sự Sales',      icon: UserCog,         section: 'admin',     minRole: ['team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
   { key: 'SALES_PROJECTS',      label: 'Dự án BĐS',          icon: Building,        section: 'admin',     minRole: ['sales_director', 'ceo', 'sales_admin'] },
   { key: 'SALES_TARGETS',       label: 'Phân bổ Target',     icon: Target,          section: 'admin',     minRole: ['sales_director', 'ceo', 'sales_admin'] },
-  { key: 'SALES_PLAN_ACTUAL',   label: 'Plan vs Actual',     icon: BarChart3,       section: 'admin',     minRole: ['sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
-  { key: 'SALES_TEAM_REPORT',   label: 'Báo cáo Team',       icon: FileText,        section: 'admin',     minRole: ['sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
+  { key: 'SALES_PLAN_ACTUAL',   label: 'Plan vs Actual',     icon: BarChart3,       section: 'admin',     minRole: ['team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
+  { key: 'SALES_TEAM_REPORT',   label: 'Báo cáo Team',       icon: FileText,        section: 'admin',     minRole: ['team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
   { key: 'SALES_CRM_VIEWER',    label: 'Đối chiếu CRM',      icon: RefreshCw,       section: 'admin',     minRole: ['sales_director', 'sales_admin'] },
 ];
 

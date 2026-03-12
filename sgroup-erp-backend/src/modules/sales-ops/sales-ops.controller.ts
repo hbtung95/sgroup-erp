@@ -5,6 +5,7 @@ import {
 import { SalesOpsService } from './sales-ops.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CreateTeamDto, UpdateTeamDto, CreateStaffDto, UpdateStaffDto, CreateDealDto, CreateProjectDto } from './dto/sales-ops.dto';
 
 @Controller('sales-ops')
 @UseGuards(RolesGuard)
@@ -27,16 +28,13 @@ export class SalesOpsController {
 
   @Post('teams')
   @Roles('admin', 'sales_director', 'sales_admin')
-  async createTeam(@Body() body: {
-    code: string; name: string; leaderId?: string;
-    leaderName?: string; region?: string;
-  }) {
+  async createTeam(@Body() body: CreateTeamDto) {
     return this.service.createTeam(body);
   }
 
   @Patch('teams/:id')
   @Roles('admin', 'sales_director', 'sales_admin')
-  async updateTeam(@Param('id') id: string, @Body() body: any) {
+  async updateTeam(@Param('id') id: string, @Body() body: UpdateTeamDto) {
     return this.service.updateTeam(id, body);
   }
 
@@ -66,17 +64,13 @@ export class SalesOpsController {
 
   @Post('staff')
   @Roles('admin', 'sales_manager', 'sales_director', 'sales_admin')
-  async createStaff(@Body() body: {
-    fullName: string; employeeCode?: string; phone?: string;
-    email?: string; teamId?: string; role?: string;
-    leadsCapacity?: number; personalTarget?: number;
-  }) {
+  async createStaff(@Body() body: CreateStaffDto) {
     return this.service.createStaff(body);
   }
 
   @Patch('staff/:id')
   @Roles('admin', 'sales_manager', 'sales_director', 'sales_admin')
-  async updateStaff(@Param('id') id: string, @Body() body: any) {
+  async updateStaff(@Param('id') id: string, @Body() body: UpdateStaffDto) {
     return this.service.updateStaff(id, body);
   }
 
@@ -99,17 +93,13 @@ export class SalesOpsController {
 
   @Post('projects')
   @Roles('admin', 'sales_director', 'sales_admin')
-  async createProject(@Body() body: {
-    projectCode: string; name: string; developer?: string;
-    location?: string; type?: string; feeRate?: number;
-    avgPrice?: number; totalUnits?: number;
-  }) {
+  async createProject(@Body() body: CreateProjectDto) {
     return this.service.createProject(body);
   }
 
   @Patch('projects/:id')
   @Roles('admin', 'sales_director', 'sales_admin')
-  async updateProject(@Param('id') id: string, @Body() body: any) {
+  async updateProject(@Param('id') id: string, @Body() body: CreateProjectDto) {
     return this.service.updateProject(id, body);
   }
 
@@ -154,13 +144,14 @@ export class SalesOpsController {
 
   @Post('deals')
   @Roles('admin', 'sales', 'sales_manager', 'sales_admin')
-  async createDeal(@Body() body: any) {
+  async createDeal(@Body() body: CreateDealDto) {
     return this.service.createDeal(body);
   }
 
+
   @Patch('deals/:id')
   @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'sales_admin')
-  async updateDeal(@Param('id') id: string, @Body() body: any) {
+  async updateDeal(@Param('id') id: string, @Body() body: CreateDealDto) {
     return this.service.updateDeal(id, body);
   }
 

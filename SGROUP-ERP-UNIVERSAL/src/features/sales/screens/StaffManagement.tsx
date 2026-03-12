@@ -2,14 +2,14 @@
  * StaffManagement — CRUD Nhân sự Sales
  */
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Platform } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform, ActivityIndicator } from 'react-native';
 import { UserCog, Plus, Star, User } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
 import type { SalesRole } from '../SalesSidebar';
-
-const staffData: { id: string; code: string; name: string; team: string; role: string; deals: number; gmv: number; target: number; status: string }[] = [];
+import { useGetStaff } from '../hooks/useSalesOps';
+import { useAuthStore } from '../../auth/store/authStore';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
@@ -17,7 +17,32 @@ export function StaffManagement({ userRole }: { userRole?: SalesRole }) {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
-  const canEdit = userRole !== 'sales' && userRole !== 'ceo';
+  const { user } = useAuthStore();
+
+  const { data: rawStaff, isLoading } = useGetStaff();
+
+  // Role-based permissions
+  const isDirectorPlus = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
+  const canEdit = isDirectorPlus || userRole === 'sales_manager';
+
+  // Team Lead only sees their team's staff, Director+ sees all
+  const allStaff = (rawStaff || []) as any[];
+  const visibleStaff = (userRole === 'team_lead' && user?.teamId)
+    ? allStaff.filter((s: any) => s.teamId === user.teamId)
+    : allStaff;
+
+  // Map staff to table data
+  const staffData = visibleStaff.map((s: any) => ({
+    id: s.id,
+    code: s.employeeCode || '—',
+    name: s.fullName || '',
+    team: s.team?.name || '—',
+    role: s.role || 'sales',
+    deals: s._count?.deals ?? 0,
+    gmv: 0,
+    target: s.personalTarget || 0,
+    status: s.status || 'ACTIVE',
+  }));
 
   const STAFF_COLUMNS: any = [
     { key: 'code', title: 'MÃ NV', width: 80, render: (v: any) => <Text style={{ fontSize: 12, fontWeight: '700', color: cSub }}>{v}</Text> },
@@ -59,7 +84,7 @@ export function StaffManagement({ userRole }: { userRole?: SalesRole }) {
             </View>
             <View>
               <Text style={{ ...sgds.typo.h2, color: cText }}>Nhân Sự Sales</Text>
-              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>{staffData.length} nhân viên</Text>
+              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>{staffData.length} nhân viên {userRole === 'team_lead' ? '(team của bạn)' : ''}</Text>
             </View>
           </View>
           {canEdit && <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#3b82f6', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12 }}>
@@ -69,12 +94,18 @@ export function StaffManagement({ userRole }: { userRole?: SalesRole }) {
         </View>
 
         <SGCard variant="glass" noPadding>
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}><ActivityIndicator size="large" color="#3b82f6" /></View>
+          ) : staffData.length === 0 ? (
+            <View style={{ padding: 40, alignItems: 'center' }}><Text style={{ fontSize: 40, marginBottom: 12 }}>👥</Text><Text style={{ color: cSub, fontWeight: '700', fontSize: 15 }}>Chưa có nhân viên nào</Text></View>
+          ) : (
           <SGTable 
             columns={STAFF_COLUMNS} 
             data={staffData} 
             onRowPress={(row) => console.log('Press staff', row)} 
             style={{ borderWidth: 0, backgroundColor: 'transparent' }}
           />
+          )}
         </SGCard>
       </ScrollView>
     </View>

@@ -10,6 +10,7 @@ import {
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { SGPlanningSectionTitle } from '../../../shared/ui/components';
 import { useAppointments, AppointmentEntry, AppointmentStatus, AppointmentType } from '../hooks/useAppointments';
+import type { SalesRole } from '../SalesSidebar';
 
 const STATUS_CFG: Record<AppointmentStatus, { label: string; color: string; icon: any }> = {
   SCHEDULED:  { label: 'SẮP TỚI',    color: '#3b82f6', icon: Clock },
@@ -28,11 +29,15 @@ const TYPE_CONFIG: Record<AppointmentType, { label: string; color: string }> = {
 
 const DAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-export function Appointments() {
+export function Appointments({ userRole }: { userRole?: SalesRole }) {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
   const today = new Date();
+
+  const isDirector = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
+  const isLeader = userRole === 'team_lead' || userRole === 'sales_manager';
+  const scopeLabel = isDirector ? 'LỊCH HẸN TOÀN BỘ' : isLeader ? 'LỊCH HẸN TEAM' : 'LỊCH HẸN CỦA TÔI';
 
   const { appointments, createAppointment, updateAppointment, cancelAppointment } = useAppointments();
 
@@ -91,7 +96,7 @@ export function Appointments() {
         {/* Header */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <View>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#8b5cf6', textTransform: 'uppercase', marginBottom: 4 }}>LỊCH HẸN</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#8b5cf6', textTransform: 'uppercase', marginBottom: 4 }}>{scopeLabel}</Text>
             <Text style={{ fontSize: 28, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>
               Hôm Nay, {today.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             </Text>
@@ -192,6 +197,14 @@ export function Appointments() {
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                           <Text style={{ fontSize: 16, fontWeight: '800', color: cText }}>{apt.customerName}</Text>
+                          <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: `${typeCfg.color}15` }}>
+                            <Text style={{ fontSize: 10, fontWeight: '800', color: typeCfg.color }}>{typeCfg.label}</Text>
+                          </View>
+                          {(isDirector || isLeader) && apt.staffName && (
+                            <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}>
+                              <Text style={{ fontSize: 10, fontWeight: '700', color: cSub }}>{apt.staffName}</Text>
+                            </View>
+                          )}
                           <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: `${typeCfg.color}15` }}>
                             <Text style={{ fontSize: 10, fontWeight: '800', color: typeCfg.color }}>{typeCfg.label}</Text>
                           </View>

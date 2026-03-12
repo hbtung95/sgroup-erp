@@ -18,23 +18,25 @@ type DocItem = {
 };
 
 const CATEGORIES = [
-  { key: 'all', label: 'Tất Cả', count: 12 },
-  { key: 'brochure', label: 'Brochure', count: 4 },
+  { key: 'all', label: 'Tất Cả', count: 10 },
+  { key: 'brochure', label: 'Brochure', count: 3 },
   { key: 'pricelist', label: 'Bảng Giá', count: 3 },
   { key: 'policy', label: 'Chính Sách', count: 2 },
-  { key: 'media', label: 'Ảnh / Video', count: 2 },
+  { key: 'media', label: 'Ảnh / Video', count: 1 },
   { key: 'contract', label: 'Mẫu HĐ', count: 1 },
 ];
 
-const MOCK_DOCS: DocItem[] = [
-  { id: '1', name: 'Brochure Vinhomes Ocean Park 3 – Q1/2026', project: 'Vinhomes OP3', category: 'brochure', size: '12.4 MB', date: '05/03/2026' },
-  { id: '2', name: 'Bảng giá cập nhật căn hộ Tòa S4 – Tháng 3', project: 'Vinhomes OP3', category: 'pricelist', size: '2.1 MB', date: '01/03/2026' },
-  { id: '3', name: 'Chính sách bán hàng & Chiết khấu đặc biệt', project: 'Masteri Waterfront', category: 'policy', size: '890 KB', date: '28/02/2026' },
-  { id: '4', name: 'Brochure The Global City – Khu biệt thự', project: 'The Global City', category: 'brochure', size: '18.2 MB', date: '25/02/2026' },
-  { id: '5', name: 'Album render 3D nội khu + Tiện ích', project: 'Ecopark S2', category: 'media', size: '45.6 MB', date: '20/02/2026' },
-  { id: '6', name: 'Bảng giá Shophouse – Đợt mở bán T3', project: 'The Global City', category: 'pricelist', size: '1.8 MB', date: '15/02/2026' },
-  { id: '7', name: 'Video walkthrough căn mẫu 2PN+1', project: 'Vinhomes OP3', category: 'media', size: '120 MB', date: '10/02/2026' },
-  { id: '8', name: 'Mẫu HĐMB chuẩn 2026 (PDF)', project: 'Chung', category: 'contract', size: '540 KB', date: '01/01/2026' },
+const docs: DocItem[] = [
+  { id: '1', name: 'Brochure Vinhomes Ocean Park 3 – Q1/2026', project: 'Vinhomes OP3', category: 'brochure', size: '12.5 MB', date: '01/03/2026' },
+  { id: '2', name: 'Brochure Masteri Waterfront – Phase 2', project: 'Masteri WF', category: 'brochure', size: '8.2 MB', date: '15/02/2026' },
+  { id: '3', name: 'Brochure The Beverly Solari', project: 'Beverly Solari', category: 'brochure', size: '15.1 MB', date: '20/01/2026' },
+  { id: '4', name: 'Bảng giá Vinhomes OP3 – Block S2 (03/2026)', project: 'Vinhomes OP3', category: 'pricelist', size: '2.1 MB', date: '05/03/2026' },
+  { id: '5', name: 'Bảng giá Masteri Waterfront – Tower A', project: 'Masteri WF', category: 'pricelist', size: '1.8 MB', date: '01/03/2026' },
+  { id: '6', name: 'Bảng giá The Beverly Solari – Căn hộ', project: 'Beverly Solari', category: 'pricelist', size: '1.5 MB', date: '15/02/2026' },
+  { id: '7', name: 'Chính sách bán hàng Q1/2026', project: 'Tất cả', category: 'policy', size: '980 KB', date: '01/01/2026' },
+  { id: '8', name: 'Chính sách thanh toán linh hoạt 2026', project: 'Tất cả', category: 'policy', size: '450 KB', date: '01/01/2026' },
+  { id: '9', name: 'Album ảnh căn mẫu Vinhomes OP3', project: 'Vinhomes OP3', category: 'media', size: '45 MB', date: '20/02/2026' },
+  { id: '10', name: 'Mẫu HĐ đặt cọc chuẩn 2026', project: 'Tất cả', category: 'contract', size: '320 KB', date: '01/01/2026' },
 ];
 
 const CAT_ICONS: Record<string, any> = {
@@ -51,7 +53,7 @@ export function ProjectDocs() {
   const cSub = theme.colors.textSecondary;
   const [filter, setFilter] = useState('all');
 
-  const filtered = filter === 'all' ? MOCK_DOCS : MOCK_DOCS.filter(d => d.category === filter);
+  const filtered = filter === 'all' ? docs : docs.filter(d => d.category === filter);
 
   const cardStyle: any = {
     backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 24, padding: 32,

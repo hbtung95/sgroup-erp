@@ -1,8 +1,9 @@
 /**
- * useDeals — hook for FactDeal pipeline
+ * useDeals — TanStack Query hook for FactDeal pipeline
+ * Migrated from useState + salesApi to useQuery/useMutation + apiClient
  */
-import { useState, useEffect, useCallback } from 'react';
-import { dealsApi } from '../api/salesApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../../../core/api/apiClient';
 
 export type DealStage = 'LEAD' | 'MEETING' | 'BOOKING' | 'DEPOSIT' | 'CONTRACT' | 'COMPLETED' | 'CANCELLED';
 
@@ -34,56 +35,64 @@ export type Deal = {
   createdAt: string;
 };
 
+const DEALS_KEY = 'deals';
+
 export function useDeals(filters?: Record<string, any>) {
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState<any>(null);
+  const qc = useQueryClient();
 
-  const fetchDeals = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await dealsApi.list(filters);
-      setDeals(data);
-    } catch (e: any) {
-      console.error('[useDeals] Failed to fetch deals:', e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [JSON.stringify(filters)]);
+  const { data: deals = [], isLoading: loading } = useQuery({
+    queryKey: [DEALS_KEY, filters],
+    queryFn: async () => {
+      const res = await apiClient.get('/sales-ops/deals', { params: filters });
+      return res.data as Deal[];
+    },
+  });
 
-  const fetchStats = useCallback(async (stFilters?: Record<string, any>) => {
-    try {
-      const data = await dealsApi.stats(stFilters || filters);
-      setStats(data);
-      return data;
-    } catch {
-      const byStage = deals.reduce((acc, d) => {
-        acc[d.stage] = (acc[d.stage] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      const s = {
-        total: deals.length,
-        totalGMV: deals.reduce((s, d) => s + d.dealValue, 0),
-        totalRevenue: deals.reduce((s, d) => s + d.commission, 0),
-        byStage,
-      };
-      setStats(s);
-      return s;
-    }
-  }, [deals, JSON.stringify(filters)]);
+  const { data: stats = null } = useQuery({
+    queryKey: [DEALS_KEY, 'stats', filters],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get('/sales-ops/deals/stats', { params: filters });
+        return res.data;
+      } catch {
+        const byStage = deals.reduce((acc, d) => {
+          acc[d.stage] = (acc[d.stage] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        return {
+          total: deals.length,
+          totalGMV: deals.reduce((s, d) => s + d.dealValue, 0),
+          totalRevenue: deals.reduce((s, d) => s + d.commission, 0),
+          byStage,
+        };
+      }
+    },
+    enabled: deals.length > 0,
+  });
 
-  useEffect(() => { fetchDeals(); }, [fetchDeals]);
+  const createMutation = useMutation({
+    mutationFn: async (data: Partial<Deal>) => {
+      const res = await apiClient.post('/sales-ops/deals', data);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [DEALS_KEY] }),
+  });
 
-  const createDeal = useCallback(async (data: Partial<Deal>) => {
-    const created = await dealsApi.create(data);
-    setDeals(prev => [created, ...prev]);
-    return created;
-  }, []);
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Deal> }) => {
+      const res = await apiClient.patch(`/sales-ops/deals/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [DEALS_KEY] }),
+  });
 
-  const updateDeal = useCallback(async (id: string, data: Partial<Deal>) => {
-    const updated = await dealsApi.update(id, data);
-    setDeals(prev => prev.map(d => d.id === id ? { ...d, ...updated } : d));
-  }, []);
-
-  return { deals, loading, stats, fetchDeals, fetchStats, createDeal, updateDeal };
+  return {
+    deals,
+    loading,
+    stats,
+    fetchDeals: () => qc.invalidateQueries({ queryKey: [DEALS_KEY] }),
+    fetchStats: () => qc.invalidateQueries({ queryKey: [DEALS_KEY, 'stats'] }),
+    createDeal: (data: Partial<Deal>) => createMutation.mutateAsync(data),
+    updateDeal: (id: string, data: Partial<Deal>) => updateMutation.mutateAsync({ id, data }),
+  };
 }

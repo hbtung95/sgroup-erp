@@ -9,7 +9,24 @@ import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable } from '../../../shared/ui/components';
 import type { SalesRole } from '../SalesSidebar';
 
-const timekeepingData: { id: string; date: string; dayOfWeek: string; checkIn: string; checkOut: string; status: string }[] = [];
+// Generate current month attendance (future: from HrAttendance API)
+const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+const now = new Date();
+const timekeepingData: { id: string; date: string; dayOfWeek: string; checkIn: string; checkOut: string; status: string }[] = Array.from({ length: Math.min(now.getDate(), 25) }, (_, i) => {
+  const d = new Date(now.getFullYear(), now.getMonth(), i + 1);
+  const dow = d.getDay();
+  if (dow === 0) return null; // Skip Sunday
+  const isLate = Math.random() < 0.08;
+  const isLeave = dow === 6 && Math.random() < 0.3;
+  return {
+    id: `tk-${i}`,
+    date: d.toLocaleDateString('vi-VN'),
+    dayOfWeek: dayNames[dow],
+    checkIn: isLeave ? '—' : isLate ? `08:${45 + Math.floor(Math.random() * 15)}` : `08:${String(15 + Math.floor(Math.random() * 15)).padStart(2, '0')}`,
+    checkOut: isLeave ? '—' : `17:${String(30 + Math.floor(Math.random() * 30)).padStart(2, '0')}`,
+    status: isLeave ? 'LEAVE' : isLate ? 'LATE' : 'ON_TIME',
+  };
+}).filter(Boolean) as any[];
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
   ON_TIME: { bg: '#dcfce7', text: '#16a34a', label: 'Đúng giờ' },

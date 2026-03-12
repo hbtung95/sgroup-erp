@@ -1,6 +1,9 @@
 /**
- * SGROUP ERP — Sales API Client
- * Centralized API wrapper for all Sales module endpoints
+ * @deprecated Use apiClient from core/api/apiClient.ts instead.
+ * All hooks have been migrated to TanStack Query + apiClient.
+ * This file is kept temporarily for backward compatibility.
+ *
+ * SGROUP ERP — Sales API Client (Legacy)
  */
 import { API_BASE_URL } from '../../../core/api/api';
 

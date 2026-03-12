@@ -1,8 +1,9 @@
 /**
- * useProducts — hook for PropertyProduct (Inventory) CRUD
+ * useProducts — TanStack Query hook for PropertyProduct (Inventory) CRUD
+ * Migrated from useState + salesApi to useQuery/useMutation + apiClient
  */
-import { useState, useEffect, useCallback } from 'react';
-import { productsApi } from '../api/salesApi';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '../../../core/api/apiClient';
 
 export type ProductStatus = 'AVAILABLE' | 'BOOKED' | 'LOCKED' | 'PENDING_DEPOSIT' | 'DEPOSIT' | 'SOLD' | 'COMPLETED';
 
@@ -24,61 +25,77 @@ export type PropertyProduct = {
   note?: string;
 };
 
+const PRODUCTS_KEY = 'products';
+
 export function useProducts(filters?: Record<string, any>) {
-  const [products, setProducts] = useState<PropertyProduct[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState<any>(null);
+  const qc = useQueryClient();
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await productsApi.list(filters);
-      setProducts(data);
-    } catch (e: any) {
-      console.error('[useProducts] Failed to fetch products:', e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [JSON.stringify(filters)]);
+  const { data: products = [], isLoading: loading } = useQuery({
+    queryKey: [PRODUCTS_KEY, filters],
+    queryFn: async () => {
+      const res = await apiClient.get('/products', { params: filters });
+      return res.data as PropertyProduct[];
+    },
+  });
 
-  const fetchStats = useCallback(async (projectId?: string) => {
-    try {
-      const data = await productsApi.stats(projectId);
-      setStats(data);
-      return data;
-    } catch {
-      // Compute from local
-      const byStatus = products.reduce((acc, p) => {
-        acc[p.status] = (acc[p.status] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      const s = { total: products.length, byStatus };
-      setStats(s);
-      return s;
-    }
-  }, [products]);
+  const { data: stats = null } = useQuery({
+    queryKey: [PRODUCTS_KEY, 'stats', filters],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get('/products/stats', { params: filters });
+        return res.data;
+      } catch {
+        const byStatus = products.reduce((acc, p) => {
+          acc[p.status] = (acc[p.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        return { total: products.length, byStatus };
+      }
+    },
+    enabled: products.length > 0,
+  });
 
-  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+  const lockMutation = useMutation({
+    mutationFn: async ({ id, bookedBy, durationMinutes }: { id: string; bookedBy: string; durationMinutes?: number }) => {
+      const res = await apiClient.post(`/products/${id}/lock`, { bookedBy, durationMinutes });
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [PRODUCTS_KEY] }),
+  });
 
-  const lockUnit = useCallback(async (id: string, bookedBy: string, durationMinutes?: number) => {
-    const updated = await productsApi.lock(id, { bookedBy, durationMinutes });
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
-  }, []);
+  const depositMutation = useMutation({
+    mutationFn: async ({ id, customerName, customerPhone }: { id: string; customerName: string; customerPhone: string }) => {
+      const res = await apiClient.post(`/products/${id}/deposit`, { customerName, customerPhone });
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [PRODUCTS_KEY] }),
+  });
 
-  const requestDeposit = useCallback(async (id: string, customerName: string, customerPhone: string) => {
-    const updated = await productsApi.requestDeposit(id, { customerName, customerPhone });
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
-  }, []);
+  const approveMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiClient.post(`/products/${id}/approve`);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [PRODUCTS_KEY] }),
+  });
 
-  const approveDeposit = useCallback(async (id: string) => {
-    const updated = await productsApi.approveDeposit(id);
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
-  }, []);
+  const cancelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiClient.post(`/products/${id}/cancel`);
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [PRODUCTS_KEY] }),
+  });
 
-  const cancelBooking = useCallback(async (id: string) => {
-    const updated = await productsApi.cancelBooking(id);
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updated } : p));
-  }, []);
-
-  return { products, loading, stats, fetchProducts, fetchStats, lockUnit, requestDeposit, approveDeposit, cancelBooking };
+  return {
+    products,
+    loading,
+    stats,
+    fetchProducts: () => qc.invalidateQueries({ queryKey: [PRODUCTS_KEY] }),
+    fetchStats: () => qc.invalidateQueries({ queryKey: [PRODUCTS_KEY, 'stats'] }),
+    lockUnit: (id: string, bookedBy: string, durationMinutes?: number) => lockMutation.mutateAsync({ id, bookedBy, durationMinutes }),
+    requestDeposit: (id: string, customerName: string, customerPhone: string) => depositMutation.mutateAsync({ id, customerName, customerPhone }),
+    approveDeposit: (id: string) => approveMutation.mutateAsync(id),
+    cancelBooking: (id: string) => cancelMutation.mutateAsync(id),
+  };
 }

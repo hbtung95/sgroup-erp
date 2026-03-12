@@ -40,6 +40,11 @@ export function ActivityLog({ userRole }: { userRole?: SalesRole }) {
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
 
+  const isDirector = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
+  const isLeader = userRole === 'team_lead' || userRole === 'sales_manager';
+  const isSales = !isDirector && !isLeader;
+  const scopeLabel = isDirector ? 'TOÀN BỘ PHÒNG KINH DOANH' : isLeader ? 'NHẬT KÝ TEAM' : 'BÁO CÁO HOẠT ĐỘNG';
+
   const { addActivity, updateActivity, deleteActivity } = useSalesStore();
   const {
     period, setPeriod,
@@ -292,10 +297,10 @@ export function ActivityLog({ userRole }: { userRole?: SalesRole }) {
             </View>
             <View>
               <Text style={{ fontSize: 12, fontWeight: '800', color: '#a855f7', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>
-                BÁO CÁO HOẠT ĐỘNG
+                {scopeLabel}
               </Text>
               <Text style={{ fontSize: 26, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>
-                Nhật Ký Tác Nghiệp
+                {isDirector ? 'Tổng Quan Hoạt Động' : isLeader ? 'Hoạt Động Team' : 'Nhật Ký Tác Nghiệp'}
               </Text>
             </View>
           </View>

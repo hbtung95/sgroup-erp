@@ -2,27 +2,13 @@
  * PlanVsActual — Báo cáo Plan vs Actual theo tháng
  */
 import React from 'react';
-import { View, Text, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { BarChart3, TrendingUp, TrendingDown, Target } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable } from '../../../shared/ui/components';
 import type { SalesRole } from '../SalesSidebar';
-
-const MOCK_PLAN_ACTUAL = [
-  { month: 'T1', plan: 200, actual: 180, rate: 90 },
-  { month: 'T2', plan: 220, actual: 245, rate: 111 },
-  { month: 'T3', plan: 250, actual: 210, rate: 84 },
-  { month: 'T4', plan: 230, actual: 0, rate: 0 },
-  { month: 'T5', plan: 260, actual: 0, rate: 0 },
-  { month: 'T6', plan: 280, actual: 0, rate: 0 },
-  { month: 'T7', plan: 250, actual: 0, rate: 0 },
-  { month: 'T8', plan: 270, actual: 0, rate: 0 },
-  { month: 'T9', plan: 300, actual: 0, rate: 0 },
-  { month: 'T10', plan: 280, actual: 0, rate: 0 },
-  { month: 'T11', plan: 260, actual: 0, rate: 0 },
-  { month: 'T12', plan: 300, actual: 0, rate: 0 },
-];
+import { useGetPlanVsActual } from '../hooks/useSalesReport';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
@@ -31,10 +17,23 @@ export function PlanVsActual({ userRole }: { userRole?: SalesRole }) {
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
 
-  const totalPlan = MOCK_PLAN_ACTUAL.reduce((s, m) => s + m.plan, 0);
-  const totalActual = MOCK_PLAN_ACTUAL.reduce((s, m) => s + m.actual, 0);
+  const isDirector = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
+  const isLeader = userRole === 'team_lead' || userRole === 'sales_manager';
+  const scopeLabel = isDirector ? 'KẾ HOẠCH TOÀN BỘ PHÒNG' : isLeader ? 'KẾ HOẠCH TEAM' : 'KẾ HOẠCH CÁ NHÂN';
+
+  const now = new Date();
+  const { data: rawData, isLoading } = useGetPlanVsActual({ year: now.getFullYear() });
+  const planActualData: { month: string; plan: number; actual: number; rate: number }[] = (rawData || []).map((d: any) => ({
+    month: d.month || `T${d.monthNum}`,
+    plan: d.plan ?? d.targetGMV ?? 0,
+    actual: d.actual ?? d.actualGMV ?? 0,
+    rate: d.rate ?? (d.plan > 0 ? Math.round(((d.actual ?? d.actualGMV ?? 0) / (d.plan ?? d.targetGMV ?? 1)) * 100) : 0),
+  }));
+
+  const totalPlan = planActualData.reduce((s, m) => s + m.plan, 0);
+  const totalActual = planActualData.reduce((s, m) => s + m.actual, 0);
   const overallRate = totalPlan > 0 ? Math.round((totalActual / totalPlan) * 100) : 0;
-  const maxValue = Math.max(...MOCK_PLAN_ACTUAL.map(m => Math.max(m.plan, m.actual)));
+  const maxValue = planActualData.length > 0 ? Math.max(...planActualData.map(m => Math.max(m.plan, m.actual))) : 0;
 
   const PLAN_COLUMNS: any = [
     { key: 'month', title: 'THÁNG', flex: 0.5, render: (v: any) => <Text style={{ fontSize: 13, fontWeight: '800', color: '#3b82f6' }}>{v}</Text> },
@@ -67,7 +66,8 @@ export function PlanVsActual({ userRole }: { userRole?: SalesRole }) {
             <BarChart3 size={22} color="#ec4899" />
           </View>
           <View>
-            <Text style={{ ...sgds.typo.h2, color: cText }}>Plan vs Actual 2026</Text>
+            <Text style={{ fontSize: 12, fontWeight: '800', color: '#ec4899', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>{scopeLabel}</Text>
+            <Text style={{ ...sgds.typo.h2, color: cText }}>Plan vs Actual {now.getFullYear()}</Text>
             <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>So sánh kế hoạch và thực tế GMV (Tỷ)</Text>
           </View>
         </View>
@@ -96,7 +96,7 @@ export function PlanVsActual({ userRole }: { userRole?: SalesRole }) {
             BIỂU ĐỒ THEO THÁNG (GMV - TỶ VNĐ)
           </Text>
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-end', height: 200 }}>
-            {MOCK_PLAN_ACTUAL.map((m, i) => {
+            {planActualData.map((m, i) => {
               const planH = maxValue > 0 ? (m.plan / maxValue) * 160 : 0;
               const actualH = maxValue > 0 ? (m.actual / maxValue) * 160 : 0;
               return (
@@ -134,7 +134,7 @@ export function PlanVsActual({ userRole }: { userRole?: SalesRole }) {
           </View>
           <SGTable 
             columns={PLAN_COLUMNS} 
-            data={MOCK_PLAN_ACTUAL} 
+            data={planActualData} 
             onRowPress={(row) => console.log('Press month', row)} 
             style={{ borderWidth: 0, backgroundColor: 'transparent' }}
           />
