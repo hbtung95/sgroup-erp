@@ -15,13 +15,13 @@ export class SalesOpsController {
   // ── TEAMS ──
 
   @Get('teams')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getTeams(@Query('status') status?: string) {
     return this.service.getTeams({ status });
   }
 
   @Get('teams/:id')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getTeamById(@Param('id') id: string) {
     return this.service.getTeamById(id);
   }
@@ -47,7 +47,7 @@ export class SalesOpsController {
   // ── STAFF ──
 
   @Get('staff')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getStaff(
     @Query('teamId') teamId?: string,
     @Query('status') status?: string,
@@ -57,7 +57,7 @@ export class SalesOpsController {
   }
 
   @Get('staff/:id')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getStaffById(@Param('id') id: string) {
     return this.service.getStaffById(id);
   }
@@ -77,7 +77,7 @@ export class SalesOpsController {
   // ── PROJECTS ──
 
   @Get('projects')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getProjects(
     @Query('status') status?: string,
     @Query('type') type?: string,
@@ -86,7 +86,7 @@ export class SalesOpsController {
   }
 
   @Get('projects/:id')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getProjectById(@Param('id') id: string) {
     return this.service.getProjectById(id);
   }
@@ -106,7 +106,7 @@ export class SalesOpsController {
   // ── DEALS ──
 
   @Get('deals')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getDeals(
     @Query('year') year?: string,
     @Query('month') month?: string,
@@ -137,20 +137,20 @@ export class SalesOpsController {
   }
 
   @Get('deals/:id')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getDealById(@Param('id') id: string) {
     return this.service.getDealById(id);
   }
 
   @Post('deals')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_admin')
   async createDeal(@Body() body: CreateDealDto) {
     return this.service.createDeal(body);
   }
 
 
   @Patch('deals/:id')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'sales_admin')
   async updateDeal(@Param('id') id: string, @Body() body: CreateDealDto) {
     return this.service.updateDeal(id, body);
   }
@@ -158,7 +158,7 @@ export class SalesOpsController {
   // ── TARGETS ──
 
   @Get('targets')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getTargets(
     @Query('year') year: string,
     @Query('month') month?: string,
