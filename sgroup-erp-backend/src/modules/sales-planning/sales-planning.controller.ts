@@ -5,7 +5,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('sales-planning')
 @UseGuards(RolesGuard)
-@Roles('admin', 'sales')
+@Roles('admin', 'employee', 'sales', 'team_lead')
 export class SalesPlanningController {
   constructor(private readonly service: SalesPlanningService) {}
 

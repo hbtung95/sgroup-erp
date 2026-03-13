@@ -9,7 +9,7 @@ export class SalesReportController {
   constructor(private readonly service: SalesReportService) {}
 
   @Get('kpi-cards')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getKpiCards(
     @Query('year') year: string,
     @Query('month') month?: string,
@@ -24,7 +24,7 @@ export class SalesReportController {
   }
 
   @Get('plan-vs-actual')
-  @Roles('admin', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getPlanVsActual(
     @Query('year') year: string,
     @Query('scenarioKey') scenarioKey?: string,
@@ -36,7 +36,7 @@ export class SalesReportController {
   }
 
   @Get('team-performance')
-  @Roles('admin', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getTeamPerformance(
     @Query('year') year: string,
     @Query('month') month?: string,
@@ -48,7 +48,7 @@ export class SalesReportController {
   }
 
   @Get('staff-performance')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getStaffPerformance(
     @Query('year') year: string,
     @Query('month') month?: string,
@@ -62,7 +62,7 @@ export class SalesReportController {
   }
 
   @Get('funnel')
-  @Roles('admin', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getActualFunnel(
     @Query('year') year: string,
     @Query('month') month?: string,
@@ -76,7 +76,7 @@ export class SalesReportController {
   }
 
   @Get('commission')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getCommissionReport(
     @Query('year') year: string,
     @Query('month') month?: string,
@@ -92,7 +92,7 @@ export class SalesReportController {
   }
 
   @Get('project-performance')
-  @Roles('admin', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_director', 'ceo', 'sales_admin')
   async getProjectPerformance(@Query('year') year: string) {
     return this.service.getProjectPerformance({ year: Number(year) });
   }

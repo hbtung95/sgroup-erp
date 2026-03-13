@@ -27,13 +27,13 @@ export class SalesOpsController {
   }
 
   @Post('teams')
-  @Roles('admin', 'sales_director', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_director', 'sales_admin')
   async createTeam(@Body() body: CreateTeamDto) {
     return this.service.createTeam(body);
   }
 
   @Patch('teams/:id')
-  @Roles('admin', 'sales_director', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_director', 'sales_admin')
   async updateTeam(@Param('id') id: string, @Body() body: UpdateTeamDto) {
     return this.service.updateTeam(id, body);
   }
@@ -63,13 +63,13 @@ export class SalesOpsController {
   }
 
   @Post('staff')
-  @Roles('admin', 'sales_manager', 'sales_director', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_manager', 'sales_director', 'sales_admin')
   async createStaff(@Body() body: CreateStaffDto) {
     return this.service.createStaff(body);
   }
 
   @Patch('staff/:id')
-  @Roles('admin', 'sales_manager', 'sales_director', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_manager', 'sales_director', 'sales_admin')
   async updateStaff(@Param('id') id: string, @Body() body: UpdateStaffDto) {
     return this.service.updateStaff(id, body);
   }
@@ -92,13 +92,13 @@ export class SalesOpsController {
   }
 
   @Post('projects')
-  @Roles('admin', 'sales_director', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_director', 'sales_admin')
   async createProject(@Body() body: CreateProjectDto) {
     return this.service.createProject(body);
   }
 
   @Patch('projects/:id')
-  @Roles('admin', 'sales_director', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_director', 'sales_admin')
   async updateProject(@Param('id') id: string, @Body() body: CreateProjectDto) {
     return this.service.updateProject(id, body);
   }
@@ -123,7 +123,7 @@ export class SalesOpsController {
   }
 
   @Get('deals/stats')
-  @Roles('admin', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getDealStats(
     @Query('year') year: string,
     @Query('month') month?: string,
@@ -174,7 +174,7 @@ export class SalesOpsController {
   }
 
   @Post('targets/distribute')
-  @Roles('admin', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'team_lead', 'sales_director', 'ceo', 'sales_admin')
   async distributeTargets(@Body() body: {
     year: number; scenarioKey: string;
     targets: Array<{

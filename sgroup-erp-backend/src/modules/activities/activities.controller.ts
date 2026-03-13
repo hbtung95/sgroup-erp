@@ -12,7 +12,7 @@ export class ActivitiesController {
   constructor(private readonly service: ActivitiesService) {}
 
   @Get()
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async findAll(
     @Query('staffId') staffId?: string,
     @Query('year') year?: string,
@@ -29,7 +29,7 @@ export class ActivitiesController {
   }
 
   @Get('summary')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getSummary(
     @Query('staffId') staffId?: string,
     @Query('year') year?: string,
@@ -45,13 +45,13 @@ export class ActivitiesController {
   }
 
   @Get(':id')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async findById(@Param('id') id: string) {
     return this.service.findById(id);
   }
 
   @Post()
-  @Roles('admin', 'sales', 'sales_manager', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_admin')
   async create(@Body() body: {
     staffId: string; staffName?: string;
     postsCount?: number; callsCount?: number;
@@ -62,13 +62,13 @@ export class ActivitiesController {
   }
 
   @Patch(':id')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_admin')
   async update(@Param('id') id: string, @Body() body: any) {
     return this.service.update(id, body);
   }
 
   @Delete(':id')
-  @Roles('admin', 'sales', 'sales_manager', 'sales_admin')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_admin')
   async remove(@Param('id') id: string) {
     return this.service.remove(id);
   }
