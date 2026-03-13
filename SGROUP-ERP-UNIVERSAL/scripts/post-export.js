@@ -42,7 +42,17 @@ if (!html.includes('apple-touch-icon')) {
 }
 
 fs.writeFileSync(indexPath, html, 'utf8');
+
+// 4. Copy manifest.json to dist
+const manifestSrc = path.join(__dirname, '..', 'web', 'manifest.json');
+const manifestDest = path.join(__dirname, '..', 'dist', 'manifest.json');
+if (fs.existsSync(manifestSrc) && !fs.existsSync(manifestDest)) {
+  fs.copyFileSync(manifestSrc, manifestDest);
+  console.log('   • Copied manifest.json to dist/');
+}
+
 console.log('✅ Post-export patches applied:');
 console.log('   • Added type="module" to script tags');
 console.log('   • Added PWA manifest link');
 console.log('   • Added apple-touch-icon');
+console.log('   • Copied manifest.json');
