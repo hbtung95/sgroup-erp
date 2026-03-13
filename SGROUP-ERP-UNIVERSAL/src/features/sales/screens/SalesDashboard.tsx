@@ -70,7 +70,8 @@ export function SalesDashboard({ userRole }: { userRole?: SalesRole }) {
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const salesDataHook = useSalesData();
   const { kpiData } = salesDataHook;
-  const { deals } = useDeals();
+  const dealsHook = useDeals();
+  const deals = Array.isArray(dealsHook.deals) ? dealsHook.deals : [];
 
   // Team/Director KPI and Funnel from API
   const now = new Date();
@@ -78,7 +79,10 @@ export function SalesDashboard({ userRole }: { userRole?: SalesRole }) {
   const { data: funnelData, isLoading: funnelLoading } = useGetActualFunnel({ year: now.getFullYear(), month: now.getMonth() + 1 });
 
   // Transform API data into display format
-  const teamKpi = (kpiCards || []).map((k: any, i: number) => ({
+  const safeKpiCards = Array.isArray(kpiCards) ? kpiCards : [];
+  const safeFunnelData = Array.isArray(funnelData) ? funnelData : [];
+
+  const teamKpi = safeKpiCards.map((k: any, i: number) => ({
     id: k.id || `kpi-${i}`,
     label: k.label || k.title || '',
     value: k.value?.toLocaleString?.('vi-VN') ?? String(k.value ?? 0),
@@ -88,7 +92,7 @@ export function SalesDashboard({ userRole }: { userRole?: SalesRole }) {
     icon: KPI_ICONS[k.key] || Target,
   }));
 
-  const teamFunnel = (funnelData || []).map((s: any, i: number) => ({
+  const teamFunnel = safeFunnelData.map((s: any, i: number) => ({
     stage: s.stage || s.label || '',
     count: s.count ?? s.value ?? 0,
     color: FUNNEL_COLORS[i % FUNNEL_COLORS.length],

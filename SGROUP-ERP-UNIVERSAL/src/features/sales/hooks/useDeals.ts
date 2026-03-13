@@ -44,7 +44,8 @@ export function useDeals(filters?: Record<string, any>) {
     queryKey: [DEALS_KEY, filters],
     queryFn: async () => {
       const res = await apiClient.get('/sales-ops/deals', { params: filters });
-      return res.data as Deal[];
+      const data = res.data;
+      return Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []) as Deal[];
     },
   });
 
