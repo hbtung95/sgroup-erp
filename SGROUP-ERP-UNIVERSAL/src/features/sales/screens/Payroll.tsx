@@ -7,7 +7,18 @@ import { CreditCard, Download, TrendingUp, TrendingDown, DollarSign } from 'luci
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard } from '../../../shared/ui/components';
+import { useAuthStore } from '../../auth/store/authStore';
 import type { SalesRole } from '../SalesSidebar';
+
+const ROLE_LABELS: Record<string, string> = {
+  sales: 'Chuyên viên Kinh doanh',
+  team_lead: 'Trưởng nhóm Kinh doanh',
+  sales_manager: 'Trưởng phòng Kinh doanh',
+  sales_director: 'Giám đốc Kinh doanh',
+  sales_admin: 'Admin Kinh doanh',
+  ceo: 'Tổng Giám đốc',
+  admin: 'Admin Hệ thống',
+};
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
@@ -16,6 +27,12 @@ export function Payroll({ userRole }: { userRole?: SalesRole }) {
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
   const cBorder = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const { user } = useAuthStore();
+  const now = new Date();
+  const monthLabel = `Tháng ${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+  const userName = user?.name || 'User';
+  const roleLabel = ROLE_LABELS[user?.salesRole || user?.role || 'sales'] || 'Nhân viên';
+  const teamName = user?.teamName || 'Team Alpha';
 
   const INCOME = [
     { label: 'Lương cơ bản', amount: 12000000 },
@@ -55,7 +72,7 @@ export function Payroll({ userRole }: { userRole?: SalesRole }) {
             </View>
             <View>
               <Text style={{ ...sgds.typo.h2, color: cText }}>Phiếu Lương</Text>
-              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>Tháng 03/2026</Text>
+              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>{monthLabel} — {userName}</Text>
             </View>
           </View>
           <View style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#eff6ff', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
@@ -126,19 +143,19 @@ export function Payroll({ userRole }: { userRole?: SalesRole }) {
                 </View>
                 <View>
                   <Text style={{ fontSize: 11, color: cSub, marginBottom: 2 }}>Họ và Tên</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>Nguyễn Văn A</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>{userName}</Text>
                 </View>
                 <View>
                   <Text style={{ fontSize: 11, color: cSub, marginBottom: 2 }}>Vị trí</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>Chuyên viên Kinh doanh</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>{roleLabel}</Text>
                 </View>
                 <View>
                   <Text style={{ fontSize: 11, color: cSub, marginBottom: 2 }}>Team</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>Team Alpha</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>{teamName}</Text>
                 </View>
                 <View>
-                  <Text style={{ fontSize: 11, color: cSub, marginBottom: 2 }}>Số tài khoản</Text>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>1903******2288 (Techcombank)</Text>
+                  <Text style={{ fontSize: 11, color: cSub, marginBottom: 2 }}>Email</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>{user?.email || 'N/A'}</Text>
                 </View>
               </View>
             </SGCard>

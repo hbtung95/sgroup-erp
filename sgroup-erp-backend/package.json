@@ -17,7 +17,18 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:status": "prisma migrate status",
+    "db:migrate:reset": "prisma migrate reset",
+    "db:studio": "prisma studio",
+    "db:push": "echo '⚠️  CẢNH BÁO: db:push có thể xóa data. Dùng db:migrate thay thế!' && exit 1",
+    "seed:users": "ts-node prisma/seed-users.ts",
+    "seed:sales": "ts-node prisma/seed-sales.ts",
+    "seed:all": "npm run seed:sales && npm run seed:users",
+    "prestart:prod": "npm run db:migrate:deploy"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

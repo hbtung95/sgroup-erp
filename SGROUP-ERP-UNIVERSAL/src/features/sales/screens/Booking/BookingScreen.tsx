@@ -14,6 +14,8 @@ import {
 } from 'lucide-react-native';
 import { SGButton, SGPlanningSectionTitle, SGPlanningNumberField, SGTable, SGStatCard } from '../../../../shared/ui/components';
 import { useSalesStore } from '../../store/useSalesStore';
+import { useCreateBooking, useUpdateBooking, useDeleteBooking, useApproveBooking, useRejectBooking } from '../../hooks/useBookings';
+import { useGetProjects } from '../../hooks/useSalesOps';
 import { useBookingFilter, BookingPeriod } from '../../hooks/useBookingFilter';
 import { BookingChart } from '../../components/charts/BookingChart';
 import type { SalesRole } from '../../SalesSidebar';
@@ -68,7 +70,17 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
   const cSub = theme.colors.textSecondary;
 
   const { addBooking, updateBooking, deleteBooking, approveBooking, rejectBooking } = useSalesStore();
-  const availableProjects = useSalesStore(s => s.availableProjects);
+  const createBookingMut = useCreateBooking();
+  const updateBookingMut = useUpdateBooking();
+  const deleteBookingMut = useDeleteBooking();
+  const approveBookingMut = useApproveBooking();
+  const rejectBookingMut = useRejectBooking();
+  const availableProjectsRaw = useSalesStore(s => s.availableProjects);
+  const { data: rawApiProjects } = useGetProjects();
+  const apiProjects = Array.isArray(rawApiProjects) ? rawApiProjects : (Array.isArray((rawApiProjects as any)?.data) ? (rawApiProjects as any).data : []);
+  const availableProjects: { name: string; status: string }[] = apiProjects.length > 0
+    ? apiProjects.map((p: any) => ({ name: p.name || p.projectName, status: p.status === 'ACTIVE' ? 'OPEN' : (p.status || 'OPEN') }))
+    : availableProjectsRaw;
   const {
     period, setPeriod,
     customFrom, setCustomFrom, customTo, setCustomTo,
@@ -112,6 +124,8 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
     const amountVal = parseFloat(amountStr);
     if (isNaN(amountVal) || amountVal <= 0) { alert('Vui lòng nhập số tiền giữ chỗ hợp lệ!'); return; }
     addBooking({ project: selectedProject, customerName: customerName.trim(), customerPhone: customerPhone.trim(), bookingAmount: amountVal, bookingCount });
+    // Also send to API (fire-and-forget, Zustand is fallback)
+    createBookingMut.mutate({ project: selectedProject, customerName: customerName.trim(), customerPhone: customerPhone.trim(), bookingAmount: amountVal, bookingCount });
     setSelectedProject('');
     setCustomerName('');
     setCustomerPhone('');
@@ -136,6 +150,7 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
     if (editingId) {
       const amountVal = parseFloat(editAmount) || 0;
       updateBooking(editingId, { project: editProject, customerName: editCustomer, customerPhone: editPhone, bookingAmount: amountVal, bookingCount: editCount });
+      updateBookingMut.mutate({ id: editingId, data: { project: editProject, customerName: editCustomer, customerPhone: editPhone, bookingAmount: amountVal, bookingCount: editCount } });
       setEditingId(null);
     }
   }, [editingId, editProject, editCustomer, editPhone, editAmount, editCount, updateBooking]);
@@ -146,7 +161,7 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
   }, []);
 
   const confirmDelete = useCallback(() => {
-    if (deletingId) { deleteBooking(deletingId); setDeletingId(null); }
+    if (deletingId) { deleteBooking(deletingId); deleteBookingMut.mutate(deletingId); setDeletingId(null); }
   }, [deletingId, deleteBooking]);
 
   const cancelDelete = useCallback(() => { setDeletingId(null); }, []);
@@ -272,8 +287,8 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
             {/* Admin approve/reject */}
             {isAdmin && row.status === 'PENDING' && (
               <>
-                <ActionButton icon={CheckCircle} color="#22c55e" bg="#f0fdf4" onPress={() => approveBooking(row.id)} />
-                <ActionButton icon={XCircle} color="#ef4444" bg="#fef2f2" onPress={() => rejectBooking(row.id)} />
+                <ActionButton icon={CheckCircle} color="#22c55e" bg="#f0fdf4" onPress={() => { approveBooking(row.id); approveBookingMut.mutate(row.id); }} />
+                <ActionButton icon={XCircle} color="#ef4444" bg="#fef2f2" onPress={() => { rejectBooking(row.id); rejectBookingMut.mutate(row.id); }} />
               </>
             )}
             {/* Edit/Delete for own entries */}

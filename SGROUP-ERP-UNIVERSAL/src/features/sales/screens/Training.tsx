@@ -9,6 +9,7 @@ import {
 } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { SGPlanningSectionTitle } from '../../../shared/ui/components';
+import { useAuthStore } from '../../auth/store/authStore';
 
 type CourseStatus = 'COMPLETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'LOCKED';
 
@@ -50,6 +51,7 @@ export function Training() {
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
   const [tab, setTab] = useState<'courses' | 'certs'>('courses');
+  const { user } = useAuthStore();
 
   const completedCount = courses.filter(c => c.status === 'COMPLETED').length;
   const inProgressCount = courses.filter(c => c.status === 'IN_PROGRESS').length;
@@ -66,7 +68,7 @@ export function Training() {
         {/* Header */}
         <View>
           <Text style={{ fontSize: 14, fontWeight: '700', color: '#8b5cf6', textTransform: 'uppercase', marginBottom: 4 }}>HỌC TẬP & PHÁT TRIỂN</Text>
-          <Text style={{ fontSize: 28, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>Trung Tâm Đào Tạo</Text>
+          <Text style={{ fontSize: 28, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>Trung Tâm Đào Tạo — {user?.name || 'User'}</Text>
         </View>
 
         {/* Stats */}

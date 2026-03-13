@@ -1,12 +1,22 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+  Inject,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { USER_REPOSITORY } from '../../common/database/repository-tokens';
 import { IUserRepository } from '../../common/database/entity-repositories';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
+const BCRYPT_ROUNDS = 12;
+
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @Inject(USER_REPOSITORY) private userRepo: IUserRepository,
     private jwtService: JwtService,
@@ -14,27 +24,34 @@ export class AuthService {
   ) {}
 
   async login(email: string, pass: string) {
+    // SECURITY: Tránh timing attack — luôn so sánh bcrypt dù user không tồn tại
     const user = await this.userRepo.findByEmail(email);
-    
+
     if (!user) {
-      throw new UnauthorizedException('Email không tồn tại trong hệ thống');
+      // Chạy bcrypt dummy để tránh timing-based user enumeration
+      await bcrypt.compare(pass, '$2b$12$dummyhashtopreventtimingattacks0000000000');
+      throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }
 
+    // SECURITY: CHỈ so sánh bcrypt — KHÔNG fallback plaintext bất kỳ hoàn cảnh nào
     const isMatch = await bcrypt.compare(pass, user.password);
     if (!isMatch) {
-       // Support legacy plain text passwords during dev phase if bcrypt fails
-      if (pass !== user.password) {
-        throw new UnauthorizedException('Mật khẩu không chính xác');
-      }
+      this.logger.warn(`Login failed for email: ${email}`);
+      throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }
 
-    // Look up team name if user has a teamId
+    // Lấy tên team nếu user thuộc sales team
     let teamName: string | null = null;
     if (user.teamId) {
       try {
-        const team = await this.prisma.salesTeam.findUnique({ where: { id: user.teamId } });
-        teamName = team?.name || null;
-      } catch { /* team lookup optional */ }
+        const team = await this.prisma.salesTeam.findUnique({
+          where: { id: user.teamId },
+          select: { name: true },
+        });
+        teamName = team?.name ?? null;
+      } catch {
+        /* team lookup optional — không block login */
+      }
     }
 
     const payload = {
@@ -45,6 +62,9 @@ export class AuthService {
       salesRole: user.salesRole,
       teamId: user.teamId,
     };
+
+    this.logger.log(`Login success: ${email} (role=${user.role})`);
+
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -55,44 +75,67 @@ export class AuthService {
         department: user.department,
         salesRole: user.salesRole,
         teamId: user.teamId,
-        teamName: teamName,
-      }
+        teamName,
+      },
     };
   }
 
-  async registerMockDev(data: any) {
-    // DEVELOPMENT ONLY: quick path to seed user
-    const salt = await bcrypt.genSalt();
-    const hashPassword = await bcrypt.hash(data.password || '123456', salt);
-    
+  /**
+   * Tạo user mới — CHỈ DÙNG trong môi trường development.
+   * Production: endpoint này được bảo vệ bởi @Roles('admin') ở controller.
+   */
+  async registerMockDev(data: {
+    email: string;
+    name: string;
+    password?: string;
+    role?: string;
+  }) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException(
+        'Endpoint này không khả dụng trong môi trường production',
+      );
+    }
+
+    if (!data.password || data.password.length < 8) {
+      throw new ForbiddenException(
+        'Mật khẩu phải có ít nhất 8 ký tự',
+      );
+    }
+
+    const hashed = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
+
     return this.userRepo.create({
       email: data.email,
       name: data.name,
       role: data.role || 'employee',
-      password: hashPassword,
+      password: hashed,
     } as any);
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
     const user = await this.userRepo.findById(userId);
     if (!user) {
       throw new UnauthorizedException('Không tìm thấy tài khoản');
     }
 
-    // Verify current password
+    // SECURITY: CHỈ bcrypt compare — KHÔNG fallback plaintext
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      // Support legacy plain text during dev
-      if (currentPassword !== user.password) {
-        throw new UnauthorizedException('Mật khẩu hiện tại không chính xác');
-      }
+      throw new UnauthorizedException('Mật khẩu hiện tại không chính xác');
     }
 
-    // Hash and save new password
-    const salt = await bcrypt.genSalt();
-    const hashed = await bcrypt.hash(newPassword, salt);
+    if (newPassword.length < 8) {
+      throw new ForbiddenException('Mật khẩu mới phải có ít nhất 8 ký tự');
+    }
+
+    const hashed = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
     await this.userRepo.update(userId, { password: hashed } as any);
 
+    this.logger.log(`Password changed for userId: ${userId}`);
     return { message: 'Đổi mật khẩu thành công' };
   }
 }

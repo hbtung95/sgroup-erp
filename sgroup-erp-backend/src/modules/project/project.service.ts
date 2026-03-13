@@ -18,7 +18,7 @@ export class ProjectService {
       orderBy: { createdAt: 'desc' },
       include: {
         _count: {
-          select: { legalDocs: true }
+          select: { legalDocs: true, products: true }
         }
       }
     });
@@ -27,6 +27,12 @@ export class ProjectService {
   async findOne(id: string) {
     const project = await this.prisma.dimProject.findUnique({
       where: { id },
+      include: {
+        products: { orderBy: { code: 'asc' } },
+        _count: {
+          select: { legalDocs: true, products: true }
+        }
+      }
     });
     if (!project) {
       throw new NotFoundException(`Project with ID ${id} not found`);

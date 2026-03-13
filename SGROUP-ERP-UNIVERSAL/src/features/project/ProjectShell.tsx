@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, ScrollView, Text, StyleSheet, Platform } from 'react-native';
 import { ProjectSidebar, ProjectSidebarItem, ProjectRole } from './ProjectSidebar';
 import { SGTopBar } from '../../shared/ui';
@@ -8,23 +8,18 @@ import { useAuthStore } from '../auth/store/authStore';
 import { ToastProvider } from '../sales/components/ToastProvider';
 import { useProjectRoute } from './hooks/useProjectRoute';
 
-// Placeholder Screens
+// Screens
 import { ProjectDashboard } from './screens/ProjectDashboard';
 import { ProjectListScreen } from './screens/ProjectListScreen';
 import { InventoryScreen } from './screens/InventoryScreen';
 
-const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
-  PROJECT_DASHBOARD: ProjectDashboard,
-  PROJECT_LIST: ProjectListScreen,
-  PROJECT_INVENTORY: InventoryScreen,
-};
-
 export function ProjectShell() {
-  const validKeys = useMemo(() => Object.keys(KEY_TO_COMPONENT), []);
+  const validKeys = useMemo(() => ['PROJECT_DASHBOARD', 'PROJECT_LIST', 'PROJECT_INVENTORY'], []);
   const { activeKey, navigate } = useProjectRoute(validKeys);
   const [activeLabel, setActiveLabel] = useState('Tổng quan Dự án');
   const [activeSection, setActiveSection] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
+  const [inventoryProjectId, setInventoryProjectId] = useState<string | undefined>(undefined);
   const colors = useTheme();
   const { isDark } = useThemeStore();
   const { user } = useAuthStore();
@@ -35,9 +30,18 @@ export function ProjectShell() {
     navigate(item.key);
     setActiveLabel(item.label);
     setActiveSection(item.section);
+    // Reset inventory project filter when navigating via sidebar
+    if (item.key !== 'PROJECT_INVENTORY') {
+      setInventoryProjectId(undefined);
+    }
   };
 
-  const ContentComponent = KEY_TO_COMPONENT[activeKey];
+  const handleNavigateInventory = useCallback((projectId: string) => {
+    setInventoryProjectId(projectId);
+    navigate('PROJECT_INVENTORY');
+    setActiveLabel('Quản lý Bảng hàng');
+    setActiveSection('inventory');
+  }, [navigate]);
 
   const sectionLabels: Record<string, string> = {
     dashboard: 'TỔNG QUAN',
@@ -56,6 +60,24 @@ export function ProjectShell() {
       </Text>
     </View>
   );
+
+  const renderContent = () => {
+    switch (activeKey) {
+      case 'PROJECT_DASHBOARD':
+        return <ProjectDashboard />;
+      case 'PROJECT_LIST':
+        return <ProjectListScreen onNavigateInventory={handleNavigateInventory} />;
+      case 'PROJECT_INVENTORY':
+        return <InventoryScreen initialProjectId={inventoryProjectId} />;
+      default:
+        return (
+          <View style={styles.placeholder}>
+            <Text style={{ fontSize: 60, marginBottom: 24 }}>🚀</Text>
+            <Text style={[typography.h3, { color: colors.text, marginBottom: 8 }]}>Module Đang Phát Triển</Text>
+          </View>
+        );
+    }
+  };
 
   return (
     <ToastProvider>
@@ -96,14 +118,7 @@ export function ProjectShell() {
           </View>
           <View style={styles.content}>
             <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-              {ContentComponent ? (
-                <ContentComponent userRole={userRole} />
-              ) : (
-                <View style={styles.placeholder}>
-                  <Text style={{ fontSize: 60, marginBottom: 24 }}>🚀</Text>
-                  <Text style={[typography.h3, { color: colors.text, marginBottom: 8 }]}>Module Đang Phát Triển</Text>
-                </View>
-              )}
+              {renderContent()}
             </ScrollView>
           </View>
         </View>

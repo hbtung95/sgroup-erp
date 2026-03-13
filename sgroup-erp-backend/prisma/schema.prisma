@@ -303,6 +303,7 @@ model DimProject {
   updatedAt   DateTime  @updatedAt
 
   legalDocs LegalProjectDoc[]
+  products  PropertyProduct[]
 }
 
 model SalesTeam {
@@ -580,6 +581,7 @@ model Appointment {
 model PropertyProduct {
   id            String    @id @default(uuid(7))
   projectId     String
+  project       DimProject @relation(fields: [projectId], references: [id])
   projectName   String?
   code          String    @unique
   block         String?
@@ -595,6 +597,19 @@ model PropertyProduct {
   note          String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  statusLogs    ProductStatusLog[]
+}
+
+model ProductStatusLog {
+  id          String   @id @default(uuid(7))
+  productId   String
+  product     PropertyProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  oldStatus   String
+  newStatus   String
+  changedBy   String?
+  reason      String?
+  createdAt   DateTime @default(now())
 }
 
 // ══════════════════════════════════════════════════════════════════

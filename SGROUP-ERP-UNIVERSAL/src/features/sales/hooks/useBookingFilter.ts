@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useSalesStore } from '../store/useSalesStore';
+import { useGetBookings } from './useBookings';
 
 export type BookingPeriod = 'DAY' | 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR' | 'CUSTOM';
 
 export function useBookingFilter() {
-  const bookings = useSalesStore(s => s.bookings);
+  const zustandBookings = useSalesStore(s => s.bookings);
+  const { data: apiBookings } = useGetBookings();
+  // Prefer API data if available, fallback to Zustand local data
+  const bookings = (Array.isArray(apiBookings) && apiBookings.length > 0) ? apiBookings : zustandBookings;
   const [period, setPeriod] = useState<BookingPeriod>('WEEK');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);

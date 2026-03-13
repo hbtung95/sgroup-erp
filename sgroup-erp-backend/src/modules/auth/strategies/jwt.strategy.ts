@@ -6,10 +6,21 @@ import { PrismaService } from '../../../prisma/prisma.service';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private prisma: PrismaService) {
+    const secret = process.env.JWT_SECRET;
+
+    // SECURITY: Fail fast nếu JWT_SECRET chưa được set — không dùng fallback hardcoded
+    if (!secret) {
+      throw new Error(
+        '[JwtStrategy] JWT_SECRET chưa được cấu hình!\n' +
+        'Vui lòng set JWT_SECRET trong file .env.\n' +
+        'Gợi ý: openssl rand -base64 48',
+      );
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'sgroup-erp-dev-secret-key-2026',
+      secretOrKey: secret,
     });
   }
 

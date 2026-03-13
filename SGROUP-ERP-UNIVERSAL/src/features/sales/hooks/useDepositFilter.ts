@@ -1,9 +1,19 @@
 import { useMemo, useState } from 'react';
 import { useSalesStore } from '../store/useSalesStore';
+import { useGetDeposits } from './useDeposits';
 import type { BookingPeriod } from './useBookingFilter';
 
 export function useDepositFilter() {
-  const transactions = useSalesStore(s => s.transactions);
+  const zustandTransactions = useSalesStore(s => s.transactions);
+  const { data: apiDeposits } = useGetDeposits();
+  // Prefer API data if available, map to transaction format; fallback to Zustand
+  const transactions = (Array.isArray(apiDeposits) && apiDeposits.length > 0)
+    ? apiDeposits.map((d: any) => ({
+        ...d,
+        transactionValue: d.depositAmount ?? d.transactionValue ?? 0,
+        status: d.status === 'CONFIRMED' ? 'DEPOSIT' : d.status === 'PENDING' ? 'PENDING_DEPOSIT' : d.status,
+      }))
+    : zustandTransactions;
   const [period, setPeriod] = useState<BookingPeriod>('MONTH');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);

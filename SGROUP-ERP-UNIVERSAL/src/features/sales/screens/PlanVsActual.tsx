@@ -1,9 +1,12 @@
 /**
  * PlanVsActual — Báo cáo Plan vs Actual theo tháng
+ * - sales: Chỉ xem dữ liệu cá nhân (read-only)
+ * - team_lead / sales_manager: Dữ liệu team
+ * - sales_director / ceo / sales_admin: Toàn bộ phòng
  */
 import React from 'react';
 import { View, Text, ScrollView, Platform, ActivityIndicator } from 'react-native';
-import { BarChart3, TrendingUp, TrendingDown, Target } from 'lucide-react-native';
+import { BarChart3, TrendingUp, TrendingDown, Target, Eye, Info } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable } from '../../../shared/ui/components';
@@ -17,12 +20,16 @@ export function PlanVsActual({ userRole }: { userRole?: SalesRole }) {
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
 
+  const isSales = userRole === 'sales';
   const isDirector = userRole === 'sales_director' || userRole === 'sales_admin' || userRole === 'ceo';
   const isLeader = userRole === 'team_lead' || userRole === 'sales_manager';
   const scopeLabel = isDirector ? 'KẾ HOẠCH TOÀN BỘ PHÒNG' : isLeader ? 'KẾ HOẠCH TEAM' : 'KẾ HOẠCH CÁ NHÂN';
 
   const now = new Date();
-  const { data: rawData, isLoading } = useGetPlanVsActual({ year: now.getFullYear() });
+  const { data: rawData, isLoading } = useGetPlanVsActual({
+    year: now.getFullYear(),
+    ...(isSales ? { scope: 'personal' } : {}),
+  });
   const planActualData: { month: string; plan: number; actual: number; rate: number }[] = (rawData || []).map((d: any) => ({
     month: d.month || `T${d.monthNum}`,
     plan: d.plan ?? d.targetGMV ?? 0,
@@ -71,6 +78,21 @@ export function PlanVsActual({ userRole }: { userRole?: SalesRole }) {
             <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>So sánh kế hoạch và thực tế GMV (Tỷ)</Text>
           </View>
         </View>
+
+        {/* Read-only banner for sales role */}
+        {isSales && (
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', gap: 10,
+            backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#eff6ff',
+            borderWidth: 1, borderColor: isDark ? 'rgba(59,130,246,0.25)' : '#bfdbfe',
+            borderRadius: 14, padding: 14,
+          }}>
+            <Eye size={18} color="#3b82f6" />
+            <Text style={{ flex: 1, fontSize: 13, fontWeight: '700', color: '#3b82f6' }}>
+              Chế độ chỉ xem — Hiển thị kế hoạch và thực tế cá nhân của bạn
+            </Text>
+          </View>
+        )}
 
         {/* Summary Cards */}
         <View style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap' }}>
@@ -135,7 +157,7 @@ export function PlanVsActual({ userRole }: { userRole?: SalesRole }) {
           <SGTable 
             columns={PLAN_COLUMNS} 
             data={planActualData} 
-            onRowPress={(row) => console.log('Press month', row)} 
+            onRowPress={isSales ? undefined : (row) => console.log('Press month', row)} 
             style={{ borderWidth: 0, backgroundColor: 'transparent' }}
           />
         </SGCard>

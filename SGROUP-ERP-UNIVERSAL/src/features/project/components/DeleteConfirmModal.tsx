@@ -1,0 +1,101 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform } from 'react-native';
+import { typography, useTheme } from '../../../shared/theme/theme';
+import { useThemeStore } from '../../../shared/theme/themeStore';
+import { SGButton } from '../../../shared/ui/components';
+import { AlertTriangle, X } from 'lucide-react-native';
+
+interface Props {
+  visible: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title?: string;
+  message: string;
+  confirmLabel?: string;
+  isLoading?: boolean;
+}
+
+export function DeleteConfirmModal({
+  visible, onClose, onConfirm, title = 'Xác nhận Xóa', message, confirmLabel = 'Xóa', isLoading = false,
+}: Props) {
+  const colors = useTheme();
+  const { isDark } = useThemeStore();
+
+  const content = (
+    <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+      <View style={[styles.modal, {
+        backgroundColor: isDark ? '#0f172a' : '#fff',
+        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+      }]}>
+        <View style={styles.body}>
+          <View style={[styles.iconBox, { backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : '#fef2f2' }]}>
+            <AlertTriangle size={32} color="#ef4444" />
+          </View>
+          <Text style={[typography.h3, { color: colors.text, marginTop: 20, textAlign: 'center' }]}>{title}</Text>
+          <Text style={[typography.body, { color: colors.textSecondary, marginTop: 12, textAlign: 'center', lineHeight: 22 }]}>{message}</Text>
+        </View>
+
+        <View style={[styles.footer, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }]}>
+          <SGButton title="Hủy" variant="outline" onPress={onClose} style={{ flex: 1, marginRight: 12 }} />
+          <TouchableOpacity
+            onPress={onConfirm}
+            disabled={isLoading}
+            style={[styles.deleteBtn, { opacity: isLoading ? 0.6 : 1 }]}
+          >
+            <Text style={styles.deleteBtnText}>{isLoading ? 'Đang xóa...' : confirmLabel}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+
+  if (Platform.OS === 'web') {
+    if (!visible) return null;
+    return content;
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      {content}
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center', alignItems: 'center', zIndex: 10000,
+    ...(Platform.OS === 'web' ? { position: 'fixed' } as any : {}),
+  },
+  modal: {
+    width: '90%', maxWidth: 420,
+    borderRadius: 20, borderWidth: 1, overflow: 'hidden',
+    ...(Platform.OS === 'web' ? { boxShadow: '0 24px 80px rgba(0,0,0,0.3)' } as any : { elevation: 20 }),
+  },
+  body: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  iconBox: {
+    width: 64, height: 64, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  footer: {
+    flexDirection: 'row',
+    padding: 20,
+    borderTopWidth: 1,
+  },
+  deleteBtn: {
+    flex: 1,
+    backgroundColor: '#ef4444',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  deleteBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
+  },
+});

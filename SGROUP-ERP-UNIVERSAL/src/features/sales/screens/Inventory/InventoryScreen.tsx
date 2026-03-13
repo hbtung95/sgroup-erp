@@ -6,7 +6,6 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGButton, SGPlanningSectionTitle } from '../../../../shared/ui/components';
 import { useInventoryData, type PropertyUnit, type UnitStatus } from '../../hooks/useInventoryData';
-import { useSalesStore } from '../../store/useSalesStore';
 import { SGDepositModal } from '../../components/forms/SGDepositModal';
 
 const STATUS_COLORS: Record<UnitStatus, { bg: string, text: string, border: string, label: string }> = {
@@ -24,8 +23,7 @@ export function InventoryScreen() {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
-  const { units, selectedProject, stats, lockUnit } = useInventoryData();
-  const requestDeposit = useSalesStore(s => s.requestDeposit);
+  const { units, selectedProject, stats, lockUnit, requestDeposit, isLoading } = useInventoryData();
 
   const [selectedUnit, setSelectedUnit] = useState<PropertyUnit | null>(null);
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -223,6 +221,7 @@ export function InventoryScreen() {
             if (selectedUnit) {
               requestDeposit(selectedUnit.id, name, phone);
               setSelectedUnit(null);
+              setShowDepositModal(false);
             }
           }}
         />

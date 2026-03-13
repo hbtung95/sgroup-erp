@@ -36,12 +36,16 @@ import { LoanCalculator } from './screens/LoanCalculator';
 import { Training } from './screens/Training';
 import { DepositManagement } from './screens/DepositManagement';
 import { KpiDashboard } from './screens/KpiDashboard';
+import { DealRecording } from './screens/DealRecording';
+import { TargetAllocation } from './screens/TargetAllocation';
+import { TeamReport } from './screens/TeamReport';
 
 const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
   SALES_DASHBOARD: SalesDashboard,
   SALES_CRM: CustomerLeads,
   SALES_INVENTORY: InventoryScreen,
   SALES_DEALS: DealTracker,
+  SALES_DEAL_RECORDING: DealRecording,
   SALES_BOOKING: BookingScreen,
   SALES_DEPOSIT: DepositManagement,
   SALES_KPI: KpiDashboard,
@@ -58,9 +62,9 @@ const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
   SALES_TEAMS: TeamManagement,
   SALES_STAFF: StaffManagement,
   SALES_PROJECTS: ProjectCatalog,
-  SALES_TARGETS: SalesDashboard, // targets embedded
+  SALES_TARGETS: TargetAllocation,
   SALES_PLAN_ACTUAL: PlanVsActual,
-  SALES_TEAM_REPORT: TeamManagement, // embedded
+  SALES_TEAM_REPORT: TeamReport,
   SALES_CRM_VIEWER: CrmViewer,
 };
 

@@ -17,6 +17,7 @@ export interface ProjectData {
   note?: string;
   _count?: {
     legalDocs: number;
+    products: number;
   };
 }
 
@@ -36,6 +37,23 @@ export interface PropertyProductData {
   lockedUntil?: string;
   customerPhone?: string;
   note?: string;
+}
+
+export interface GenerateInventoryParams {
+  blocks: string[];
+  fromFloor: number;
+  toFloor: number;
+  unitsPerFloor: number;
+  codePattern?: string;
+  defaultArea?: number;
+  defaultPrice?: number;
+  defaultBedrooms?: number;
+}
+
+export interface GenerateInventoryResult {
+  created: number;
+  skipped: number;
+  total: number;
 }
 
 export const projectApi = {
@@ -79,5 +97,24 @@ export const projectApi = {
   
   deleteProduct: async (productId: string): Promise<void> => {
     return apiClient.delete(`/projects/products/${productId}`);
-  }
+  },
+
+  // Lock / Unlock
+  lockProduct: async (productId: string, staffName?: string): Promise<PropertyProductData> => {
+    return apiClient.patch(`/projects/products/${productId}/lock`, { staffName });
+  },
+
+  unlockProduct: async (productId: string): Promise<PropertyProductData> => {
+    return apiClient.patch(`/projects/products/${productId}/unlock`, {});
+  },
+
+  // Batch import
+  batchCreateProducts: async (projectId: string, items: Partial<PropertyProductData>[]): Promise<any> => {
+    return apiClient.post(`/projects/${projectId}/products/batch`, items);
+  },
+
+  // Generate inventory (batch create by floor/block pattern)
+  generateInventory: async (projectId: string, params: GenerateInventoryParams): Promise<GenerateInventoryResult> => {
+    return apiClient.post(`/projects/${projectId}/products/generate`, params);
+  },
 };

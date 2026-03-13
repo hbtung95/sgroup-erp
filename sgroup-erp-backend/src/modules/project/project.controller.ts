@@ -5,7 +5,10 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreatePropertyProductDto } from './dto/create-property-product.dto';
 import { UpdatePropertyProductDto } from './dto/update-property-product.dto';
+import { GenerateInventoryDto } from './dto/generate-inventory.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('projects')
@@ -48,6 +51,16 @@ export class ProjectController {
     return this.propertyProductService.create(createDto);
   }
 
+  @Post(':projectId/products/generate')
+  generateInventory(@Param('projectId') projectId: string, @Body() dto: GenerateInventoryDto) {
+    return this.propertyProductService.generateInventory(projectId, dto);
+  }
+
+  @Post(':projectId/products/batch')
+  batchCreateProducts(@Param('projectId') projectId: string, @Body() items: CreatePropertyProductDto[]) {
+    return this.propertyProductService.batchCreate(projectId, items);
+  }
+
   @Get(':projectId/products')
   findAllProductsByProject(@Param('projectId') projectId: string) {
     return this.propertyProductService.findAllByProject(projectId);
@@ -61,6 +74,20 @@ export class ProjectController {
   @Patch('products/:productId')
   updateProduct(@Param('productId') productId: string, @Body() updateDto: UpdatePropertyProductDto) {
     return this.propertyProductService.update(productId, updateDto);
+  }
+
+  @Patch('products/:productId/lock')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'sales_admin', 'sales_manager', 'sales_rep', 'sales_director')
+  lockProduct(@Param('productId') productId: string, @Body() body: { staffName?: string }) {
+    return this.propertyProductService.lockProduct(productId, body.staffName);
+  }
+
+  @Patch('products/:productId/unlock')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'sales_admin', 'sales_manager', 'sales_director')
+  unlockProduct(@Param('productId') productId: string) {
+    return this.propertyProductService.unlockProduct(productId);
   }
 
   @Delete('products/:productId')

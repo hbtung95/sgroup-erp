@@ -11,12 +11,32 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'sgroup-erp-dev-secret-key-2026'),
-        signOptions: { 
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '7d') as any
-        },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+
+        // SECURITY: Bắt buộc có JWT_SECRET — không fallback về hardcoded value
+        if (!secret) {
+          throw new Error(
+            '[AuthModule] JWT_SECRET chưa được cấu hình trong .env!\n' +
+            'Vui lòng set JWT_SECRET với giá trị ngẫu nhiên >= 32 ký tự.\n' +
+            'Gợi ý tạo: openssl rand -base64 48',
+          );
+        }
+
+        if (secret.length < 32) {
+          throw new Error(
+            '[AuthModule] JWT_SECRET quá ngắn! Cần >= 32 ký tự để đảm bảo bảo mật.',
+          );
+        }
+
+        return {
+          secret,
+          signOptions: {
+            // Giảm từ 7d → 1d để giảm cửa sổ tấn công nếu token bị lộ
+            expiresIn: configService.get<string>('JWT_EXPIRES_IN', '1d') as any,
+          },
+        };
+      },
       inject: [ConfigService],
     }),
   ],

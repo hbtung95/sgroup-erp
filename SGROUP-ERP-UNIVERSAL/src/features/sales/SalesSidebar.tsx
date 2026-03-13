@@ -46,6 +46,7 @@ const SIDEBAR_ITEMS: SalesSidebarItem[] = [
   { key: 'SALES_BOOKING',       label: 'Giữ chỗ',            icon: Ticket,          section: 'sales_ops', minRole: ALL_ROLES },
   { key: 'SALES_DEPOSIT',       label: 'Đặt cọc',            icon: Landmark,        section: 'sales_ops', minRole: ALL_ROLES },
   { key: 'SALES_DEALS',         label: 'Giao dịch',          icon: Briefcase,       section: 'sales_ops', minRole: ALL_ROLES },
+  { key: 'SALES_DEAL_RECORDING', label: 'Ghi nhận Deal',      icon: FileText,        section: 'sales_ops', minRole: ALL_ROLES },
   { key: 'SALES_KPI',           label: 'Bảng KPI',           icon: Trophy,          section: 'sales_ops', minRole: ALL_ROLES },
 
   // TÀI CHÍNH
@@ -62,7 +63,7 @@ const SIDEBAR_ITEMS: SalesSidebarItem[] = [
   // QUẢN TRỊ KINH DOANH (Director+)
   { key: 'SALES_PROJECTS',      label: 'Dự án BĐS',          icon: Building,        section: 'admin',     minRole: ['sales_director', 'ceo', 'sales_admin'] },
   { key: 'SALES_TARGETS',       label: 'Phân bổ Target',     icon: Target,          section: 'admin',     minRole: ['sales_director', 'ceo', 'sales_admin'] },
-  { key: 'SALES_PLAN_ACTUAL',   label: 'Plan vs Actual',     icon: BarChart3,       section: 'admin',     minRole: ['team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin'] },
+  { key: 'SALES_PLAN_ACTUAL',   label: 'Plan vs Actual',     icon: BarChart3,       section: 'admin',     minRole: ALL_ROLES },
   { key: 'SALES_CRM_VIEWER',    label: 'Đối chiếu CRM',      icon: RefreshCw,       section: 'admin',     minRole: ['sales_director', 'sales_admin'] },
 ];
 

@@ -4,6 +4,8 @@ import { RefreshCw, Database, Server, CheckCircle2, AlertTriangle, ArrowDownToLi
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGButton, SGPlanningSectionTitle } from '../../../shared/ui/components';
+import { useAuthStore } from '../../auth/store/authStore';
+import { useGetDeals } from '../hooks/useSalesOps';
 
 export function CrmViewer() {
   const { theme, isDark } = useAppTheme();

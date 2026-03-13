@@ -1,23 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { typography, useTheme } from '../../../shared/theme/theme';
 import { useThemeStore } from '../../../shared/theme/themeStore';
 import { SGCard, SGButton } from '../../../shared/ui/components';
 import { useProject, useProjectProducts } from '../hooks/useProjects';
-import { ArrowLeft, Building2, MapPin, Grid3x3, CheckCircle2 } from 'lucide-react-native';
+import { ArrowLeft, Building2, MapPin, Grid3x3, CheckCircle2, Edit2 } from 'lucide-react-native';
 import { formatTy } from '../../../shared/utils/formatters';
+import { ProjectFormModal } from '../components/ProjectFormModal';
 
 interface Props {
   projectId: string;
   onBack: () => void;
+  onNavigateInventory?: (projectId: string) => void;
 }
 
-export function ProjectDetailView({ projectId, onBack }: Props) {
+export function ProjectDetailView({ projectId, onBack, onNavigateInventory }: Props) {
   const colors = useTheme();
   const { isDark } = useThemeStore();
+  const [showEditForm, setShowEditForm] = useState(false);
   
   const { data: project, isLoading: isProjectLoading, isError: isProjectError } = useProject(projectId);
   const { data: products, isLoading: isProductsLoading } = useProjectProducts(projectId);
+
+  const safeProducts = Array.isArray(products) ? products : [];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'AVAILABLE': return '#10b981';
+      case 'LOCKED': return '#f59e0b';
+      case 'BOOKED': return '#f97316';
+      case 'PENDING_DEPOSIT': return '#3b82f6';
+      case 'DEPOSIT': return '#8b5cf6';
+      case 'SOLD': return '#ef4444';
+      case 'COMPLETED': return '#64748b';
+      default: return colors.textSecondary;
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'AVAILABLE': return 'CÒN TRỐNG';
+      case 'LOCKED': return 'ĐANG LOCK';
+      case 'BOOKED': return 'ĐÃ ĐẶT';
+      case 'PENDING_DEPOSIT': return 'CHỜ CỌC';
+      case 'DEPOSIT': return 'ĐÃ CỌC';
+      case 'SOLD': return 'ĐÃ BÁN';
+      case 'COMPLETED': return 'HOÀN TẤT';
+      default: return status;
+    }
+  };
 
   if (isProjectLoading) {
     return (
@@ -36,8 +67,12 @@ export function ProjectDetailView({ projectId, onBack }: Props) {
     );
   }
 
+  const liquidityPct = project.totalUnits ? Math.round(((project.soldUnits || 0) / project.totalUnits) * 100) : 0;
+
   return (
     <View style={styles.container}>
+      <ProjectFormModal visible={showEditForm} onClose={() => setShowEditForm(false)} editData={project as any} />
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -51,16 +86,26 @@ export function ProjectDetailView({ projectId, onBack }: Props) {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
               <View style={[
                 styles.statusBadge, 
-                { backgroundColor: project.status === 'ACTIVE' ? (isDark ? 'rgba(16,185,129,0.2)' : '#d1fae5') : (isDark ? 'rgba(100,116,139,0.2)' : '#f1f5f9') }
+                { backgroundColor: project.status === 'ACTIVE' ? (isDark ? 'rgba(16,185,129,0.2)' : '#d1fae5') 
+                  : project.status === 'PAUSED' ? (isDark ? 'rgba(245,158,11,0.2)' : '#fef3c7')
+                  : (isDark ? 'rgba(100,116,139,0.2)' : '#f1f5f9') }
               ]}>
-                <Text style={[typography.micro, { color: project.status === 'ACTIVE' ? '#10b981' : colors.textSecondary, fontWeight: '700' }]}>
-                  {project.status === 'ACTIVE' ? 'ĐANG MỞ BÁN' : project.status}
+                <Text style={[typography.micro, { 
+                  color: project.status === 'ACTIVE' ? '#10b981' : project.status === 'PAUSED' ? '#f59e0b' : colors.textSecondary, 
+                  fontWeight: '700' 
+                }]}>
+                  {project.status === 'ACTIVE' ? 'ĐANG MỞ BÁN' : project.status === 'PAUSED' ? 'TẠM DỪNG' : 'ĐÃ ĐÓNG'}
                 </Text>
               </View>
               <Text style={[typography.body, { color: colors.textSecondary }]}>Mã: {project.projectCode}</Text>
             </View>
           </View>
-          <SGButton title="Chỉnh sửa" variant="secondary" />
+          <SGButton 
+            title="Chỉnh sửa" 
+            variant="secondary"
+            icon={<Edit2 size={16} color="#fff" />}
+            onPress={() => setShowEditForm(true)}
+          />
         </View>
       </View>
 
@@ -106,14 +151,19 @@ export function ProjectDetailView({ projectId, onBack }: Props) {
               <View
                 style={{
                   width: 50, height: 50, borderRadius: 25,
-                  borderWidth: 4, borderColor: '#10b981',
+                  borderWidth: 4, borderColor: liquidityPct >= 50 ? '#10b981' : '#f59e0b',
                   justifyContent: 'center', alignItems: 'center'
                 }}
               >
-                <Text style={[typography.micro, { color: '#10b981', fontWeight: 'bold' }]}>
-                  {project.totalUnits ? Math.round(((project.soldUnits || 0) / project.totalUnits) * 100) : 0}%
+                <Text style={[typography.micro, { color: liquidityPct >= 50 ? '#10b981' : '#f59e0b', fontWeight: 'bold' }]}>
+                  {liquidityPct}%
                 </Text>
               </View>
+            </View>
+
+            {/* Progress bar */}
+            <View style={{ height: 8, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
+              <View style={{ width: `${Math.min(liquidityPct, 100)}%`, height: '100%', backgroundColor: '#10b981', borderRadius: 4 } as any} />
             </View>
             
             <View style={styles.divider} />
@@ -127,6 +177,10 @@ export function ProjectDetailView({ projectId, onBack }: Props) {
                 <Text style={[typography.micro, { color: colors.textSecondary }]}>Hoa hồng</Text>
                 <Text style={[typography.h4, { color: '#f59e0b', marginTop: 4 }]}>{project.feeRate || 0}%</Text>
               </View>
+              <View>
+                <Text style={[typography.micro, { color: colors.textSecondary }]}>Giá trị DA</Text>
+                <Text style={[typography.h4, { color: '#8b5cf6', marginTop: 4 }]}>{formatTy((project.avgPrice || 0) * (project.totalUnits || 0))}</Text>
+              </View>
             </View>
           </SGCard>
         </View>
@@ -135,15 +189,25 @@ export function ProjectDetailView({ projectId, onBack }: Props) {
         <View style={{ flex: 1 }}>
           <SGCard style={{ flex: 1, padding: 24, minHeight: 500 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <Text style={[typography.h4, { color: colors.text }]}>Danh sách Sản phẩm</Text>
-              <SGButton title="Quản lý Bảng hàng" variant="outline" size="sm" />
+              <Text style={[typography.h4, { color: colors.text }]}>
+                Danh sách Sản phẩm
+                {safeProducts.length > 0 && (
+                  <Text style={[typography.body, { color: colors.textSecondary }]}> ({safeProducts.length})</Text>
+                )}
+              </Text>
+              <SGButton 
+                title="Quản lý Bảng hàng" 
+                variant="outline" 
+                size="sm" 
+                onPress={() => onNavigateInventory?.(projectId)}
+              />
             </View>
 
             {isProductsLoading ? (
               <View style={[styles.centerContainer, { flex: 1 }]}>
                 <ActivityIndicator color="#3b82f6" />
               </View>
-            ) : (!products || products.length === 0) ? (
+            ) : safeProducts.length === 0 ? (
               <View style={[styles.centerContainer, { flex: 1 }]}>
                 <Grid3x3 size={48} color={colors.textTertiary} opacity={0.5} style={{ marginBottom: 16 }} />
                 <Text style={[typography.body, { color: colors.textSecondary, fontWeight: '700', fontSize: 16 }]}>Chưa có sản phẩm nào</Text>
@@ -159,23 +223,26 @@ export function ProjectDetailView({ projectId, onBack }: Props) {
                   <Text style={[typography.micro, { color: colors.textSecondary, flex: 1, textAlign: 'right' }]}>TRẠNG THÁI</Text>
                 </View>
                 
-                {products.map((p: any, idx) => (
-                  <View key={p.id} style={[styles.tableRow, { 
-                    paddingVertical: 14, 
-                    borderBottomColor: idx < products.length - 1 ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent', 
-                    borderBottomWidth: idx < products.length - 1 ? 1 : 0 
-                  }]}>
-                    <Text style={[typography.body, { color: colors.text, width: 80, fontWeight: '700' }]}>{p.code}</Text>
-                    <Text style={[typography.body, { color: colors.textSecondary, width: 80 }]}>{p.block || '-'}/{p.floor || '-'}</Text>
-                    <Text style={[typography.body, { color: colors.textSecondary, width: 80 }]}>{p.area || 0} m²</Text>
-                    <Text style={[typography.body, { color: colors.text, width: 100, fontWeight: '600' }]}>{p.price ? formatTy(p.price) : 'N/A'}</Text>
-                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
-                      <View style={{ backgroundColor: p.status === 'AVAILABLE' ? (isDark ? 'rgba(16,185,129,0.1)' : '#ecfdf5') : (isDark ? 'rgba(245,158,11,0.1)' : '#fffbeb'), paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                        <Text style={[typography.micro, { color: p.status === 'AVAILABLE' ? '#10b981' : '#f59e0b', fontWeight: '700' }]}>{p.status === 'AVAILABLE' ? 'CÒN TRỐNG' : p.status}</Text>
+                {safeProducts.map((p: any, idx: number) => {
+                  const sc = getStatusColor(p.status);
+                  return (
+                    <View key={p.id} style={[styles.tableRow, { 
+                      paddingVertical: 14, 
+                      borderBottomColor: idx < safeProducts.length - 1 ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : 'transparent', 
+                      borderBottomWidth: idx < safeProducts.length - 1 ? 1 : 0 
+                    }]}>
+                      <Text style={[typography.body, { color: colors.text, width: 80, fontWeight: '700' }]}>{p.code}</Text>
+                      <Text style={[typography.body, { color: colors.textSecondary, width: 80 }]}>{p.block || '-'}/{p.floor || '-'}</Text>
+                      <Text style={[typography.body, { color: colors.textSecondary, width: 80 }]}>{p.area || 0} m²</Text>
+                      <Text style={[typography.body, { color: colors.text, width: 100, fontWeight: '600' }]}>{p.price ? formatTy(p.price) : 'N/A'}</Text>
+                      <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end' }}>
+                        <View style={{ backgroundColor: isDark ? `${sc}15` : `${sc}10`, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                          <Text style={[typography.micro, { color: sc, fontWeight: '700' }]}>{getStatusLabel(p.status)}</Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                ))}
+                  );
+                })}
               </ScrollView>
             )}
           </SGCard>

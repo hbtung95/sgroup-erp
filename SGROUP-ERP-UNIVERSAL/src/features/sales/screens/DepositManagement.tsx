@@ -13,7 +13,11 @@ import {
 } from 'lucide-react-native';
 import { SGButton, SGPlanningSectionTitle, SGPlanningNumberField, SGTable, SGStatCard } from '../../../shared/ui/components';
 import { useSalesStore } from '../store/useSalesStore';
+import { useCreateDeposit, useConfirmDeposit, useCancelDeposit } from '../hooks/useDeposits';
+import { useGetProjects } from '../hooks/useSalesOps';
 import { useDepositFilter } from '../hooks/useDepositFilter';
+import { projectApi } from '../../project/api/projectApi';
+import { useQuery } from '@tanstack/react-query';
 import { DepositChart } from '../components/charts/DepositChart';
 import { UnitMatrix } from '../components/inventory/UnitMatrix';
 import { UnitDetailsModal } from '../components/modals/UnitDetailsModal';
@@ -68,8 +72,15 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
   const cSub = theme.colors.textSecondary;
 
   const { addTransaction } = useSalesStore();
-  const availableProjects = useSalesStore(s => s.availableProjects);
-  const propertyInventory = useSalesStore(s => s.units);
+  const createDepositMut = useCreateDeposit();
+  const confirmDepositMut = useConfirmDeposit();
+  const cancelDepositMut = useCancelDeposit();
+  const availableProjectsRaw = useSalesStore(s => s.availableProjects);
+  const { data: rawApiProjects } = useGetProjects();
+  const apiProjects = Array.isArray(rawApiProjects) ? rawApiProjects : (Array.isArray((rawApiProjects as any)?.data) ? (rawApiProjects as any).data : []);
+  const availableProjects: { name: string; status: string }[] = apiProjects.length > 0
+    ? apiProjects.map((p: any) => ({ name: p.name || p.projectName, status: p.status === 'ACTIVE' ? 'OPEN' : (p.status || 'OPEN') }))
+    : availableProjectsRaw;
   
   const {
     period, setPeriod,
@@ -100,13 +111,36 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
     [availableProjects, matrixProjectSearch]
   );
   
-  const [matrixSelectedProject, setMatrixSelectedProject] = useState('');
+  const [matrixSelectedProject, setMatrixSelectedProject] = useState<{id: string; name: string} | null>(null);
   const [selectedUnitDetails, setSelectedUnitDetails] = useState<PropertyUnit | null>(null);
 
-  const unitsForSelectedProject = useMemo(() => {
+  // Fetch real products from project API for the selected project
+  const { data: rawApiProducts } = useQuery({
+    queryKey: ['projects', matrixSelectedProject?.id, 'products'],
+    queryFn: () => projectApi.getProducts(matrixSelectedProject!.id),
+    enabled: !!matrixSelectedProject?.id,
+    staleTime: 15_000,
+  });
+
+  const unitsForSelectedProject: PropertyUnit[] = useMemo(() => {
     if (!matrixSelectedProject) return [];
-    return propertyInventory.filter(u => u.project === matrixSelectedProject);
-  }, [propertyInventory, matrixSelectedProject]);
+    const apiProducts = Array.isArray(rawApiProducts) ? rawApiProducts : [];
+    return apiProducts.map((p: any) => ({
+      id: p.id,
+      code: p.code || '',
+      block: p.block || 'Khác',
+      floor: p.floor ?? 0,
+      area: p.area ?? 0,
+      bedrooms: p.bedrooms ?? 0,
+      direction: p.direction || '',
+      price: p.price ?? 0,
+      status: (p.status || 'AVAILABLE') as any,
+      bookedBy: p.bookedBy,
+      lockedUntil: p.lockedUntil ? new Date(p.lockedUntil) : undefined,
+      project: matrixSelectedProject.name,
+      projectId: p.projectId,
+    }));
+  }, [rawApiProducts, matrixSelectedProject]);
 
   // Form states
   const [selectedProject, setSelectedProject] = useState('');
@@ -132,6 +166,7 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
     if (!customerName.trim()) { alert('Vui lòng nhập tên khách hàng!'); return; }
     if (!customerPhone.trim()) { alert('Vui lòng nhập số điện thoại!'); return; }
     
+    // Local Zustand fallback
     addTransaction({
       project: selectedProject,
       unitCode: unitCode.trim(),
@@ -140,6 +175,15 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
       transactionValue,
       status: 'PENDING_DEPOSIT',
       notes,
+    });
+
+    // Send to backend API
+    createDepositMut.mutate({
+      project: selectedProject,
+      unitCode: unitCode.trim(),
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      depositAmount: transactionValue,
     });
     
     setSelectedProject('');
@@ -671,25 +715,31 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
                   )}
                 </View>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {openMatrixProjects.map(p => (
+                  {/* Use API projects with IDs for matrix */}
+                  {(apiProjects.length > 0 ? apiProjects : openMatrixProjects).map((p: any) => {
+                    const pId = p.id || '';
+                    const pName = p.name || p.projectName || '';
+                    const isSelected = matrixSelectedProject?.id === pId || (!pId && matrixSelectedProject?.name === pName);
+                    return (
                     <TouchableOpacity
-                      key={p.name}
-                      onPress={() => setMatrixSelectedProject(p.name)}
+                      key={pId || pName}
+                      onPress={() => setMatrixSelectedProject({ id: pId, name: pName })}
                       style={{
                         paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12,
-                        backgroundColor: matrixSelectedProject === p.name ? '#ea580c' : (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'),
+                        backgroundColor: isSelected ? '#ea580c' : (isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'),
                         borderWidth: 1,
-                        borderColor: matrixSelectedProject === p.name ? '#ea580c' : (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'),
+                        borderColor: isSelected ? '#ea580c' : (isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'),
                         ...(Platform.OS === 'web' ? { cursor: 'pointer', transition: 'all 150ms ease' } : {}),
                       } as any}
                     >
                       <Text style={{
                         fontSize: 13, fontWeight: '700',
-                        color: matrixSelectedProject === p.name ? '#fff' : cSub,
-                      }}>{p.name}</Text>
+                        color: isSelected ? '#fff' : cSub,
+                      }}>{pName}</Text>
                     </TouchableOpacity>
-                  ))}
-                  {openMatrixProjects.length === 0 && (
+                    );
+                  })}
+                  {openMatrixProjects.length === 0 && apiProjects.length === 0 && (
                     <Text style={{ fontSize: 13, fontWeight: '600', color: '#94a3b8', fontStyle: 'italic' }}>
                       Không tìm thấy dự án phù hợp
                     </Text>
@@ -700,7 +750,7 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
             {matrixSelectedProject ? (
               <UnitMatrix 
                 units={unitsForSelectedProject} 
-                selectedProjectName={matrixSelectedProject} 
+                selectedProjectName={matrixSelectedProject.name} 
                 onSelectUnit={handleSelectUnitFromMatrix}
                 onViewDetails={setSelectedUnitDetails}
               />
