@@ -56,7 +56,7 @@ export interface TeamEntity {
 }
 
 export interface StaffEntity {
-  id: string; userId?: string; employeeCode?: string;
+  id: string; userId?: string; hrEmployeeId?: string; employeeCode?: string;
   fullName: string; phone?: string; email?: string;
   teamId?: string; role: string; status: string;
   joinDate?: Date; leaveDate?: Date;
@@ -218,7 +218,9 @@ export interface IProductRepository extends IRepository<ProductEntity> {
 
 export interface ITeamRepository extends IRepository<TeamEntity> {}
 
-export interface IStaffRepository extends IRepository<StaffEntity> {}
+export interface IStaffRepository extends IRepository<StaffEntity> {
+  findByCode(code: string): Promise<StaffEntity | null>;
+}
 
 export interface IProjectRepository extends IRepository<ProjectEntity> {}
 

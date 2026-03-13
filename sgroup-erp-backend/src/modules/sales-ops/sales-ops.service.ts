@@ -1,4 +1,5 @@
-import { Injectable, Inject, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, ForbiddenException, NotFoundException, Logger } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import {
   TEAM_REPOSITORY, STAFF_REPOSITORY, PROJECT_REPOSITORY,
   DEAL_REPOSITORY, TARGET_REPOSITORY,
@@ -10,12 +11,15 @@ import {
 
 @Injectable()
 export class SalesOpsService {
+  private readonly logger = new Logger(SalesOpsService.name);
+
   constructor(
     @Inject(TEAM_REPOSITORY) private teamRepo: ITeamRepository,
     @Inject(STAFF_REPOSITORY) private staffRepo: IStaffRepository,
     @Inject(PROJECT_REPOSITORY) private projectRepo: IProjectRepository,
     @Inject(DEAL_REPOSITORY) private dealRepo: IDealRepository,
     @Inject(TARGET_REPOSITORY) private targetRepo: ITargetRepository,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   // ──────────────────────────── TEAMS ────────────────────────────
@@ -132,7 +136,9 @@ export class SalesOpsService {
   }) {
     const commission = data.dealValue * (data.feeRate / 100);
     const dealCode = `GD-${data.year}${String(data.month).padStart(2, '0')}-${Date.now().toString(36).toUpperCase()}`;
-    return this.dealRepo.create({ ...data, commission, dealCode } as any);
+    const deal = await this.dealRepo.create({ ...data, commission, dealCode } as any);
+    this.eventEmitter.emit('deal.created', deal);
+    return deal;
   }
 
   async updateDeal(id: string, data: Partial<{
@@ -146,7 +152,12 @@ export class SalesOpsService {
     if (data.dealValue !== undefined && data.feeRate !== undefined) {
       updateData.commission = data.dealValue * (data.feeRate / 100);
     }
-    return this.dealRepo.update(id, updateData);
+    const oldDeal = await this.dealRepo.findById(id);
+    const newDeal = await this.dealRepo.update(id, updateData);
+    if (oldDeal && oldDeal.stage !== data.stage) {
+      this.eventEmitter.emit('deal.status_changed', { oldDeal, newDeal });
+    }
+    return newDeal;
   }
 
   async getDealStats(filters: { year: number; month?: number; teamId?: string }) {
@@ -186,5 +197,50 @@ export class SalesOpsService {
       results.push(result);
     }
     return results;
+  }
+
+  // ──────────────────────────── EVENT LISTENERS ────────────────────────────
+
+  @OnEvent('transaction.approved')
+  async handleFinanceTransactionApproved(transaction: any) {
+    if (transaction.type === 'INCOME' && transaction.dealId) {
+      this.logger.log(`Received income transaction approval for Deal ${transaction.dealId}`);
+      try {
+        const deal = await this.dealRepo.findById(transaction.dealId) as any;
+        if (deal && deal.stage === 'DEPOSIT') {
+          // Move from DEPOSIT to CONTRACT automatically
+          await this.updateDeal(deal.id, { stage: 'CONTRACT' });
+          this.logger.log(`Deal ${deal.id} automatically moved from DEPOSIT to CONTRACT`);
+        }
+      } catch (error) {
+        this.logger.error(`Failed to process transaction.approved for Deal ${transaction.dealId}`, error);
+      }
+    }
+  }
+
+  @OnEvent('hr.employee_created')
+  async handleHrEmployeeCreated(employee: any) {
+    this.logger.log(`Received hr.employee_created event for Employee ${employee.employeeCode}`);
+    
+    // Check if staff already exists
+    const existing = await this.staffRepo.findByCode(employee.employeeCode);
+    if (!existing) {
+      try {
+        await this.staffRepo.create({
+          hrEmployeeId: employee.id,
+          employeeCode: employee.employeeCode,
+          fullName: employee.fullName,
+          phone: employee.phone,
+          email: employee.email,
+          role: 'sales', // default
+          status: 'ACTIVE',
+          leadsCapacity: 30, // default
+          personalTarget: 0
+        });
+        this.logger.log(`Auto-created SalesStaff profile for HR Employee ${employee.employeeCode}`);
+      } catch (err) {
+        this.logger.error(`Failed to auto-create SalesStaff for HR Employee ${employee.employeeCode}`, err);
+      }
+    }
   }
 }

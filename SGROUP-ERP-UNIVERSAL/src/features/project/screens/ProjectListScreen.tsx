@@ -6,6 +6,7 @@ import { SGCard, SGButton } from '../../../shared/ui/components';
 import { useProjects } from '../hooks/useProjects';
 import { Building2, Plus, MapPin, Search, Filter } from 'lucide-react-native';
 import { formatTy } from '../../../shared/utils/formatters';
+import { ProjectDetailView } from './ProjectDetailView';
 
 export function ProjectListScreen() {
   const colors = useTheme();
@@ -13,6 +14,7 @@ export function ProjectListScreen() {
   const { data: projects, isLoading, isError, refetch, isRefetching } = useProjects();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
@@ -85,11 +87,15 @@ export function ProjectListScreen() {
 
         <View style={styles.cardFooter}>
           <SGButton title="Xem Bảng Hàng" variant="outline" size="sm" style={{ flex: 1, marginRight: 8 }} />
-          <SGButton title="Chi tiết" variant="secondary" size="sm" style={{ flex: 1 }} />
+          <SGButton title="Chi tiết" variant="secondary" size="sm" style={{ flex: 1 }} onPress={() => setSelectedProjectId(item.id)} />
         </View>
       </SGCard>
     );
   };
+
+  if (selectedProjectId) {
+    return <ProjectDetailView projectId={selectedProjectId} onBack={() => setSelectedProjectId(null)} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -141,7 +147,7 @@ export function ProjectListScreen() {
           ListEmptyComponent={
             <View style={styles.centerContainer}>
               <Building2 size={48} color={colors.textTertiary} opacity={0.5} style={{ marginBottom: 16 }} />
-              <Text style={[typography.h5, { color: colors.textSecondary }]}>Chưa có dự án nào</Text>
+              <Text style={[typography.body, { color: colors.textSecondary, fontWeight: '700', fontSize: 16 }]}>Chưa có dự án nào</Text>
             </View>
           }
         />

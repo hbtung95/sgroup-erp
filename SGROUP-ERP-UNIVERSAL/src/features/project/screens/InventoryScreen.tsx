@@ -25,6 +25,7 @@ export function InventoryScreen() {
     switch (status) {
       case 'AVAILABLE': return '#10b981'; // Green
       case 'LOCKED': return '#f59e0b'; // Orange
+      case 'BOOKED': return '#f97316'; // Orange-red
       case 'PENDING_DEPOSIT': return '#3b82f6'; // Blue
       case 'DEPOSIT': return '#8b5cf6'; // Purple
       case 'SOLD': return '#ef4444'; // Red
@@ -37,6 +38,7 @@ export function InventoryScreen() {
     switch (status) {
       case 'AVAILABLE': return 'Sẵn sàng';
       case 'LOCKED': return 'Đang Lock';
+      case 'BOOKED': return 'Đã đặt chỗ';
       case 'PENDING_DEPOSIT': return 'Chờ cọc';
       case 'DEPOSIT': return 'Đã cọc';
       case 'SOLD': return 'Đã bán';
@@ -66,9 +68,9 @@ export function InventoryScreen() {
         </View>
         
         <View style={styles.productBody}>
-          <Text style={[typography.bodyAction, { color: colors.textSecondary }]}>Tầng {item.floor} • {item.bedrooms} PN</Text>
-          <Text style={[typography.bodyAction, { color: colors.textSecondary, marginTop: 4 }]}>Diện tích: {item.area} m²</Text>
-          <Text style={[typography.h5, { color: colors.text, marginTop: 8 }]}>
+          <Text style={[typography.body, { color: colors.textSecondary }]}>Tầng {item.floor} • {item.bedrooms} PN</Text>
+          <Text style={[typography.body, { color: colors.textSecondary, marginTop: 4 }]}>Diện tích: {item.area} m²</Text>
+          <Text style={[typography.body, { color: colors.text, marginTop: 8, fontWeight: '700' }]}>
             {item.price ? `${item.price.toLocaleString('vi-VN')} Tỷ` : 'Đang cập nhật'}
           </Text>
         </View>
@@ -77,12 +79,17 @@ export function InventoryScreen() {
           {item.status === 'AVAILABLE' && (
             <SGButton title="Lock Căn" size="sm" variant="outline" style={{ flex: 1 }} />
           )}
-          {item.status === 'LOCKED' && (
+          {item.status === 'LOCKED' && !item.bookedBy && (
             <SGButton title="Mở Lock" size="sm" variant="outline" style={{ flex: 1 }} />
           )}
-          {['DEPOSIT', 'SOLD', 'COMPLETED'].includes(item.status) && (
+          {['LOCKED', 'BOOKED', 'PENDING_DEPOSIT', 'DEPOSIT', 'SOLD', 'COMPLETED'].includes(item.status) && item.bookedBy && (
             <Text style={[typography.micro, { color: colors.textTertiary, textAlign: 'center', width: '100%' }]}>
-              {item.bookedBy || 'Đã giao dịch'}
+              Bởi: {item.bookedBy}
+            </Text>
+          )}
+          {['DEPOSIT', 'SOLD', 'COMPLETED'].includes(item.status) && !item.bookedBy && (
+            <Text style={[typography.micro, { color: colors.textTertiary, textAlign: 'center', width: '100%' }]}>
+              Đã giao dịch
             </Text>
           )}
         </View>
@@ -104,7 +111,7 @@ export function InventoryScreen() {
 
       {/* Project Selector Tabs */}
       <View style={{ marginBottom: 24 }}>
-        <Text style={[typography.h6, { color: colors.textSecondary, marginBottom: 12 }]}>Chọn Dự án:</Text>
+        <Text style={[typography.body, { color: colors.textSecondary, marginBottom: 12, fontWeight: '700' }]}>Chọn Dự án:</Text>
         {projectsLoading ? (
           <ActivityIndicator size="small" color="#10b981" />
         ) : (
@@ -126,8 +133,8 @@ export function InventoryScreen() {
                 ]}
               >
                 <Text style={[
-                  typography.bodyAction, 
-                  { color: selectedProjectId === project.id ? '#fff' : colors.text }
+                  typography.body, 
+                  { color: selectedProjectId === project.id ? '#fff' : colors.text, fontWeight: '600' }
                 ]}>
                   {project.name}
                 </Text>

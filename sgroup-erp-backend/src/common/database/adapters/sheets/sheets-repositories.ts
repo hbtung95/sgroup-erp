@@ -217,6 +217,11 @@ export class SheetsStaffRepository
     const all = await super.findAll({ ...filters, status });
     return all.sort((a, b) => a.fullName.localeCompare(b.fullName));
   }
+
+  async findByCode(code: string): Promise<StaffEntity | null> {
+    const all = await this.findAll({});
+    return all.find(s => s.employeeCode === code) || null;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════

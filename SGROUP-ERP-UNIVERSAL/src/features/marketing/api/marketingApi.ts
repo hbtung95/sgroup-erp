@@ -49,6 +49,8 @@ export const marketingPlanningApi = {
     request(`/marketing-planning/kpi-targets?planId=${planId}`),
   getAssumptions: (planId: string) =>
     request(`/marketing-planning/assumptions?planId=${planId}`),
+  getChannelROI: (planId: string) =>
+    request(`/marketing-planning/channel-roi?planId=${planId}`),
 };
 
 // ── CAMPAIGNS (placeholder for future backend) ──

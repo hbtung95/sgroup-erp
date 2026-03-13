@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
-import { UserPlus, Briefcase, Clock, CheckCircle, Search, Filter, MoreHorizontal, UserCog } from 'lucide-react-native';
+import { UserPlus, Briefcase, Clock, CheckCircle, Search, Filter, MoreHorizontal, UserCog, Users } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';

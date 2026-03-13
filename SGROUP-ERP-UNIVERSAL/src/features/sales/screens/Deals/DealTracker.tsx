@@ -5,6 +5,7 @@
  */
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { FileText, CheckCircle2, ChevronRight, Calculator, AlignLeft, TrendingUp, AlertCircle, Clock } from 'lucide-react-native';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { useDeals, Deal, DealStage } from '../../hooks/useDeals';
@@ -23,6 +24,7 @@ const STAGE_FLOW: DealStage[] = ['DEPOSIT', 'CONTRACT', 'COMPLETED'];
 
 export function DealTracker() {
   const { theme, isDark } = useAppTheme();
+  const navigation = useNavigation<any>();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
   const cBg = isDark ? theme.colors.background : theme.colors.backgroundAlt;
@@ -101,6 +103,25 @@ export function DealTracker() {
             {deal.stage === 'COMPLETED' ? 'GIAO DỊCH HOÀN TẤT' : `ĐANG Ở BƯỚC ${cfg.label}`}
           </Text>
         </View>
+
+        {/* Cross-Module Integration: Finance */}
+        {['DEPOSIT', 'CONTRACT', 'COMPLETED'].includes(deal.stage) && (
+          <TouchableOpacity 
+            onPress={() => {
+              if (Platform.OS === 'web') {
+                window.location.hash = 'debts';
+              }
+              navigation.navigate('FinanceModule');
+            }}
+            style={{ 
+              marginTop: 12, paddingVertical: 10, borderRadius: 10, 
+              backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#eff6ff', 
+              alignItems: 'center', justifyContent: 'center',
+              borderWidth: 1, borderColor: isDark ? 'rgba(59,130,246,0.3)' : '#bfdbfe'
+            }}>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#3b82f6' }}>Tra cứu Công nợ (Finance)</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };

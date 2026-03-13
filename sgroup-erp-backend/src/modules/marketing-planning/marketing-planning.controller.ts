@@ -28,4 +28,9 @@ export class MarketingPlanningController {
   async getAssumptions(@Query('planId') planId: string) {
     return this.service.getAssumptions(planId);
   }
+
+  @Get('channel-roi')
+  async getChannelROI(@Query('planId') planId: string) {
+    return this.service.getChannelROI(planId);
+  }
 }

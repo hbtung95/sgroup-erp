@@ -1,4 +1,4 @@
-import { apiClient } from '../../../core/api/clients/apiClient';
+import { apiClient } from '../../../core/api/apiClient';
 
 export interface ProjectData {
   id: string;

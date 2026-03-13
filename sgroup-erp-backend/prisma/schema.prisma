@@ -301,6 +301,8 @@ model DimProject {
   note        String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  legalDocs LegalProjectDoc[]
 }
 
 model SalesTeam {
@@ -384,6 +386,8 @@ model FactDeal {
   status        String      @default("ACTIVE")
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  legalDocs LegalTransactionDoc[]
 }
 
 model FactSalesDaily {
@@ -520,6 +524,8 @@ model Customer {
   month           Int
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  legalDocs LegalTransactionDoc[]
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -753,4 +759,156 @@ model HrPerformanceReview {
   status       String     @default("DRAFT") // DRAFT, SUBMITTED, ACKNOWLEDGED
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+}
+
+// ══════════════════════════════════════════════════════════════════
+// LEGAL & DOCUMENT MODULE
+// ══════════════════════════════════════════════════════════════════
+
+model LegalProjectDoc {
+  id          String     @id @default(uuid(7))
+  projectId   String
+  project     DimProject @relation(fields: [projectId], references: [id])
+  name        String // e.g., "Quyết định 1/500", "Giấy phép xây dựng"
+  docType     String     @default("GENERAL") // GENERAL, LICENSE, DECISION, CERTIFICATE
+  fileUrl     String?
+  issuedDate  DateTime?
+  expiredDate DateTime?
+  status      String     @default("VALID") // VALID, EXPIRED, REVOKED, PENDING
+  note        String?
+  createdBy   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model LegalTransactionDoc {
+  id         String    @id @default(uuid(7))
+  dealId     String
+  deal       FactDeal  @relation(fields: [dealId], references: [id])
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  name       String // e.g., "Hợp đồng cọc mã 001", "CMND Nguyễn Văn A"
+  docType    String    @default("CONTRACT") // CONTRACT, KYC, RECEIPT, ANNEX
+  fileUrl    String?
+  signedDate DateTime?
+  status     String    @default("DRAFT") // DRAFT, PENDING_SIGN, SIGNED, CANCELLED
+  note       String?
+  createdBy  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model LegalTemplate {
+  id          String   @id @default(uuid(7))
+  name        String
+  description String?
+  docType     String   @default("CONTRACT") // CONTRACT, FORM, RECEIPT
+  fileUrl     String
+  version     String   @default("1.0")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FINANCE & ACCOUNTING MODULE
+// ══════════════════════════════════════════════════════════════════
+
+model FinanceAccount {
+  id            String   @id @default(uuid(7))
+  accountCode   String   @unique
+  accountName   String
+  accountType   String   @default("BANK") // CASH, BANK, EPAY
+  bankName      String?
+  bankNumber    String?
+  initialBalance Float   @default(0)
+  currentBalance Float   @default(0)
+  currency      String   @default("VND")
+  status        String   @default("ACTIVE") // ACTIVE, INACTIVE
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  transactions FinanceTransaction[]
+}
+
+model FinanceCategory {
+  id           String   @id @default(uuid(7))
+  categoryCode String   @unique
+  categoryName String
+  type         String // INCOME, EXPENSE
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transactions FinanceTransaction[]
+}
+
+model FinanceTransaction {
+  id               String   @id @default(uuid(7))
+  transactionCode  String   @unique // PT..., PC...
+  type             String // INCOME (Thu), EXPENSE (Chi)
+  amount           Float    @default(0)
+  currency         String   @default("VND")
+  
+  accountId        String
+  account          FinanceAccount @relation(fields: [accountId], references: [id])
+  
+  categoryId       String
+  category         FinanceCategory @relation(fields: [categoryId], references: [id])
+  
+  // Liên kết (Relations) với các module khác
+  dealId           String?
+  projectId        String?
+  customerId       String?
+  staffId          String?
+  
+  // Thông tin đối tượng Thanh toán / Thu tiền
+  payerName        String?
+  receiverName     String?
+  
+  paymentMethod    String   @default("BANK_TRANSFER") // CASH, BANK_TRANSFER
+  paymentDate      DateTime
+  
+  status           String   @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, CANCELLED
+  
+  approvedBy       String?
+  approvedAt       DateTime?
+  
+  documentUrl      String? // Link ảnh uỷ nhiệm chi, phiếu thu...
+  note             String?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  createdBy        String?
+
+  debtRecords      DebtRecord[]
+}
+
+model DebtRecord {
+  id               String   @id @default(uuid(7))
+  debtCode         String   @unique
+  debtType         String // RECEIVABLE_CUSTOMER, RECEIVABLE_DEVELOPER, PAYABLE_STAFF
+  
+  // Đối tượng Công nợ
+  customerId       String?
+  projectId        String?
+  staffId          String?
+  dealId           String?
+  
+  totalAmount      Float    @default(0)
+  paidAmount       Float    @default(0)
+  remainingAmount  Float    @default(0)
+  
+  dueDate          DateTime?
+  status           String   @default("UNPAID") // UNPAID, PARTIAL, PAID, OVERDUE, CANCELLED
+  
+  note             String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  // Link với các lần thanh toán (Phiếu thu / Phiếu chi)
+  transactionId    String?
+  transaction      FinanceTransaction? @relation(fields: [transactionId], references: [id])
 }

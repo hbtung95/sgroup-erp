@@ -69,6 +69,13 @@ export class PrismaStaffRepository implements IStaffRepository {
     }) as any;
   }
 
+  async findByCode(code: string): Promise<StaffEntity | null> {
+    return this.prisma.salesStaff.findUnique({
+      where: { employeeCode: code },
+      include: { team: true },
+    }) as any;
+  }
+
   async create(data: Partial<StaffEntity>): Promise<StaffEntity> {
     return this.prisma.salesStaff.create({ data: data as any }) as any;
   }

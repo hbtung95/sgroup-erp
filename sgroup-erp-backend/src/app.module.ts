@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DatabaseModule } from './common/database/database.module';
 import { SyncModule } from './common/database/sync/sync.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -16,11 +17,16 @@ import { CustomersModule } from './modules/customers/customers.module';
 import { ActivitiesModule } from './modules/activities/activities.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { ProductsModule } from './modules/products/products.module';
+import { LegalModule } from './modules/legal/legal.module';
+import { ProjectModule } from './modules/project/project.module';
+import { FinanceModule } from './modules/finance/finance.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { HrModule } from './modules/hr/hr.module';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule.forRoot(), // ← Dynamic adapter selection (Prisma / Google Sheets)
     PrismaModule,             // Keep for sync & legacy compatibility
@@ -37,7 +43,11 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     ActivitiesModule,
     AppointmentsModule,
     ProductsModule,
+    LegalModule,
+    ProjectModule,
+    FinanceModule,
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+    HrModule,
   ],
   providers: [
     {
