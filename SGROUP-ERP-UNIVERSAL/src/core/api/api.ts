@@ -4,13 +4,16 @@ const DEV_API_URL_WEB = 'http://localhost:3000/api';
 const DEV_API_URL_NATIVE = 'http://10.0.2.2:3000/api';
 const PROD_API_URL = 'https://sgroup-erp.onrender.com/api';
 
-const __DEV__ = process.env.NODE_ENV !== 'production';
+// Detect dev/prod reliably: on web check hostname, on native check NODE_ENV
+const isDevWeb = Platform.OS === 'web' && typeof window !== 'undefined'
+  && (window.location?.hostname === 'localhost' || window.location?.hostname === '127.0.0.1');
+const isDevNative = Platform.OS !== 'web' && process.env.NODE_ENV !== 'production';
 
-export const API_BASE_URL = __DEV__
-  ? Platform.OS === 'web'
-    ? DEV_API_URL_WEB
-    : DEV_API_URL_NATIVE
-  : PROD_API_URL;
+export const API_BASE_URL = isDevWeb
+  ? DEV_API_URL_WEB
+  : isDevNative
+    ? DEV_API_URL_NATIVE
+    : PROD_API_URL;
 
 export async function apiFetch<T>(
   endpoint: string,
