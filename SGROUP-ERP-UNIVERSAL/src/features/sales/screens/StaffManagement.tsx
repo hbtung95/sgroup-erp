@@ -26,7 +26,7 @@ export function StaffManagement({ userRole }: { userRole?: SalesRole }) {
   const canEdit = isDirectorPlus || userRole === 'sales_manager';
 
   // Team Lead sees their team, Director+ sees all
-  const allStaff = (rawStaff || []) as any[];
+  const allStaff = Array.isArray(rawStaff) ? rawStaff : (Array.isArray((rawStaff as any)?.data) ? (rawStaff as any).data : []);
   const myStaffRecord = allStaff.find((s: any) => s.email === user?.email || s.fullName === user?.name);
   const myTeamId = myStaffRecord?.teamId || user?.teamId;
   const visibleStaff = (userRole === 'team_lead' && myTeamId)
