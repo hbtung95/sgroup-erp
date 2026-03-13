@@ -36,7 +36,7 @@ export function useCustomers(filters?: Record<string, any>) {
     queryKey: [CUSTOMERS_KEY, filters],
     queryFn: async () => {
       const res = await apiClient.get('/customers', { params: filters });
-      return res.data as Customer[];
+      return Array.isArray(res.data) ? res.data as Customer[] : [];
     },
   });
 
