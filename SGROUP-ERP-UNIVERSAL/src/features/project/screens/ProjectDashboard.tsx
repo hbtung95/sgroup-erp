@@ -75,6 +75,8 @@ export function ProjectDashboard() {
 
   const maxStatusCount = Math.max(statusDist.ACTIVE, statusDist.PAUSED, statusDist.CLOSED, 1);
 
+  return (
+    <ScrollView style={styles.container}>
         {/* Dynamic Glowing Aurora */}
         {Platform.OS === 'web' && (
           <View style={[StyleSheet.absoluteFill, { zIndex: 0, overflow: 'hidden' }]} pointerEvents="none">
