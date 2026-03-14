@@ -21,8 +21,9 @@ import { useQuery } from '@tanstack/react-query';
 import { DepositChart } from '../components/charts/DepositChart';
 import { UnitMatrix } from '../components/inventory/UnitMatrix';
 import { UnitDetailsModal } from '../components/modals/UnitDetailsModal';
+import { useToast } from '../components/ToastProvider';
 import type { SalesRole } from '../SalesSidebar';
-import type { TransactionEntry, PropertyUnit } from '../store/useSalesStore';
+import type { PropertyUnit } from '../store/useSalesStore';
 import type { BookingPeriod } from '../hooks/useBookingFilter';
 
 const PERIOD_TABS: { label: string; value: BookingPeriod }[] = [
@@ -48,6 +49,29 @@ function parseDateInput(s: string): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (!error || typeof error !== 'object') {
+    return fallback;
+  }
+
+  const response = (error as { response?: { data?: { message?: string | string[] } } }).response;
+  const message = response?.data?.message;
+
+  if (Array.isArray(message) && message.length > 0) {
+    return message.join(', ');
+  }
+
+  if (typeof message === 'string' && message.trim()) {
+    return message;
+  }
+
+  if ('message' in error && typeof (error as { message?: unknown }).message === 'string') {
+    return (error as { message: string }).message;
+  }
+
+  return fallback;
+}
+
 // Status badge component
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; label: string }> = {
@@ -56,7 +80,17 @@ function StatusBadge({ status }: { status: string }) {
     REJECTED: { bg: '#fee2e2', text: '#ef4444', label: 'TỪ CHỐI' },
     CANCELED: { bg: '#f1f5f9', text: '#64748b', label: 'ĐÃ HUỶ' },
   };
-  const c = config[status] || { bg: '#f1f5f9', text: '#64748b', label: status };
+  const normalizedStatus =
+    status === 'PENDING_DEPOSIT' ? 'PENDING'
+      : status === 'DEPOSIT' ? 'CONFIRMED'
+      : status;
+  const normalizedConfig: Record<string, { bg: string; text: string; label: string }> = {
+    PENDING: { bg: '#fef3c7', text: '#d97706', label: 'CHO DUYET' },
+    CONFIRMED: { bg: '#dcfce7', text: '#16a34a', label: 'DA DUYET' },
+    CANCELLED: { bg: '#f1f5f9', text: '#64748b', label: 'DA HUY' },
+    REFUNDED: { bg: '#dbeafe', text: '#2563eb', label: 'HOAN TIEN' },
+  };
+  const c = normalizedConfig[normalizedStatus] || config[status] || { bg: '#f1f5f9', text: '#64748b', label: status };
   return (
     <View style={{ backgroundColor: c.bg, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10, alignSelf: 'center' }}>
       <Text style={{ fontSize: 11, fontWeight: '800', color: c.text, letterSpacing: 0.3 }}>{c.label}</Text>
@@ -70,6 +104,7 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
   const isWideScreen = Platform.OS === 'web' && windowWidth >= 900;
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
+  const { showToast } = useToast();
 
   const { addTransaction } = useSalesStore();
   const createDepositMut = useCreateDeposit();
@@ -86,6 +121,8 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
     period, setPeriod,
     customFrom, setCustomFrom, customTo, setCustomTo,
     statusFilter, setStatusFilter,
+    isLoading,
+    error,
     totals, chartData, rawDeposits,
   } = useDepositFilter();
 
@@ -160,7 +197,56 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
   // Delete confirmation
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleSubmit = () => {
+  const isAdmin =
+    userRole === 'sales_admin' ||
+    userRole === 'sales_manager' ||
+    userRole === 'sales_director' ||
+    userRole === 'ceo';
+
+  const handleSubmit = useCallback(async () => {
+    if (!selectedProject) {
+      showToast('Vui long chon du an.', 'warning');
+      return;
+    }
+    if (!unitCode.trim()) {
+      showToast('Vui long nhap ma can.', 'warning');
+      return;
+    }
+    if (!customerName.trim()) {
+      showToast('Vui long nhap ten khach hang.', 'warning');
+      return;
+    }
+    if (!customerPhone.trim()) {
+      showToast('Vui long nhap so dien thoai.', 'warning');
+      return;
+    }
+    if (transactionValue <= 0) {
+      showToast('Gia tri dat coc phai lon hon 0.', 'warning');
+      return;
+    }
+
+    try {
+      await createDepositMut.mutateAsync({
+        project: selectedProject,
+        unitCode: unitCode.trim(),
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        depositAmount: transactionValue,
+        notes: notes.trim() || undefined,
+      });
+      setSelectedProject('');
+      setUnitCode('');
+      setCustomerName('');
+      setCustomerPhone('');
+      setTransactionValue(0);
+      setNotes('');
+      showToast('Da gui yeu cau dat coc va cho phe duyet.', 'success');
+    } catch (submitError) {
+      showToast(getErrorMessage(submitError, 'Khong the tao yeu cau dat coc.'), 'error');
+    }
+  }, [selectedProject, unitCode, customerName, customerPhone, transactionValue, notes, createDepositMut, showToast]);
+
+  const legacyHandleSubmit = () => {
     if (!selectedProject) { alert('Vui lòng chọn dự án!'); return; }
     if (!unitCode.trim()) { alert('Vui lòng nhập mã căn!'); return; }
     if (!customerName.trim()) { alert('Vui lòng nhập tên khách hàng!'); return; }
@@ -200,6 +286,31 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
     setUnitCode(unit.code);
     setTransactionValue(unit.price);
     setActiveTab('input');
+  }, []);
+
+  const handleConfirmDeposit = useCallback(async (id: string) => {
+    try {
+      await confirmDepositMut.mutateAsync(id);
+      showToast('Da phe duyet dat coc.', 'success');
+    } catch (confirmError) {
+      showToast(getErrorMessage(confirmError, 'Khong the phe duyet dat coc.'), 'error');
+    }
+  }, [confirmDepositMut, showToast]);
+
+  const handleCancelDeposit = useCallback(async (id: string) => {
+    try {
+      await cancelDepositMut.mutateAsync(id);
+      showToast('Da huy giao dich dat coc.', 'success');
+    } catch (cancelError) {
+      showToast(getErrorMessage(cancelError, 'Khong the huy giao dich dat coc.'), 'error');
+    }
+  }, [cancelDepositMut, showToast]);
+
+  const normalizeDepositStatusValue = useCallback((value: string) => {
+    if (value === 'PENDING_DEPOSIT') return 'PENDING';
+    if (value === 'DEPOSIT') return 'CONFIRMED';
+    if (value === 'REJECTED') return 'CANCELLED';
+    return value;
   }, []);
 
   // Table columns
@@ -247,6 +358,16 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
     { key: 'status', title: 'TRẠNG THÁI', width: 120, align: 'center' as const, render: (v: string) => (
       <StatusBadge status={v} />
     )},
+    { key: 'id', title: '', width: 110, align: 'center' as const, render: (_v: string, row: any) => (
+      <View style={{ flexDirection: 'row', gap: 4, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {isAdmin && row.status === 'PENDING' && (
+          <ActionButton icon={CheckCircle} color="#22c55e" bg="#f0fdf4" onPress={() => { void handleConfirmDeposit(row.id); }} />
+        )}
+        {isAdmin && ['PENDING', 'CONFIRMED'].includes(row.status) && (
+          <ActionButton icon={X} color="#ef4444" bg="#fef2f2" onPress={() => { void handleCancelDeposit(row.id); }} />
+        )}
+      </View>
+    )},
   ];
 
   const cardStyle: any = {
@@ -276,7 +397,7 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
   };
 
   const periodLabel = PERIOD_TABS.find(t => t.value === period)?.label || '';
-  const isFormValid = selectedProject && unitCode.trim() && customerName.trim() && customerPhone.trim();
+  const isFormValid = selectedProject && unitCode.trim() && customerName.trim() && customerPhone.trim() && transactionValue > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
@@ -394,6 +515,24 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
         {activeTab === 'input' ? (
           <>
             {/* ── KPI Summary Cards ── */}
+        {error && (
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            padding: 14,
+            borderRadius: 14,
+            backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : '#fef2f2',
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(239,68,68,0.2)' : '#fecaca',
+          }}>
+            <AlertTriangle size={16} color="#ef4444" />
+            <Text style={{ flex: 1, fontSize: 13, fontWeight: '700', color: '#ef4444' }}>
+              {getErrorMessage(error, 'Khong the tai du lieu dat coc.')}
+            </Text>
+          </View>
+        )}
+
         <View style={{ flexDirection: 'row', gap: 14, flexWrap: 'wrap' }}>
           {[
             { label: 'Tổng Số Cọc', value: totals.totalDeposits, icon: <Landmark size={24} color="#3b82f6" strokeWidth={2} />, color: '#3b82f6' },
@@ -615,11 +754,12 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
                 { label: 'Đã duyệt', value: 'DEPOSIT' },
                 { label: 'Từ chối', value: 'REJECTED' },
               ].map(tab => {
-                const active = statusFilter === tab.value;
+                const normalizedValue = normalizeDepositStatusValue(tab.value as string);
+                const active = statusFilter === normalizedValue;
                 return (
                   <TouchableOpacity
                     key={tab.value}
-                    onPress={() => setStatusFilter(tab.value as any)}
+                    onPress={() => setStatusFilter(normalizedValue as any)}
                     style={{
                       paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
                       backgroundColor: active ? (isDark ? 'rgba(234,88,12,0.15)' : '#fff7ed') : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'),
@@ -653,14 +793,28 @@ export function DepositManagement({ userRole }: { userRole?: SalesRole }) {
             )}
 
             {(() => {
-              const filteredList = rawDeposits.filter(d => 
-                !historySearch || 
-                d.customerPhone?.includes(historySearch) || 
-                d.customerName?.toLowerCase().includes(historySearch.toLowerCase()) || 
-                d.unitCode?.toLowerCase().includes(historySearch.toLowerCase()) ||
-                d.project?.toLowerCase().includes(historySearch.toLowerCase())
-              );
+              const filteredList = rawDeposits
+                .filter(d =>
+                  !historySearch ||
+                  d.customerPhone?.includes(historySearch) ||
+                  d.customerName?.toLowerCase().includes(historySearch.toLowerCase()) ||
+                  d.unitCode?.toLowerCase().includes(historySearch.toLowerCase()) ||
+                  d.project?.toLowerCase().includes(historySearch.toLowerCase())
+                )
+                .map(d => ({
+                  ...d,
+                  transactionValue: d.depositAmount,
+                }));
               
+              if (isLoading && filteredList.length === 0) {
+                return (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
+                    <Landmark size={56} color={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} style={{ marginBottom: 12 }} />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: '#94a3b8' }}>Dang tai du lieu dat coc...</Text>
+                  </View>
+                );
+              }
+
               if (filteredList.length > 0) {
                 return (
                   <ScrollView horizontal showsHorizontalScrollIndicator={Platform.OS === 'web'} style={{ width: '100%' }}>

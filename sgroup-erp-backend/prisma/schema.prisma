@@ -418,6 +418,78 @@ model FactDeal {
   @@index([deletedAt])
 }
 
+model SalesBooking {
+  id              String   @id @default(uuid(7))
+  projectId       String?
+  projectName     String
+  customerName    String
+  customerPhone   String
+  bookingAmount   Float    @default(0)
+  bookingCount    Int      @default(1)
+  staffId         String?
+  staffName       String?
+  teamId          String?
+  teamName        String?
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELED
+  bookingDate     DateTime @default(now())
+  note            String?
+  createdByUserId String?
+  createdByName   String?
+  reviewedByUserId String?
+  reviewedByName  String?
+  reviewedAt      DateTime?
+  year            Int
+  month           Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  @@index([year, month])
+  @@index([projectId])
+  @@index([staffId])
+  @@index([teamId])
+  @@index([status])
+  @@index([bookingDate(sort: Desc)])
+  @@index([deletedAt])
+}
+
+model SalesDeposit {
+  id               String   @id @default(uuid(7))
+  projectId        String?
+  projectName      String
+  unitCode         String
+  customerName     String
+  customerPhone    String
+  depositAmount    Float    @default(0)
+  staffId          String?
+  staffName        String?
+  teamId           String?
+  teamName         String?
+  paymentMethod    String?
+  receiptNo        String?
+  notes            String?
+  status           String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, REFUNDED
+  depositDate      DateTime @default(now())
+  createdByUserId  String?
+  createdByName    String?
+  reviewedByUserId String?
+  reviewedByName   String?
+  reviewedAt       DateTime?
+  year             Int
+  month            Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  @@index([year, month])
+  @@index([projectId])
+  @@index([staffId])
+  @@index([teamId])
+  @@index([status])
+  @@index([depositDate(sort: Desc)])
+  @@index([deletedAt])
+}
+
 model FactSalesDaily {
   id             String      @id @default(uuid(7))
   date           DateTime

@@ -1,19 +1,39 @@
 import {
-  Controller, Get, Post, Patch, Delete, Body, Param,
-  Query, UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
-import { SalesOpsService } from './sales-ops.service';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { CurrentUser, JwtPayload } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { CreateTeamDto, UpdateTeamDto, CreateStaffDto, UpdateStaffDto, CreateDealDto, CreateProjectDto } from './dto/sales-ops.dto';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import {
+  CreateBookingDto,
+  CreateDealDto,
+  CreateDepositDto,
+  CreateProjectDto,
+  CreateStaffDto,
+  CreateTeamDto,
+  ListBookingsDto,
+  ListDepositsDto,
+  UpdateBookingDto,
+  UpdateDepositDto,
+  UpdateStaffDto,
+  UpdateTeamDto,
+} from './dto/sales-ops.dto';
+import { SalesOpsService } from './sales-ops.service';
 
 @Controller('sales-ops')
 @UseGuards(RolesGuard)
 export class SalesOpsController {
   constructor(private readonly service: SalesOpsService) {}
 
-  // ── TEAMS ──
-
+  // Teams
   @Get('teams')
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getTeams(@Query('status') status?: string) {
@@ -44,8 +64,7 @@ export class SalesOpsController {
     return this.service.deleteTeam(id);
   }
 
-  // ── STAFF ──
-
+  // Staff
   @Get('staff')
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getStaff(
@@ -74,8 +93,7 @@ export class SalesOpsController {
     return this.service.updateStaff(id, body);
   }
 
-  // ── PROJECTS ──
-
+  // Projects
   @Get('projects')
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getProjects(
@@ -103,8 +121,7 @@ export class SalesOpsController {
     return this.service.updateProject(id, body);
   }
 
-  // ── DEALS ──
-
+  // Deals
   @Get('deals')
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getDeals(
@@ -118,7 +135,10 @@ export class SalesOpsController {
     return this.service.getDeals({
       year: year ? Number(year) : undefined,
       month: month ? Number(month) : undefined,
-      teamId, staffId, stage, projectId,
+      teamId,
+      staffId,
+      stage,
+      projectId,
     });
   }
 
@@ -148,15 +168,89 @@ export class SalesOpsController {
     return this.service.createDeal(body);
   }
 
-
   @Patch('deals/:id')
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'sales_admin')
   async updateDeal(@Param('id') id: string, @Body() body: CreateDealDto) {
     return this.service.updateDeal(id, body);
   }
 
-  // ── TARGETS ──
+  // Bookings
+  @Get('bookings')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async getBookings(@Query() query: ListBookingsDto) {
+    return this.service.getBookings(query);
+  }
 
+  @Post('bookings')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async createBooking(@Body() body: CreateBookingDto, @CurrentUser() user: JwtPayload) {
+    return this.service.createBooking(body, user);
+  }
+
+  @Patch('bookings/:id')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async updateBooking(
+    @Param('id') id: string,
+    @Body() body: UpdateBookingDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.service.updateBooking(id, body, user);
+  }
+
+  @Delete('bookings/:id')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async deleteBooking(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.deleteBooking(id, user);
+  }
+
+  @Post('bookings/:id/approve')
+  @Roles('admin', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async approveBooking(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.approveBooking(id, user);
+  }
+
+  @Post('bookings/:id/reject')
+  @Roles('admin', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async rejectBooking(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.rejectBooking(id, user);
+  }
+
+  // Deposits
+  @Get('deposits')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async getDeposits(@Query() query: ListDepositsDto) {
+    return this.service.getDeposits(query);
+  }
+
+  @Post('deposits')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async createDeposit(@Body() body: CreateDepositDto, @CurrentUser() user: JwtPayload) {
+    return this.service.createDeposit(body, user);
+  }
+
+  @Patch('deposits/:id')
+  @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async updateDeposit(
+    @Param('id') id: string,
+    @Body() body: UpdateDepositDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.service.updateDeposit(id, body, user);
+  }
+
+  @Post('deposits/:id/confirm')
+  @Roles('admin', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async confirmDeposit(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.confirmDeposit(id, user);
+  }
+
+  @Post('deposits/:id/cancel')
+  @Roles('admin', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
+  async cancelDeposit(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.cancelDeposit(id, user);
+  }
+
+  // Targets
   @Get('targets')
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getTargets(
@@ -169,18 +263,25 @@ export class SalesOpsController {
     return this.service.getTargets({
       year: Number(year),
       month: month ? Number(month) : undefined,
-      teamId, staffId, scenarioKey,
+      teamId,
+      staffId,
+      scenarioKey,
     });
   }
 
   @Post('targets/distribute')
   @Roles('admin', 'employee', 'team_lead', 'sales_director', 'ceo', 'sales_admin')
   async distributeTargets(@Body() body: {
-    year: number; scenarioKey: string;
+    year: number;
+    scenarioKey: string;
     targets: Array<{
-      month: number; teamId?: string; staffId?: string;
-      targetGMV: number; targetDeals: number;
-      targetLeads: number; targetMeetings: number;
+      month: number;
+      teamId?: string;
+      staffId?: string;
+      targetGMV: number;
+      targetDeals: number;
+      targetLeads: number;
+      targetMeetings: number;
       targetBookings: number;
     }>;
   }) {

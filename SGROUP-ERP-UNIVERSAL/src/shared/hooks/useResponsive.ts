@@ -1,10 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Dimensions, ScaledSize } from 'react-native';
-import { BREAKPOINTS } from '../../core/config/env';
+import { Dimensions, Platform, useWindowDimensions } from 'react-native';
 
-type ScreenSize = 'mobile' | 'tablet' | 'desktop' | 'wide';
+export type Breakpoint = 'mobile' | 'tablet' | 'desktop' | 'wide';
 
-function getSize(width: number): ScreenSize {
+interface ResponsiveState {
+  width: number;
+  height: number;
+  breakpoint: Breakpoint;
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  isWide: boolean;
+  numColumns: (mobileCol?: number, tabletCol?: number, desktopCol?: number) => number;
+  fontSize: (base: number) => number;
+}
+
+const BREAKPOINTS = { mobile: 0, tablet: 768, desktop: 1024, wide: 1440 };
+
+function getBreakpoint(width: number): Breakpoint {
   if (width >= BREAKPOINTS.wide) return 'wide';
   if (width >= BREAKPOINTS.desktop) return 'desktop';
   if (width >= BREAKPOINTS.tablet) return 'tablet';
@@ -12,23 +25,43 @@ function getSize(width: number): ScreenSize {
 }
 
 /**
- * Responsive breakpoint hook. Returns current screen size category.
+ * Responsive layout hook — detects screen size and provides helpers.
+ * Usage:
+ *   const { isMobile, numColumns } = useResponsive();
+ *   <FlatList numColumns={numColumns(1, 2, 4)} />
  */
-export function useResponsive() {
-  const [dims, setDims] = useState(Dimensions.get('window'));
-
-  useEffect(() => {
-    const handler = ({ window }: { window: ScaledSize }) => setDims(window);
-    const sub = Dimensions.addEventListener('change', handler);
-    return () => sub.remove();
-  }, []);
+export function useResponsive(): ResponsiveState {
+  const { width, height } = useWindowDimensions();
+  const breakpoint = getBreakpoint(width);
 
   return {
-    width: dims.width,
-    height: dims.height,
-    size: getSize(dims.width),
-    isMobile: dims.width < BREAKPOINTS.tablet,
-    isTablet: dims.width >= BREAKPOINTS.tablet && dims.width < BREAKPOINTS.desktop,
-    isDesktop: dims.width >= BREAKPOINTS.desktop,
+    width,
+    height,
+    breakpoint,
+    isMobile: breakpoint === 'mobile',
+    isTablet: breakpoint === 'tablet',
+    isDesktop: breakpoint === 'desktop' || breakpoint === 'wide',
+    isWide: breakpoint === 'wide',
+    numColumns: (mobileCol = 1, tabletCol = 2, desktopCol = 4) => {
+      if (breakpoint === 'mobile') return mobileCol;
+      if (breakpoint === 'tablet') return tabletCol;
+      return desktopCol;
+    },
+    fontSize: (base: number) => {
+      if (breakpoint === 'mobile') return base * 0.85;
+      if (breakpoint === 'tablet') return base * 0.95;
+      return base;
+    },
   };
+}
+
+/**
+ * Hook to compute sidebar width based on screen.
+ * On mobile: sidebar hidden (0), on tablet: slim (64px), on desktop: full (260px).
+ */
+export function useSidebarWidth(): number {
+  const { breakpoint } = useResponsive();
+  if (breakpoint === 'mobile') return 0;
+  if (breakpoint === 'tablet') return 64;
+  return 260;
 }

@@ -195,3 +195,147 @@ export class CreateProjectDto {
   @IsIn(['ACTIVE', 'CLOSED', 'COMING_SOON'])
   status?: string;
 }
+
+// ── Bookings ──
+export class ListBookingsDto {
+  @IsOptional() @Type(() => Number) @IsInt()
+  year?: number;
+
+  @IsOptional() @Type(() => Number) @IsInt()
+  month?: number;
+
+  @IsOptional()
+  @IsIn(['PENDING', 'APPROVED', 'REJECTED', 'CANCELED'])
+  status?: string;
+
+  @IsOptional() @IsString()
+  projectId?: string;
+}
+
+export class CreateBookingDto {
+  @IsString()
+  project: string;
+
+  @IsOptional() @IsString()
+  projectId?: string;
+
+  @IsString()
+  customerName: string;
+
+  @IsString()
+  customerPhone: string;
+
+  @Type(() => Number) @IsNumber()
+  bookingAmount: number;
+
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1)
+  bookingCount?: number;
+
+  @IsOptional() @IsString()
+  note?: string;
+}
+
+export class UpdateBookingDto {
+  @IsOptional() @IsString()
+  project?: string;
+
+  @IsOptional() @IsString()
+  projectId?: string;
+
+  @IsOptional() @IsString()
+  customerName?: string;
+
+  @IsOptional() @IsString()
+  customerPhone?: string;
+
+  @IsOptional() @Type(() => Number) @IsNumber()
+  bookingAmount?: number;
+
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1)
+  bookingCount?: number;
+
+  @IsOptional()
+  @IsIn(['PENDING', 'APPROVED', 'REJECTED', 'CANCELED'])
+  status?: string;
+
+  @IsOptional() @IsString()
+  note?: string;
+}
+
+// ── Deposits ──
+export class ListDepositsDto {
+  @IsOptional() @Type(() => Number) @IsInt()
+  year?: number;
+
+  @IsOptional() @Type(() => Number) @IsInt()
+  month?: number;
+
+  @IsOptional()
+  @IsIn(['PENDING', 'CONFIRMED', 'CANCELLED', 'REFUNDED'])
+  status?: string;
+
+  @IsOptional() @IsString()
+  projectId?: string;
+}
+
+export class CreateDepositDto {
+  @IsString()
+  project: string;
+
+  @IsOptional() @IsString()
+  projectId?: string;
+
+  @IsString()
+  unitCode: string;
+
+  @IsString()
+  customerName: string;
+
+  @IsString()
+  customerPhone: string;
+
+  @Type(() => Number) @IsNumber()
+  depositAmount: number;
+
+  @IsOptional() @IsString()
+  paymentMethod?: string;
+
+  @IsOptional() @IsString()
+  receiptNo?: string;
+
+  @IsOptional() @IsString()
+  notes?: string;
+}
+
+export class UpdateDepositDto {
+  @IsOptional() @IsString()
+  project?: string;
+
+  @IsOptional() @IsString()
+  projectId?: string;
+
+  @IsOptional() @IsString()
+  unitCode?: string;
+
+  @IsOptional() @IsString()
+  customerName?: string;
+
+  @IsOptional() @IsString()
+  customerPhone?: string;
+
+  @IsOptional() @Type(() => Number) @IsNumber()
+  depositAmount?: number;
+
+  @IsOptional()
+  @IsIn(['PENDING', 'CONFIRMED', 'CANCELLED', 'REFUNDED'])
+  status?: string;
+
+  @IsOptional() @IsString()
+  paymentMethod?: string;
+
+  @IsOptional() @IsString()
+  receiptNo?: string;
+
+  @IsOptional() @IsString()
+  notes?: string;
+}

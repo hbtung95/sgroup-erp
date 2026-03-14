@@ -124,7 +124,7 @@ async function bootstrap() {
   // Health check endpoint — không cần auth, cho load balancer / monitoring
   const httpAdapter = app.getHttpAdapter();
   httpAdapter.get('/health', (_req, res) => {
-    res.status(200).json({
+    (res as any).status(200).json({
       status: 'ok',
       env: process.env.NODE_ENV || 'development',
       uptime: Math.floor(process.uptime()),

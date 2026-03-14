@@ -203,16 +203,15 @@ export function SGPlanningNumberField({
 
   return (
     <View style={[{
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: 'column',
+      gap: 8,
       paddingVertical: compact ? 8 : 14,
       borderBottomWidth: hideBorder ? 0 : 1,
       borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
       ...webOnly({ userSelect: 'none' }),
     } as any, containerStyle]} onTouchEnd={stopHold}>
       {label && (
-        <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: '600', color: theme.colors.textSecondary, flex: 1, flexShrink: 1 }}>{label}</Text>
+        <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: '600', color: theme.colors.textSecondary }}>{label}</Text>
       )}
 
       <Pressable

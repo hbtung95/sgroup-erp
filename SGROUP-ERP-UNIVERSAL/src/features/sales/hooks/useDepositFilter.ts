@@ -1,39 +1,36 @@
 import { useMemo, useState } from 'react';
-import { useSalesStore } from '../store/useSalesStore';
 import { useGetDeposits } from './useDeposits';
 import type { BookingPeriod } from './useBookingFilter';
 
 export function useDepositFilter() {
-  const zustandTransactions = useSalesStore(s => s.transactions);
-  const { data: apiDeposits } = useGetDeposits();
-  // Prefer API data if available, map to transaction format; fallback to Zustand
-  const transactions = (Array.isArray(apiDeposits) && apiDeposits.length > 0)
-    ? apiDeposits.map((d: any) => ({
-        ...d,
-        transactionValue: d.depositAmount ?? d.transactionValue ?? 0,
-        status: d.status === 'CONFIRMED' ? 'DEPOSIT' : d.status === 'PENDING' ? 'PENDING_DEPOSIT' : d.status,
-      }))
-    : zustandTransactions;
+  const { data: deposits = [], isLoading, error } = useGetDeposits();
   const [period, setPeriod] = useState<BookingPeriod>('MONTH');
   const [customFrom, setCustomFrom] = useState<Date | null>(null);
   const [customTo, setCustomTo] = useState<Date | null>(null);
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING_DEPOSIT' | 'DEPOSIT' | 'REJECTED'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'REFUNDED'>(
+    'ALL',
+  );
 
   const filteredData = useMemo(() => {
-    // Only care about PENDING_DEPOSIT and DEPOSIT
-    const allDeposits = transactions.filter(t => t.status === 'PENDING_DEPOSIT' || t.status === 'DEPOSIT');
-
     const now = new Date();
     let startDate = new Date();
     let endDate = new Date(now);
 
     if (period === 'CUSTOM') {
-      if (customFrom) startDate = new Date(customFrom);
-      else { startDate.setDate(now.getDate() - 7); }
+      if (customFrom) {
+        startDate = new Date(customFrom);
+      } else {
+        startDate.setDate(now.getDate() - 7);
+      }
       startDate.setHours(0, 0, 0, 0);
 
-      if (customTo) { endDate = new Date(customTo); endDate.setHours(23, 59, 59, 999); }
-      else { endDate = new Date(); endDate.setHours(23, 59, 59, 999); }
+      if (customTo) {
+        endDate = new Date(customTo);
+        endDate.setHours(23, 59, 59, 999);
+      } else {
+        endDate = new Date();
+        endDate.setHours(23, 59, 59, 999);
+      }
     } else {
       switch (period) {
         case 'DAY':
@@ -48,8 +45,8 @@ export function useDepositFilter() {
           startDate.setHours(0, 0, 0, 0);
           break;
         case 'QUARTER': {
-          const qm = Math.floor(now.getMonth() / 3) * 3;
-          startDate.setMonth(qm, 1);
+          const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
+          startDate.setMonth(quarterMonth, 1);
           startDate.setHours(0, 0, 0, 0);
           break;
         }
@@ -61,61 +58,50 @@ export function useDepositFilter() {
       endDate.setHours(23, 59, 59, 999);
     }
 
-    const validDeposits = transactions.filter(t => {
-      const d = new Date(t.date);
-      const inDateRange = d >= startDate && d <= endDate;
-      if (!inDateRange) return false;
-      
-      // Determine validity based on statusFilter
-      if (statusFilter === 'ALL') {
-        // Show all transaction types that relate to deposits
-        const validStatuses = ['PENDING_DEPOSIT', 'DEPOSIT', 'REJECTED'];
-        return validStatuses.includes(t.status as string); 
+    const validDeposits = deposits.filter(deposit => {
+      const date = new Date(deposit.date);
+      if (date < startDate || date > endDate) {
+        return false;
       }
-      
-      return t.status === (statusFilter as any);
+
+      if (statusFilter !== 'ALL' && deposit.status !== statusFilter) {
+        return false;
+      }
+
+      return true;
     });
 
-    // Totals
     const totalDeposits = validDeposits.length;
-    const pendingCount = validDeposits.filter(t => t.status === 'PENDING_DEPOSIT').length;
-    const confirmedCount = validDeposits.filter(t => t.status === 'DEPOSIT').length;
-    const totalValue = validDeposits.reduce((sum, t) => sum + (t.transactionValue || 0), 0);
-    const confirmedValue = validDeposits.filter(t => t.status === 'DEPOSIT').reduce((sum, t) => sum + (t.transactionValue || 0), 0);
+    const pendingCount = validDeposits.filter(deposit => deposit.status === 'PENDING').length;
+    const confirmedCount = validDeposits.filter(deposit => deposit.status === 'CONFIRMED').length;
+    const totalValue = validDeposits.reduce((sum, deposit) => sum + (deposit.depositAmount || 0), 0);
+    const confirmedValue = validDeposits
+      .filter(deposit => deposit.status === 'CONFIRMED')
+      .reduce((sum, deposit) => sum + (deposit.depositAmount || 0), 0);
 
-    const totals = {
-      totalDeposits,
-      pendingCount,
-      confirmedCount,
-      totalValue,
-      confirmedValue,
-    };
-
-    // Chart data grouping (using value -> Tỷ VNĐ)
     const chartDataMap = new Map<string, { label: string; count: number; value: number }>();
 
-    validDeposits.forEach(t => {
-      const d = new Date(t.date);
+    validDeposits.forEach(deposit => {
+      const date = new Date(deposit.date);
       let key: string;
       let label: string;
 
       if (period === 'DAY') {
-        key = `${d.getHours()}h`;
-        label = `${d.getHours()}:00`;
+        key = `${date.getHours()}h`;
+        label = `${date.getHours()}:00`;
       } else if (period === 'WEEK' || period === 'MONTH' || period === 'CUSTOM') {
-        key = `${d.getDate()}/${d.getMonth() + 1}`;
-        label = `${d.getDate()}/${d.getMonth() + 1}`;
+        key = `${date.getDate()}/${date.getMonth() + 1}`;
+        label = `${date.getDate()}/${date.getMonth() + 1}`;
       } else {
-        key = `T${d.getMonth() + 1}`;
-        label = `T${d.getMonth() + 1}`;
+        key = `T${date.getMonth() + 1}`;
+        label = `T${date.getMonth() + 1}`;
       }
 
       const existing = chartDataMap.get(key) || { label, count: 0, value: 0 };
-      
       chartDataMap.set(key, {
         label,
         count: existing.count + 1,
-        value: existing.value + (t.transactionValue || 0),
+        value: existing.value + (deposit.depositAmount || 0),
       });
     });
 
@@ -124,11 +110,17 @@ export function useDepositFilter() {
     }
 
     return {
-      totals,
+      totals: {
+        totalDeposits,
+        pendingCount,
+        confirmedCount,
+        totalValue,
+        confirmedValue,
+      },
       chartData: Array.from(chartDataMap.values()),
       rawDeposits: validDeposits,
     };
-  }, [transactions, period, customFrom, customTo, statusFilter]);
+  }, [deposits, period, customFrom, customTo, statusFilter]);
 
   return {
     period,
@@ -139,6 +131,8 @@ export function useDepositFilter() {
     setCustomTo,
     statusFilter,
     setStatusFilter,
+    isLoading,
+    error,
     ...filteredData,
   };
 }

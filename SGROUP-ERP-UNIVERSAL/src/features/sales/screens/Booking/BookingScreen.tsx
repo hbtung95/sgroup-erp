@@ -14,12 +14,19 @@ import {
 } from 'lucide-react-native';
 import { SGButton, SGPlanningSectionTitle, SGPlanningNumberField, SGTable, SGStatCard } from '../../../../shared/ui/components';
 import { useSalesStore } from '../../store/useSalesStore';
-import { useCreateBooking, useUpdateBooking, useDeleteBooking, useApproveBooking, useRejectBooking } from '../../hooks/useBookings';
+import {
+  useApproveBooking,
+  useCreateBooking,
+  useDeleteBooking,
+  useRejectBooking,
+  useUpdateBooking,
+  type BookingEntry,
+} from '../../hooks/useBookings';
 import { useGetProjects } from '../../hooks/useSalesOps';
 import { useBookingFilter, BookingPeriod } from '../../hooks/useBookingFilter';
 import { BookingChart } from '../../components/charts/BookingChart';
+import { useToast } from '../../components/ToastProvider';
 import type { SalesRole } from '../../SalesSidebar';
-import type { BookingEntry } from '../../store/useSalesStore';
 
 const PERIOD_TABS: { label: string; value: BookingPeriod }[] = [
   { label: 'Ngày', value: 'DAY' },
@@ -46,6 +53,29 @@ function parseDateInput(s: string): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (!error || typeof error !== 'object') {
+    return fallback;
+  }
+
+  const response = (error as { response?: { data?: { message?: string | string[] } } }).response;
+  const message = response?.data?.message;
+
+  if (Array.isArray(message) && message.length > 0) {
+    return message.join(', ');
+  }
+
+  if (typeof message === 'string' && message.trim()) {
+    return message;
+  }
+
+  if ('message' in error && typeof (error as { message?: unknown }).message === 'string') {
+    return (error as { message: string }).message;
+  }
+
+  return fallback;
+}
+
 // Status badge component
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; label: string }> = {
@@ -68,8 +98,9 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
   const isWideScreen = Platform.OS === 'web' && windowWidth >= 900;
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
-
+  const { showToast } = useToast();
   const { addBooking, updateBooking, deleteBooking, approveBooking, rejectBooking } = useSalesStore();
+
   const createBookingMut = useCreateBooking();
   const updateBookingMut = useUpdateBooking();
   const deleteBookingMut = useDeleteBooking();
@@ -86,6 +117,8 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
     customFrom, setCustomFrom, customTo, setCustomTo,
     searchQuery, setSearchQuery,
     statusFilter, setStatusFilter,
+    isLoading,
+    error,
     totals, chartData, rawBookings,
   } = useBookingFilter();
 
@@ -116,7 +149,47 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
   // Delete confirmation
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(async () => {
+    if (!selectedProject) {
+      showToast('Vui long chon du an.', 'warning');
+      return;
+    }
+    if (!customerName.trim()) {
+      showToast('Vui long nhap ten khach hang.', 'warning');
+      return;
+    }
+    if (!customerPhone.trim()) {
+      showToast('Vui long nhap so dien thoai.', 'warning');
+      return;
+    }
+
+    const amountStr = bookingAmount.replace(/\D/g, '');
+    const amountVal = Number(amountStr);
+    if (Number.isNaN(amountVal) || amountVal <= 0) {
+      showToast('Vui long nhap so tien giu cho hop le.', 'warning');
+      return;
+    }
+
+    try {
+      await createBookingMut.mutateAsync({
+        project: selectedProject,
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        bookingAmount: amountVal,
+        bookingCount,
+      });
+      setSelectedProject('');
+      setCustomerName('');
+      setCustomerPhone('');
+      setBookingAmount('');
+      setBookingCount(1);
+      showToast('Da gui yeu cau giu cho va cho phe duyet.', 'success');
+    } catch (submitError) {
+      showToast(getErrorMessage(submitError, 'Khong the tao yeu cau giu cho.'), 'error');
+    }
+  }, [selectedProject, customerName, customerPhone, bookingAmount, bookingCount, createBookingMut, showToast]);
+
+  const legacyHandleSubmit = useCallback(async () => {
     if (!selectedProject) { alert('Vui lòng chọn dự án!'); return; }
     if (!customerName.trim()) { alert('Vui lòng nhập tên khách hàng!'); return; }
     if (!customerPhone.trim()) { alert('Vui lòng nhập số điện thoại!'); return; }
@@ -132,7 +205,7 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
     setBookingAmount('');
     setBookingCount(1);
     alert('✅ Đã gửi yêu cầu giữ chỗ! Chờ Admin phê duyệt.');
-  };
+  }, [selectedProject, customerName, customerPhone, bookingAmount, bookingCount, addBooking, createBookingMut]);
 
   const startEdit = useCallback((b: BookingEntry) => {
     setEditingId(b.id);
@@ -146,7 +219,36 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
 
   const cancelEdit = useCallback(() => { setEditingId(null); }, []);
 
-  const confirmEdit = useCallback(() => {
+  const confirmEdit = useCallback(async () => {
+    if (!editingId) {
+      return;
+    }
+
+    const amountVal = Number(editAmount);
+    if (Number.isNaN(amountVal) || amountVal <= 0) {
+      showToast('Vui long nhap so tien giu cho hop le.', 'warning');
+      return;
+    }
+
+    try {
+      await updateBookingMut.mutateAsync({
+        id: editingId,
+        data: {
+          project: editProject,
+          customerName: editCustomer,
+          customerPhone: editPhone,
+          bookingAmount: amountVal,
+          bookingCount: editCount,
+        },
+      });
+      setEditingId(null);
+      showToast('Da cap nhat giu cho.', 'success');
+    } catch (updateError) {
+      showToast(getErrorMessage(updateError, 'Khong the cap nhat giu cho.'), 'error');
+    }
+  }, [editingId, editAmount, editCount, editCustomer, editPhone, editProject, showToast, updateBookingMut]);
+
+  const legacyConfirmEdit = useCallback(() => {
     if (editingId) {
       const amountVal = parseFloat(editAmount) || 0;
       updateBooking(editingId, { project: editProject, customerName: editCustomer, customerPhone: editPhone, bookingAmount: amountVal, bookingCount: editCount });
@@ -160,13 +262,45 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
     setEditingId(null);
   }, []);
 
-  const confirmDelete = useCallback(() => {
+  const confirmDelete = useCallback(async () => {
+    if (!deletingId) {
+      return;
+    }
+
+    try {
+      await deleteBookingMut.mutateAsync(deletingId);
+      setDeletingId(null);
+      showToast('Da huy giu cho.', 'success');
+    } catch (deleteError) {
+      showToast(getErrorMessage(deleteError, 'Khong the huy giu cho.'), 'error');
+    }
+  }, [deleteBookingMut, deletingId, showToast]);
+
+  const legacyConfirmDelete = useCallback(() => {
     if (deletingId) { deleteBooking(deletingId); deleteBookingMut.mutate(deletingId); setDeletingId(null); }
   }, [deletingId, deleteBooking]);
 
   const cancelDelete = useCallback(() => { setDeletingId(null); }, []);
 
   const isAdmin = userRole === 'sales_admin' || userRole === 'sales_manager' || userRole === 'sales_director' || userRole === 'ceo';
+
+  const handleApprove = useCallback(async (id: string) => {
+    try {
+      await approveBookingMut.mutateAsync(id);
+      showToast('Da phe duyet giu cho.', 'success');
+    } catch (approveError) {
+      showToast(getErrorMessage(approveError, 'Khong the phe duyet giu cho.'), 'error');
+    }
+  }, [approveBookingMut, showToast]);
+
+  const handleReject = useCallback(async (id: string) => {
+    try {
+      await rejectBookingMut.mutateAsync(id);
+      showToast('Da tu choi giu cho.', 'success');
+    } catch (rejectError) {
+      showToast(getErrorMessage(rejectError, 'Khong the tu choi giu cho.'), 'error');
+    }
+  }, [rejectBookingMut, showToast]);
 
   // Table columns
   const BOOKING_COLUMNS = [
@@ -287,8 +421,8 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
             {/* Admin approve/reject */}
             {isAdmin && row.status === 'PENDING' && (
               <>
-                <ActionButton icon={CheckCircle} color="#22c55e" bg="#f0fdf4" onPress={() => { approveBooking(row.id); approveBookingMut.mutate(row.id); }} />
-                <ActionButton icon={XCircle} color="#ef4444" bg="#fef2f2" onPress={() => { rejectBooking(row.id); rejectBookingMut.mutate(row.id); }} />
+                <ActionButton icon={CheckCircle} color="#22c55e" bg="#f0fdf4" onPress={() => { void handleApprove(row.id); }} />
+                <ActionButton icon={XCircle} color="#ef4444" bg="#fef2f2" onPress={() => { void handleReject(row.id); }} />
               </>
             )}
             {/* Edit/Delete for own entries */}
@@ -428,6 +562,24 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
         )}
 
         {/* ── KPI Summary Cards ── */}
+        {error && (
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            padding: 14,
+            borderRadius: 14,
+            backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : '#fef2f2',
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(239,68,68,0.2)' : '#fecaca',
+          }}>
+            <AlertTriangle size={16} color="#ef4444" />
+            <Text style={{ flex: 1, fontSize: 13, fontWeight: '700', color: '#ef4444' }}>
+              {getErrorMessage(error, 'Khong the tai du lieu giu cho.')}
+            </Text>
+          </View>
+        )}
+
         <View style={{ flexDirection: 'row', gap: 14, flexWrap: 'wrap' }}>
           {[
             { label: 'Tổng Giữ Chỗ', value: totals.totalBookingCount, icon: <Ticket size={24} color="#8b5cf6" strokeWidth={2} />, color: '#8b5cf6' },
@@ -695,7 +847,12 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
               </View>
             )}
 
-            {rawBookings.length > 0 ? (
+            {isLoading && rawBookings.length === 0 ? (
+              <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 60 }}>
+                <Ticket size={56} color={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} style={{ marginBottom: 12 }} />
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#94a3b8' }}>Dang tai du lieu giu cho...</Text>
+              </View>
+            ) : rawBookings.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={Platform.OS === 'web'} style={{ width: '100%' }}>
                 <View style={{ minWidth: 1050, paddingBottom: 8 }}>
                   <SGTable

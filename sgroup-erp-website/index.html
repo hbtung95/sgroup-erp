@@ -1,0 +1,608 @@
+﻿<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGROUP ERP â€” Enterprise Resource Planning Platform</title>
+<meta name="description" content="He thong quan tri doanh nghiep toan dien cho linh vuc Bat Dong San">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root{--transition:0.3s ease}
+[data-theme="dark"]{--bg:#06080f;--bg2:#0c1021;--surface:#111827;--card:#161e31;--card2:#1a2540;--border:#253354;--border2:#2e3f6a;--text:#f1f3f9;--text2:#c7ccda;--text3:#8891a8;--accent:#6366f1;--accent2:#818cf8;--accent-glow:rgba(99,102,241,.25);--green:#22c55e;--green-bg:rgba(34,197,94,.1);--blue:#3b82f6;--blue-bg:rgba(59,130,246,.1);--orange:#f59e0b;--orange-bg:rgba(245,158,11,.1);--red:#ef4444;--red-bg:rgba(239,68,68,.1);--pink:#ec4899;--pink-bg:rgba(236,72,153,.1);--cyan:#06b6d4;--cyan-bg:rgba(6,182,212,.1);--teal:#14b8a6;--teal-bg:rgba(20,184,166,.1);--purple:#a78bfa;--purple-bg:rgba(167,139,250,.1);--glass:rgba(17,24,39,.6);--mermaid-bg:#161e31;--mermaid-text:#f1f3f9;--mermaid-primary:#6366f1;--mermaid-secondary:#818cf8;--mermaid-line:#8891a8}
+[data-theme="light"]{--bg:#f4f6fb;--bg2:#ebeef5;--surface:#fff;--card:#fff;--card2:#f8f9fc;--border:#dce1ec;--border2:#c8cfe0;--text:#1a1e2e;--text2:#3d4560;--text3:#6b7594;--accent:#4f46e5;--accent2:#6366f1;--accent-glow:rgba(79,70,229,.12);--green:#16a34a;--green-bg:rgba(22,163,74,.08);--blue:#2563eb;--blue-bg:rgba(37,99,235,.08);--orange:#d97706;--orange-bg:rgba(217,119,6,.08);--red:#dc2626;--red-bg:rgba(220,38,38,.08);--pink:#db2777;--pink-bg:rgba(219,39,119,.08);--cyan:#0891b2;--cyan-bg:rgba(8,145,178,.08);--teal:#0d9488;--teal-bg:rgba(13,148,136,.08);--purple:#7c3aed;--purple-bg:rgba(124,58,237,.08);--glass:rgba(255,255,255,.7);--mermaid-bg:#ffffff;--mermaid-text:#1a1e2e;--mermaid-primary:#4f46e5;--mermaid-secondary:#6366f1;--mermaid-line:#6b7594}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;transition:background var(--transition),color var(--transition);overflow-x:hidden}
+::selection{background:var(--accent);color:#fff}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:1000;backdrop-filter:blur(20px);background:var(--glass);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;transition:all var(--transition)}
+.topbar-left{display:flex;align-items:center;gap:1rem}
+.logo{font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:.72rem;color:var(--text3);font-weight:500;letter-spacing:.05em}
+.topbar-nav{display:flex;gap:.25rem;overflow-x:auto;scrollbar-width:none}
+.topbar-nav::-webkit-scrollbar{display:none}
+.topbar-nav a{padding:.5rem .9rem;font-size:.78rem;font-weight:600;color:var(--text3);border-radius:8px;white-space:nowrap;transition:all .2s}
+.topbar-nav a:hover,.topbar-nav a.active{color:var(--accent);background:var(--accent-glow);text-decoration:none}
+.topbar-right{display:flex;align-items:center;gap:.75rem}
+.theme-toggle{width:44px;height:26px;border-radius:13px;border:2px solid var(--border2);background:var(--card);cursor:pointer;position:relative;transition:all var(--transition)}
+.theme-toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--accent);transition:all var(--transition)}
+[data-theme="light"] .theme-toggle::after{transform:translateX(18px);background:var(--orange)}
+.theme-icon{font-size:.85rem;color:var(--text3);display:flex;align-items:center}
+
+/* MAIN */
+.main{padding-top:80px;min-height:100vh}
+.container{max-width:1340px;margin:0 auto;padding:0 2rem}
+.section{padding:4rem 0}
+.section-header{margin-bottom:2.5rem;text-align:center}
+.section-header h2{font-size:2rem;font-weight:800;display:inline-flex;align-items:center;gap:.75rem}
+.section-header h2 i{color:var(--accent);font-size:1.5rem}
+.section-header p{color:var(--text3);font-size:.95rem;margin-top:.5rem}
+.section-divider{border:0;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:0}
+
+/* HERO */
+.hero{padding:5rem 2rem 4rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,var(--accent-glow),transparent 70%);top:-400px;right:-200px;pointer-events:none}
+.hero::after{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,var(--purple-bg),transparent 70%);bottom:-300px;left:-100px;pointer-events:none}
+.hero-badge{background:var(--accent-glow);border:1px solid var(--border2);padding:.5rem 1.4rem;border-radius:50px;font-size:.82rem;color:var(--accent2);display:inline-flex;align-items:center;gap:.5rem;margin-bottom:1.5rem;font-weight:600}
+.hero h1{font-size:clamp(2.8rem,6vw,4.5rem);font-weight:900;background:linear-gradient(135deg,var(--accent),var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;letter-spacing:-.03em;line-height:1.1}
+.hero .subtitle{font-size:1.15rem;color:var(--text2);max-width:750px;margin:0 auto 3rem;line-height:1.8}
+.stats-row{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem 2rem;min-width:160px;text-align:center;transition:all .25s}
+.stat-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 30px var(--accent-glow)}
+.stat-val{font-size:2.6rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:.8rem;color:var(--text3);margin-top:.25rem;font-weight:500}
+
+/* GRIDS */
+.grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:1.5rem}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.25rem}
+.grid-5{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.25rem}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.75rem;transition:all .25s;position:relative;overflow:hidden}
+.card:hover{border-color:var(--accent);box-shadow:0 12px 40px var(--accent-glow);transform:translateY(-3px)}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--purple));opacity:0;transition:opacity .25s}
+.card:hover::after{opacity:1}
+.card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1rem}
+.card h3{font-size:1.15rem;font-weight:700;margin-bottom:.25rem}
+.card .sub{font-size:.78rem;color:var(--accent2);font-weight:600;margin-bottom:.6rem}
+.card p{font-size:.87rem;color:var(--text3);margin-bottom:1rem;line-height:1.65}
+.badge-count{position:absolute;top:1.25rem;right:1.25rem;background:var(--accent-glow);border:1px solid var(--border2);padding:.2rem .65rem;border-radius:20px;font-size:.72rem;color:var(--accent2);font-weight:700}
+.tag-list{display:flex;flex-wrap:wrap;gap:.4rem}
+.tag{background:var(--accent-glow);border:1px solid rgba(99,102,241,.15);padding:.22rem .6rem;border-radius:6px;font-size:.72rem;color:var(--accent2);font-weight:500}
+
+/* TABLES */
+.table-wrap{border-radius:16px;border:1px solid var(--border);overflow:hidden;background:var(--card);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+thead{background:var(--card2)}
+th{padding:.9rem 1rem;text-align:left;font-weight:700;color:var(--text2);border-bottom:1px solid var(--border);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+td{padding:.75rem 1rem;border-bottom:1px solid var(--border)}
+tr:last-child td{border:0}
+tr:hover td{background:var(--accent-glow)}
+.b{display:inline-block;padding:.18rem .55rem;border-radius:6px;font-size:.7rem;font-weight:700}
+.b-full{background:var(--green-bg);color:var(--green)}
+.b-view{background:var(--blue-bg);color:var(--blue)}
+.b-team{background:var(--orange-bg);color:var(--orange)}
+.b-self{background:var(--purple-bg);color:var(--purple)}
+.b-none{background:rgba(100,116,139,.1);color:var(--text3)}
+.b-dev{background:var(--cyan-bg);color:var(--cyan)}
+.b-active{background:var(--green-bg);color:var(--green)}
+
+/* MERMAID */
+.mermaid-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:2rem;overflow-x:auto}
+.mermaid-wrap h3{font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem;color:var(--text)}
+.mermaid-wrap h3 i{color:var(--accent)}
+.mermaid{display:flex;justify-content:center}
+.mermaid svg{max-width:100%}
+
+/* SOP */
+.sop-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.5rem}
+.sop-card h3{font-size:1.1rem;font-weight:700;margin-bottom:.4rem;display:flex;align-items:center;gap:.5rem}
+.sop-card h3 i{color:var(--accent)}
+.sop-meta{font-size:.78rem;color:var(--text3);margin-bottom:1rem;display:flex;gap:1.5rem;flex-wrap:wrap}
+.sop-meta span{display:flex;align-items:center;gap:.3rem}
+.sop-steps{counter-reset:sopstep}
+.sop-step{counter-increment:sopstep;display:flex;gap:1rem;padding:.75rem 0;border-bottom:1px dashed var(--border);align-items:flex-start}
+.sop-step:last-child{border:0}
+.sop-step::before{content:counter(sopstep);min-width:28px;height:28px;border-radius:50%;background:var(--accent-glow);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:2px}
+.sop-step-title{font-weight:600;font-size:.88rem;margin-bottom:.15rem}
+.sop-step-detail{font-size:.8rem;color:var(--text3)}
+.sop-role{font-size:.68rem;padding:.15rem .45rem;border-radius:4px;font-weight:600;display:inline-block;margin-top:.4rem;margin-right:.3rem}
+
+/* FLOW */
+.flow-steps{display:flex;align-items:stretch;gap:.5rem;overflow-x:auto;padding-bottom:.5rem}
+.fstep{flex:1;min-width:100px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:.75rem;text-align:center;transition:all .2s}
+.fstep:hover{border-color:var(--accent);background:var(--accent-glow)}
+.fstep-num{font-size:.6rem;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
+.fstep-name{font-size:.82rem;font-weight:700}
+.fstep-desc{font-size:.68rem;color:var(--text3);margin-top:.1rem}
+.flow-arrow{color:var(--accent);font-size:1rem;display:flex;align-items:center;flex-shrink:0}
+
+/* ARCH */
+.arch-layer{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:.75rem}
+.arch-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent2);margin-bottom:.8rem;display:flex;align-items:center;gap:.5rem}
+.arch-items{display:flex;flex-wrap:wrap;gap:.6rem}
+.arch-item{background:var(--card2);border:1px solid var(--border);padding:.5rem 1rem;border-radius:8px;font-size:.82rem;font-weight:500;transition:all .15s}
+.arch-item:hover{border-color:var(--accent);color:var(--accent)}
+.arch-sep{text-align:center;color:var(--text3);padding:.4rem;font-size:1.2rem}
+
+/* FOOTER */
+.footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);color:var(--text3);font-size:.82rem}
+.footer .logo-footer{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.75rem}
+
+@media(max-width:768px){
+.topbar-nav{display:none}
+.grid-2,.grid-3{grid-template-columns:1fr}
+.stats-row{gap:1rem}
+.hero h1{font-size:2.2rem}
+}
+@media print{.topbar{display:none!important}.main{padding-top:0!important}}
+</style>
+</head>
+<body>
+<!-- TOPBAR -->
+<header class="topbar">
+<div class="topbar-left"><div><div class="logo">SGROUP ERP</div><div class="logo-sub">ENTERPRISE PLATFORM v2.0</div></div></div>
+<nav class="topbar-nav">
+<a href="#hero" class="active"><i class="fas fa-home"></i> Trang ch&#7911;</a>
+<a href="#modules"><i class="fas fa-cubes"></i> Modules</a>
+<a href="#diagrams"><i class="fas fa-project-diagram"></i> S&#417; &#273;&#7891;</a>
+<a href="#sop"><i class="fas fa-clipboard-list"></i> Quy tr&#236;nh</a>
+<a href="#roles"><i class="fas fa-user-shield"></i> Vai tr&#242;</a>
+<a href="#data"><i class="fas fa-database"></i> Data</a>
+<a href="#tech"><i class="fas fa-layer-group"></i> C&#244;ng ngh&#7879;</a>
+</nav>
+<div class="topbar-right">
+<span class="theme-icon"><i class="fas fa-moon"></i></span>
+<div class="theme-toggle" onclick="toggleTheme()" title="Light/Dark"></div>
+<span class="theme-icon"><i class="fas fa-sun"></i></span>
+</div>
+</header>
+
+<main class="main">
+
+<!-- HERO -->
+<section class="hero" id="hero">
+<span class="hero-badge"><i class="fas fa-building"></i> Enterprise Resource Planning &#8212; 2026</span>
+<h1>SGROUP ERP</h1>
+<p class="subtitle">H&#7879; th&#7889;ng qu&#7843;n tr&#7883; doanh nghi&#7879;p to&#224;n di&#7879;n cho l&#297;nh v&#7921;c B&#7845;t &#272;&#7897;ng S&#7843;n &#8212; t&#237;ch h&#7907;p Sales, Marketing, HR, Finance, Legal, Project &amp; Executive Planning tr&#234;n n&#7873;n t&#7843;ng &#273;a n&#7873;n (Web, iOS, Android).</p>
+<div class="stats-row">
+<div class="stat-card"><div class="stat-val">11</div><div class="stat-label">Business Modules</div></div>
+<div class="stat-card"><div class="stat-val">40+</div><div class="stat-label">Data Models</div></div>
+<div class="stat-card"><div class="stat-val">70+</div><div class="stat-label">M&#224;n H&#236;nh</div></div>
+<div class="stat-card"><div class="stat-val">8</div><div class="stat-label">Vai Tr&#242;</div></div>
+<div class="stat-card"><div class="stat-val">12</div><div class="stat-label">&#272;i&#7875;m T&#237;ch H&#7907;p</div></div>
+<div class="stat-card"><div class="stat-val">10</div><div class="stat-label">SOPs</div></div>
+</div>
+</section>
+<hr class="section-divider">
+
+<!-- MODULES -->
+<section class="section" id="modules"><div class="container">
+<div class="section-header"><h2><i class="fas fa-cubes"></i> Chi Ti&#7871;t T&#7915;ng Module</h2><p>11 module nghi&#7879;p v&#7909; v&#7899;i 70+ m&#224;n h&#236;nh ch&#7913;c n&#259;ng</p></div>
+<div class="grid-2">
+<div class="card"><span class="badge-count">23 screens</span><div class="card-icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-chart-line"></i></div><h3>Sales &amp; CRM</h3><div class="sub">Qu&#7843;n l&#253; Kinh Doanh &amp; Quan h&#7879; Kh&#225;ch H&#224;ng</div><p>Module trung t&#226;m qu&#7843;n l&#253; to&#224;n b&#7897; quy tr&#236;nh b&#225;n h&#224;ng B&#272;S &#8212; t&#7915; ti&#7871;p nh&#7853;n lead, booking, deposit, k&#253; h&#7907;p &#273;&#7891;ng &#273;&#7871;n t&#237;nh hoa h&#7891;ng.</p><div class="tag-list"><span class="tag">Dashboard KPI</span><span class="tag">Staff Mgmt</span><span class="tag">Team Mgmt</span><span class="tag">Deal Recording</span><span class="tag">Target Alloc</span><span class="tag">Customer CRM</span><span class="tag">Appointments</span><span class="tag">Activity Log</span><span class="tag">Plan vs Actual</span><span class="tag">Commission</span><span class="tag">Booking</span><span class="tag">Deposit</span><span class="tag">Inventory</span><span class="tag">Loan Calc</span><span class="tag">Bizfly CRM</span></div></div>
+
+<div class="card"><span class="badge-count">9 screens</span><div class="card-icon" style="background:var(--pink-bg);color:var(--pink)"><i class="fas fa-bullhorn"></i></div><h3>Marketing</h3><div class="sub">Chi&#7871;n d&#7883;ch &amp; Ph&#226;n t&#237;ch ROI</div><p>L&#7853;p k&#7871; ho&#7841;ch marketing, qu&#7843;n l&#253; chi&#7871;n d&#7883;ch, theo d&#245;i ng&#226;n s&#225;ch t&#7915;ng k&#234;nh, &#273;o l&#432;&#7901;ng ROI &amp; CPL.</p><div class="tag-list"><span class="tag">Dashboard</span><span class="tag">Campaign Mgr</span><span class="tag">Lead Mgmt</span><span class="tag">Budget Tracker</span><span class="tag">Content Calendar</span><span class="tag">Channel ROI</span><span class="tag">Reports</span><span class="tag">Planning</span></div></div>
+
+<div class="card"><span class="badge-count">11 screens</span><div class="card-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fas fa-users"></i></div><h3>Nh&#226;n S&#7921; (HR)</h3><div class="sub">Human Resources Management</div><p>Qu&#7843;n l&#253; to&#224;n di&#7879;n nh&#226;n s&#7921; &#8212; h&#7891; s&#417;, h&#7907;p &#273;&#7891;ng, ch&#7845;m c&#244;ng, l&#432;&#417;ng, ngh&#7881; ph&#233;p, &#273;&#225;nh gi&#225; KPI, tuy&#7875;n d&#7909;ng.</p><div class="tag-list"><span class="tag">Dashboard</span><span class="tag">Staff Directory</span><span class="tag">Timekeeping</span><span class="tag">Payroll</span><span class="tag">Performance</span><span class="tag">Recruitment</span><span class="tag">Training</span><span class="tag">Leaves</span><span class="tag">Benefits</span><span class="tag">Policies</span></div></div>
+
+<div class="card"><span class="badge-count">5 screens</span><div class="card-icon" style="background:var(--orange-bg);color:var(--orange)"><i class="fas fa-wallet"></i></div><h3>T&#224;i Ch&#237;nh (Finance)</h3><div class="sub">K&#7871; to&#225;n &amp; Qu&#7843;n l&#253; T&#224;i Ch&#237;nh</div><p>Qu&#7843;n l&#253; thu chi, phi&#7871;u thu/chi, t&#224;i kho&#7843;n ng&#226;n h&#224;ng, c&#244;ng n&#7907;, ph&#234; duy&#7879;t thanh to&#225;n.</p><div class="tag-list"><span class="tag">Accounts</span><span class="tag">Transactions</span><span class="tag">Categories</span><span class="tag">Debt Records</span><span class="tag">Reports</span></div></div>
+
+<div class="card"><span class="badge-count">5 screens</span><div class="card-icon" style="background:var(--purple-bg);color:var(--purple)"><i class="fas fa-gavel"></i></div><h3>Ph&#225;p L&#253; (Legal)</h3><div class="sub">H&#7891; s&#417; Ph&#225;p l&#253; &amp; V&#259;n b&#7843;n</div><p>Qu&#7843;n l&#253; h&#7891; s&#417; ph&#225;p l&#253; d&#7921; &#225;n, h&#7891; s&#417; giao d&#7883;ch, m&#7851;u v&#259;n b&#7843;n &amp; c&#7843;nh b&#225;o h&#7871;t h&#7841;n.</p><div class="tag-list"><span class="tag">Dashboard</span><span class="tag">Project Docs</span><span class="tag">Transaction Docs</span><span class="tag">Templates</span><span class="tag">Expiry Alerts</span></div></div>
+
+<div class="card"><span class="badge-count">5 screens</span><div class="card-icon" style="background:var(--cyan-bg);color:var(--cyan)"><i class="fas fa-building"></i></div><h3>D&#7921; &#193;n B&#272;S (Project)</h3><div class="sub">Qu&#7843;n l&#253; D&#7921; &#193;n &amp; S&#7843;n Ph&#7849;m</div><p>Qu&#7843;n l&#253; danh m&#7909;c d&#7921; &#225;n B&#272;S, b&#7843;ng h&#224;ng (inventory board), s&#7843;n ph&#7849;m t&#7915;ng c&#259;n h&#7897;.</p><div class="tag-list"><span class="tag">Dashboard</span><span class="tag">Project List</span><span class="tag">Project Detail</span><span class="tag">Inventory Board</span><span class="tag">Batch Generate</span></div></div>
+
+<div class="card"><span class="badge-count">15+ views</span><div class="card-icon" style="background:var(--teal-bg);color:var(--teal)"><i class="fas fa-chess-king"></i></div><h3>Ban &#272;i&#7873;u H&#224;nh (B&#272;H)</h3><div class="sub">Executive Planning &amp; KPI Dashboard</div><p>Module d&#224;nh cho CEO &amp; Ban L&#227;nh &#272;&#7841;o &#8212; overview to&#224;n b&#7897; ph&#242;ng ban, l&#7853;p k&#7871; ho&#7841;ch chi&#7871;n l&#432;&#7907;c theo k&#7883;ch b&#7843;n.</p><div class="tag-list"><span class="tag">Exec Dashboard</span><span class="tag">OV Sales</span><span class="tag">OV Marketing</span><span class="tag">OV HR</span><span class="tag">OV Finance</span><span class="tag">OV Project</span><span class="tag">Plan Total</span><span class="tag">Scenario Mgr</span></div></div>
+
+<div class="card"><div class="card-icon" style="background:var(--red-bg);color:var(--red)"><i class="fas fa-shield-alt"></i></div><h3>Auth, Workspace &amp; H&#7895; tr&#7907;</h3><div class="sub">X&#225;c th&#7921;c, Notifications, AI, Storage</div><p>JWT Auth, Workspace Hub, real-time notifications (WebSocket), AI module, upload, Bizfly CRM sync, SHomes &amp; Agency.</p><div class="tag-list"><span class="tag">JWT Auth</span><span class="tag">Workspace Hub</span><span class="tag">WebSocket</span><span class="tag">AI Module</span><span class="tag">File Upload</span><span class="tag">Bizfly Sync</span><span class="tag">SHomes</span><span class="tag">Agency</span></div></div>
+</div>
+</div></section>
+<hr class="section-divider">
+
+<!-- DIAGRAMS -->
+<section class="section" id="diagrams"><div class="container">
+<div class="section-header"><h2><i class="fas fa-project-diagram"></i> S&#417; &#272;&#7891; H&#7879; Th&#7889;ng</h2><p>Bi&#7875;u &#273;&#7891; ki&#7871;n tr&#250;c, quy tr&#236;nh v&#224; m&#7889;i quan h&#7879; d&#7919; li&#7879;u chi ti&#7871;t</p></div>
+
+<div class="mermaid-wrap"><h3><i class="fas fa-layer-group"></i> Ki&#7871;n Tr&#250;c H&#7879; Th&#7889;ng 3 L&#7899;p</h3>
+<pre class="mermaid">
+graph TD
+    subgraph FE["&#128241; Frontend â€” React Native / Expo"]
+        W[Workspace Hub] --> S[Sales Module]
+        W --> MK[Marketing Module]
+        W --> HR[HR Module]
+        W --> FIN[Finance Module]
+        W --> LG[Legal Module]
+        W --> PJ[Project Module]
+        W --> BDH[Executive Module]
+    end
+    subgraph BE["&#9881;&#65039; Backend â€” NestJS + Prisma"]
+        AUTH[Auth & JWT] --> API[REST API Gateway]
+        API --> SM[Sales Service]
+        API --> MM[Marketing Service]
+        API --> HM[HR Service]
+        API --> FM[Finance Service]
+        API --> LM[Legal Service]
+        API --> PM[Project Service]
+        API --> EM[Exec Planning]
+        WS[WebSocket Gateway] --> NOTIF[Notifications]
+    end
+    subgraph DB["&#128024; Database â€” PostgreSQL Neon"]
+        PG[(PostgreSQL)] --> D1[Users & Auth]
+        PG --> D2[Sales Facts & Dims]
+        PG --> D3[CRM Data]
+        PG --> D4[HR Records]
+        PG --> D5[Finance Ledger]
+        PG --> D6[Legal Docs]
+        PG --> D7[Project & Properties]
+        PG --> D8[Planning KPIs]
+    end
+    FE -->|REST API + WebSocket| BE
+    BE -->|Prisma Client| DB
+</pre>
+</div>
+
+<div class="mermaid-wrap"><h3><i class="fas fa-link"></i> B&#7843;n &#272;&#7891; T&#237;ch H&#7907;p Li&#234;n Module</h3>
+<pre class="mermaid">
+graph LR
+    SALES["&#128176; Sales & CRM"]
+    MKT["&#128227; Marketing"]
+    HR["&#128101; HR"]
+    FIN["&#128179; Finance"]
+    LEGAL["&#9878;&#65039; Legal"]
+    PROJECT["&#127970; Project"]
+    EXEC["&#9813; Executive"]
+    EXT["&#128279; Bizfly CRM"]
+
+    SALES -->|Deal COMPLETED| FIN
+    SALES -->|CommissionRecord| HR
+    SALES <-->|SalesStaff = HrEmployee| HR
+    SALES <-->|FactDeal â†’ LegalTransactionDoc| LEGAL
+    PROJECT -->|PropertyProduct| SALES
+    PROJECT <-->|LegalProjectDoc| LEGAL
+    MKT -->|Lead Source â†’ ROI| SALES
+    FIN -->|Salary + Commission| HR
+    EXEC -->|KPI Dashboard| SALES
+    EXEC -->|KPI Dashboard| MKT
+    EXEC -->|KPI Dashboard| HR
+    EXEC -->|KPI Dashboard| FIN
+    EXT -->|Sync Leads & Deals| SALES
+</pre>
+</div>
+
+<div class="mermaid-wrap"><h3><i class="fas fa-funnel-dollar"></i> Sales Pipeline â€” 7 Giai &#272;o&#7841;n</h3>
+<pre class="mermaid">
+stateDiagram-v2
+    [*] --> LEAD: Ti&#7871;p nh&#7853;n KH
+    LEAD --> CONTACTED: Li&#234;n h&#7879; l&#7847;n &#273;&#7847;u
+    CONTACTED --> MEETING: &#272;&#7863;t l&#7883;ch h&#7865;n
+    MEETING --> BOOKING: Gi&#7919; ch&#7895; SP
+    BOOKING --> DEPOSIT: &#272;&#7863;t c&#7885;c
+    DEPOSIT --> CONTRACT: K&#253; H&#272;
+    CONTRACT --> COMPLETED: Ho&#224;n t&#7845;t GD
+    COMPLETED --> [*]
+    CONTACTED --> LOST: KH t&#7915; ch&#7889;i
+    MEETING --> LOST: KH kh&#244;ng ph&#249; h&#7907;p
+    LOST --> [*]
+</pre>
+</div>
+
+<div class="mermaid-wrap"><h3><i class="fas fa-th"></i> Property Product Lifecycle</h3>
+<pre class="mermaid">
+stateDiagram-v2
+    [*] --> AVAILABLE: Batch Generate
+    AVAILABLE --> BOOKED: Sales Booking
+    BOOKED --> AVAILABLE: Booking Rejected
+    BOOKED --> LOCKED: Approved
+    LOCKED --> DEPOSIT: &#272;&#7863;t c&#7885;c
+    LOCKED --> AVAILABLE: H&#7871;t h&#7841;n lock
+    DEPOSIT --> SOLD: K&#253; h&#7907;p &#273;&#7891;ng
+    DEPOSIT --> AVAILABLE: Ho&#224;n c&#7885;c
+    SOLD --> COMPLETED: B&#224;n giao
+    COMPLETED --> [*]
+    AVAILABLE --> HOLD: T&#7841;m gi&#7919;
+    HOLD --> AVAILABLE: M&#7903; l&#7841;i
+</pre>
+</div>
+
+<div class="mermaid-wrap"><h3><i class="fas fa-database"></i> Entity Relationship Diagram (Core)</h3>
+<pre class="mermaid">
+erDiagram
+    User ||--o{ RefreshToken : has
+    User ||--o| SalesStaff : "is"
+    SalesTeam ||--o{ SalesStaff : contains
+    SalesStaff ||--o{ FactDeal : records
+    SalesStaff ||--o{ SalesActivity : logs
+    Customer ||--o{ FactDeal : has
+    Customer ||--o{ Appointment : books
+    DimProject ||--o{ PropertyProduct : contains
+    DimProject ||--o{ LegalProjectDoc : has
+    PropertyProduct ||--o| SalesBooking : "booked by"
+    FactDeal ||--o{ SalesDeposit : has
+    FactDeal ||--o{ CommissionRecord : generates
+    FactDeal ||--o{ LegalTransactionDoc : has
+    HrEmployee ||--o{ HrContract : signs
+    HrEmployee ||--o{ HrAttendance : records
+    HrEmployee ||--o{ HrLeaveRequest : submits
+    HrEmployee ||--o{ HrSalaryRecord : receives
+    HrSalaryRecord }o--o{ CommissionRecord : includes
+    FinanceAccount ||--o{ FinanceTransaction : holds
+    FinanceCategory ||--o{ FinanceTransaction : categorizes
+    DebtRecord ||--o{ FinanceTransaction : "paid via"
+</pre>
+</div>
+
+<div class="mermaid-wrap"><h3><i class="fas fa-file-invoice-dollar"></i> Finance Transaction Flow</h3>
+<pre class="mermaid">
+flowchart LR
+    A["T&#7841;o Phi&#7871;u\n(DRAFT)"] --> B["G&#7917;i Duy&#7879;t\n(PENDING)"]
+    B --> C{Ph&#234; duy&#7879;t?}
+    C -->|Approved| D["Th&#7921;c hi&#7879;n\n(EXECUTED)"]
+    C -->|Rejected| E["Tr&#7843; l&#7841;i\n(REJECTED)"]
+    E --> A
+    D --> F["C&#7853;p nh&#7853;t\nAccount Balance"]
+    D --> G["C&#7853;p nh&#7853;t\nDebt Record"]
+    B -.->|WebSocket| H["&#128276; Th&#244;ng b&#225;o\nng&#432;&#7901;i duy&#7879;t"]
+</pre>
+</div>
+
+<div class="mermaid-wrap"><h3><i class="fas fa-user-plus"></i> HR Onboarding Flow</h3>
+<pre class="mermaid">
+flowchart TD
+    A["Y&#234;u c&#7847;u tuy&#7875;n d&#7909;ng"] --> B["&#272;&#259;ng tuy&#7875;n & S&#224;ng l&#7885;c CV"]
+    B --> C["Ph&#7887;ng v&#7845;n 2 v&#242;ng"]
+    C --> D{&#272;&#7841;t?}
+    D -->|Yes| E["T&#7841;o HrEmployee\n(PROBATION)"]
+    D -->|No| F["T&#7915; ch&#7889;i"]
+    E --> G["T&#7841;o HrContract\n(PROBATION)"]
+    G --> H["T&#7841;o User Account\nG&#225;n Role & Department"]
+    H --> I{Sales Staff?}
+    I -->|Yes| J["T&#7841;o SalesStaff\nG&#225;n Team & salesRole"]
+    I -->|No| K["Ho&#224;n t&#7845;t Onboarding"]
+    J --> K
+    K --> L["&#272;&#225;nh gi&#225; th&#7917; vi&#7879;c"]
+    L --> M{&#272;&#7841;t?}
+    M -->|Yes| N["Status = ACTIVE\nH&#272; ch&#237;nh th&#7913;c"]
+    M -->|No| O["K&#7871;t th&#250;c HLV"]
+</pre>
+</div>
+</div></section>
+<hr class="section-divider">
+
+<!-- SOP -->
+<section class="section" id="sop"><div class="container">
+<div class="section-header"><h2><i class="fas fa-clipboard-list"></i> SOP &#8212; Quy Tr&#236;nh V&#7853;n H&#224;nh Chu&#7849;n</h2><p>10 Standard Operating Procedures cho to&#224;n b&#7897; nghi&#7879;p v&#7909;</p></div>
+
+<div class="sop-card"><h3><i class="fas fa-funnel-dollar"></i> SOP-01: Quy Tr&#236;nh B&#225;n H&#224;ng B&#272;S</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> Sales &amp; CRM</span><span><i class="fas fa-users"></i> Sales, Manager, Director</span><span><i class="fas fa-clock"></i> Li&#234;n t&#7909;c</span></div>
+<div class="flow-steps" style="margin-bottom:1rem">
+<div class="fstep"><div class="fstep-num">1</div><div class="fstep-name">LEAD</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep"><div class="fstep-num">2</div><div class="fstep-name">CONTACTED</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep"><div class="fstep-num">3</div><div class="fstep-name">MEETING</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep"><div class="fstep-num">4</div><div class="fstep-name">BOOKING</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep"><div class="fstep-num">5</div><div class="fstep-name">DEPOSIT</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep"><div class="fstep-num">6</div><div class="fstep-name">CONTRACT</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep" style="border-color:var(--green)"><div class="fstep-num" style="color:var(--green)">7</div><div class="fstep-name" style="color:var(--green)">COMPLETED</div></div>
+</div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Ti&#7871;p nh&#7853;n Lead</div><div class="sop-step-detail">Ngu&#7891;n: Facebook Ads, Google, Hotline, Referral, Walk-in, Bizfly CRM Sync. T&#7921; &#273;&#7897;ng g&#225;n source &amp; t&#7841;o Customer (status=NEW).</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Ph&#226;n b&#7893; Lead</div><div class="sop-step-detail">Sales Manager ph&#226;n b&#7893; theo leadsCapacity. C&#7853;p nh&#7853;t assignedTo.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Li&#234;n h&#7879; &amp; T&#432; v&#7845;n</div><div class="sop-step-detail">Ghi nh&#7853;n SalesActivity (calls, posts). Customer.status &#8594; CONTACTED/INTERESTED.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Booking &amp; Deposit</div><div class="sop-step-detail">T&#7841;o SalesBooking &#8594; ph&#234; duy&#7879;t &#8594; SalesDeposit. Property status: BOOKED &#8594; DEPOSIT.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">K&#253; H&#272; &amp; Ho&#224;n t&#7845;t</div><div class="sop-step-detail">LegalTransactionDoc (CONTRACT). FactDeal.stage=COMPLETED. T&#7921; &#273;&#7897;ng CommissionRecord. Property=SOLD.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-user-plus"></i> SOP-02: Tuy&#7875;n D&#7909;ng &amp; Ti&#7871;p Nh&#7853;n NV M&#7899;i</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> HR</span><span><i class="fas fa-users"></i> HR Manager, Dept Head</span></div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Y&#234;u c&#7847;u &#8594; S&#224;ng l&#7885;c &#8594; Ph&#7887;ng v&#7845;n 2 v&#242;ng</div><div class="sop-step-detail">HR + Chuy&#234;n m&#244;n. Ch&#7885;n &#7913;ng vi&#234;n ph&#249; h&#7907;p.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">T&#7841;o HrEmployee + HrContract (PROBATION)</div><div class="sop-step-detail">Nh&#7853;p h&#7891; s&#417; &#273;&#7847;y &#273;&#7911;, upload scan h&#7907;p &#273;&#7891;ng.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">C&#7845;p t&#224;i kho&#7843;n &amp; &#273;&#225;nh gi&#225; th&#7917; vi&#7879;c</div><div class="sop-step-detail">T&#7841;o User, g&#225;n role. N&#7871;u Sales: t&#7841;o SalesStaff. Sau k&#7923;: HrPerformanceReview &#8594; ACTIVE.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-clock"></i> SOP-03: Ch&#7845;m C&#244;ng &amp; T&#237;nh L&#432;&#417;ng</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> HR + Finance</span><span><i class="fas fa-clock"></i> H&#224;ng th&#225;ng</span></div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Ghi nh&#7853;n HrAttendance h&#224;ng ng&#224;y</div><div class="sop-step-detail">checkIn/Out, t&#237;nh workingHours. Status: PRESENT, LATE, ABSENT, HALF_DAY.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">X&#7917; l&#253; &#273;&#417;n ngh&#7881; ph&#233;p (HrLeaveRequest)</div><div class="sop-step-detail">Lo&#7841;i: ANNUAL, SICK, UNPAID, MATERNITY. Qu&#7843;n l&#253; ph&#234; duy&#7879;t.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">T&#237;nh l&#432;&#417;ng HrSalaryRecord</div><div class="sop-step-detail">baseSalary + allowance - deduction - tax + commission = netPay. Status: DRAFT &#8594; APPROVED &#8594; PAID.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-file-invoice-dollar"></i> SOP-04: Thu Chi T&#224;i Ch&#237;nh</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> Finance</span><span><i class="fas fa-users"></i> K&#7871; to&#225;n, CFO, CEO</span></div>
+<div class="flow-steps" style="margin-bottom:1rem">
+<div class="fstep"><div class="fstep-name">DRAFT</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep"><div class="fstep-name">PENDING</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep"><div class="fstep-name">APPROVED</div></div><div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+<div class="fstep" style="border-color:var(--green)"><div class="fstep-name" style="color:var(--green)">EXECUTED</div></div>
+</div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">T&#7841;o phi&#7871;u FinanceTransaction</div><div class="sop-step-detail">INCOME/EXPENSE, t&#224;i kho&#7843;n, danh m&#7909;c, s&#7889; ti&#7873;n. Li&#234;n k&#7871;t dealId/projectId.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Ph&#234; duy&#7879;t qua WebSocket notification</div><div class="sop-step-detail">CFO/CEO t&#249;y s&#7889; ti&#7873;n. APPROVED &#8594; c&#7853;p nh&#7853;t Account balance &amp; DebtRecord.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-coins"></i> SOP-05: Hoa H&#7891;ng</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> Sales + Finance + HR</span></div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Deal COMPLETED &#8594; T&#7841;o CommissionRecord</div><div class="sop-step-detail">dealValue &#215; feeRate. T&#7841;o cho Sales, Manager, Director theo t&#7927; l&#7879;.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Ph&#234; duy&#7879;t &#8594; Map v&#224;o HrSalaryRecord</div><div class="sop-step-detail">PENDING &#8594; APPROVED. C&#7897;ng v&#224;o b&#7843;ng l&#432;&#417;ng k&#7923; t&#432;&#417;ng &#7913;ng.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-th"></i> SOP-06: B&#7843;ng H&#224;ng D&#7921; &#193;n</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> Project + Sales</span></div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">T&#7841;o DimProject &amp; Batch Generate</div><div class="sop-step-detail">Batch Wizard t&#7841;o h&#224;ng lo&#7841;t PropertyProduct. T&#7921; &#273;&#7897;ng sinh m&#227;, status=AVAILABLE.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Qu&#7843;n l&#253; tr&#7841;ng th&#225;i</div><div class="sop-step-detail">M&#7895;i thay &#273;&#7893;i ghi ProductStatusLog. Hi&#7875;n th&#7883; Inventory Board d&#7841;ng l&#432;&#7899;i m&#224;u.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-gavel"></i> SOP-07: H&#7891; S&#417; Ph&#225;p L&#253;</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> Legal</span></div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Upload LegalProjectDoc &amp; LegalTransactionDoc</div><div class="sop-step-detail">Gi&#7845;y ph&#233;p, h&#7907;p &#273;&#7891;ng, KYC. Workflow: DRAFT &#8594; PENDING_SIGN &#8594; SIGNED.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">C&#7843;nh b&#225;o h&#7871;t h&#7841;n t&#7921; &#273;&#7897;ng</div><div class="sop-step-detail">Qu&#233;t expiredDate h&#224;ng ng&#224;y. WebSocket push tr&#432;&#7899;c 30 ng&#224;y.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-bullhorn"></i> SOP-08: Marketing ROI</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> Marketing + Sales</span></div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">L&#7853;p k&#7871; ho&#7841;ch MktPlanHeader + ChannelBudget</div><div class="sop-step-detail">Ph&#226;n b&#7893; ng&#226;n s&#225;ch theo k&#234;nh (Facebook, Google, TikTok). &#272;&#7863;t KPI target.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">&#272;o l&#432;&#7901;ng ROI t&#7921; &#273;&#7897;ng</div><div class="sop-step-detail">Customer.source &#8594; channel &#8594; FactDeal.dealValue. ROI = (Revenue - Cost) / Cost &#215; 100%.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-chess-king"></i> SOP-09: K&#7871; Ho&#7841;ch Chi&#7871;n L&#432;&#7907;c B&#272;H</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> Executive</span><span><i class="fas fa-clock"></i> H&#224;ng n&#259;m/Qu&#253;</span></div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">3 k&#7883;ch b&#7843;n: Base, Optimistic, Pessimistic</div><div class="sop-step-detail">M&#7895;i k&#7883;ch b&#7843;n c&#243; PlanScenarioLog ri&#234;ng. Ph&#226;n b&#7893; theo ph&#242;ng ban.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Theo d&#245;i Plan vs Actual</div><div class="sop-step-detail">ExecKpiLatest vs FactSalesDaily + FinanceTransaction. B&#225;o c&#225;o sai l&#7879;ch.</div></div></div>
+</div></div>
+
+<div class="sop-card"><h3><i class="fas fa-sync-alt"></i> SOP-10: &#272;&#7891;ng B&#7897; Bizfly CRM</h3>
+<div class="sop-meta"><span><i class="fas fa-tag"></i> Sales (External)</span></div>
+<div class="sop-steps">
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Kh&#7903;i t&#7841;o BizflySyncLog</div><div class="sop-step-detail">Ch&#7885;n lo&#7841;i sync (LEADS, DEALS, PIPELINE). Status = RUNNING.</div></div></div>
+<div class="sop-step"><div class="sop-step-content"><div class="sop-step-title">Pull &amp; X&#225;c nh&#7853;n</div><div class="sop-step-detail">Leads &#8594; Customer, Deals &#8594; FactDeal. Status: SUCCESS/FAILED.</div></div></div>
+</div></div>
+</div></section>
+<hr class="section-divider">
+<!-- ROLES -->
+<section class="section" id="roles"><div class="container">
+<div class="section-header"><h2><i class="fas fa-user-shield"></i> Vai Tr&#242; &amp; Ph&#226;n Quy&#7873;n</h2><p>8 vai tr&#242; v&#7899;i User.role (h&#7879; th&#7889;ng) + User.salesRole (kinh doanh)</p></div>
+
+<div class="table-wrap" style="margin-bottom:2.5rem"><table>
+<thead><tr><th>Vai tr&#242;</th><th>Lo&#7841;i</th><th>M&#244; t&#7843;</th><th>Ph&#7841;m vi truy c&#7853;p</th></tr></thead>
+<tbody>
+<tr><td><strong>admin</strong></td><td><span class="b b-full">System</span></td><td>Qu&#7843;n tr&#7883; h&#7879; th&#7889;ng to&#224;n quy&#7873;n</td><td>T&#7845;t c&#7843; modules, users, settings, data</td></tr>
+<tr><td><strong>hr</strong></td><td><span class="b b-full">System</span></td><td>Qu&#7843;n l&#253; nh&#226;n s&#7921; chuy&#234;n tr&#225;ch</td><td>Module HR &#273;&#7847;y &#273;&#7911;</td></tr>
+<tr><td><strong>employee</strong></td><td><span class="b b-full">System</span></td><td>Nh&#226;n vi&#234;n (m&#7863;c &#273;&#7883;nh)</td><td>Self-service: l&#432;&#417;ng, ch&#7845;m c&#244;ng, ngh&#7881; ph&#233;p</td></tr>
+<tr><td><strong>ceo</strong></td><td><span class="b b-view">Sales</span></td><td>CEO / Gi&#225;m &#273;&#7889;c &#273;i&#7873;u h&#224;nh</td><td>To&#224;n b&#7897; Sales + B&#272;H, m&#7885;i b&#225;o c&#225;o</td></tr>
+<tr><td><strong>sales_director</strong></td><td><span class="b b-view">Sales</span></td><td>Gi&#225;m &#273;&#7889;c kinh doanh</td><td>Qu&#7843;n l&#253; to&#224;n b&#7897; Sales teams</td></tr>
+<tr><td><strong>sales_manager</strong></td><td><span class="b b-view">Sales</span></td><td>Tr&#432;&#7903;ng nh&#243;m kinh doanh</td><td>Qu&#7843;n l&#253; team, ph&#226;n target</td></tr>
+<tr><td><strong>sales</strong></td><td><span class="b b-view">Sales</span></td><td>Nh&#226;n vi&#234;n kinh doanh</td><td>CRM c&#225; nh&#226;n, ghi nh&#7853;n deal</td></tr>
+<tr><td><strong>sales_admin</strong></td><td><span class="b b-view">Sales</span></td><td>Admin kinh doanh</td><td>Qu&#7843;n l&#253; data sales, import/export</td></tr>
+</tbody></table></div>
+
+<div class="section-header" style="margin-top:2rem"><h2><i class="fas fa-table"></i> Ma Tr&#7853;n Ph&#226;n Quy&#7873;n</h2></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Module</th><th>admin</th><th>ceo</th><th>sales_director</th><th>sales_manager</th><th>sales</th><th>hr</th><th>employee</th></tr></thead>
+<tbody>
+<tr><td><strong>Workspace</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td></tr>
+<tr><td><strong>Sales &amp; CRM</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-team">Team</span></td><td><span class="b b-self">Self</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td></tr>
+<tr><td><strong>Marketing</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-view">View</span></td><td><span class="b b-view">View</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td></tr>
+<tr><td><strong>HR</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-view">View</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-self">Self</span></td></tr>
+<tr><td><strong>Finance</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-view">View</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-view">View</span></td><td><span class="b b-none">&#8212;</span></td></tr>
+<tr><td><strong>Legal</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-view">View</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-view">View</span></td><td><span class="b b-view">View</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td></tr>
+<tr><td><strong>Project</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-view">View</span></td><td><span class="b b-view">View</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td></tr>
+<tr><td><strong>B&#272;H (Exec)</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-view">View</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td><td><span class="b b-none">&#8212;</span></td></tr>
+<tr><td><strong>Notifications</strong></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td><td><span class="b b-full">Full</span></td></tr>
+</tbody></table></div>
+<div style="margin-top:1rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem">
+<span><span class="b b-full">Full</span> = To&#224;n quy&#7873;n CRUD</span>
+<span><span class="b b-view">View</span> = Ch&#7881; xem</span>
+<span><span class="b b-team">Team</span> = Ph&#7841;m vi team</span>
+<span><span class="b b-self">Self</span> = D&#7919; li&#7879;u c&#225; nh&#226;n</span>
+<span><span class="b b-none">&#8212;</span> = Kh&#244;ng truy c&#7853;p</span>
+</div>
+</div></section>
+<hr class="section-divider">
+
+<!-- DATA MODELS -->
+<section class="section" id="data"><div class="container">
+<div class="section-header"><h2><i class="fas fa-database"></i> M&#244; H&#236;nh D&#7919; Li&#7879;u</h2><p>40+ Prisma models &#8212; PostgreSQL (Neon Serverless)</p></div>
+<div class="grid-3">
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-lock" style="color:var(--red)"></i> Auth <span class="b b-dev">2 models</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>User</strong> &#8212; id, email, name, role, department, salesRole</li><li style="padding:.25rem 0"><strong>RefreshToken</strong> &#8212; token, userId, expiresAt, deviceInfo</li></ul></div>
+
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-database" style="color:var(--green)"></i> Sales Dims <span class="b b-dev">4</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>DimProject</strong> &#8212; projectCode, name, developer, feeRate</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>SalesTeam</strong> &#8212; code, name, leaderId, region</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>SalesStaff</strong> &#8212; employeeCode, fullName, role</li><li style="padding:.25rem 0"><strong>PropertyProduct</strong> &#8212; code, block, floor, price, status</li></ul></div>
+
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-chart-bar" style="color:var(--blue)"></i> Sales Facts <span class="b b-dev">7</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>FactDeal</strong> &#8212; pipeline 7 stages</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>SalesBooking</strong> &#8212; booking approve/reject</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>SalesDeposit</strong> &#8212; confirm/refund</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>FactSalesDaily</strong> &#8212; daily stats</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>FactPipelineSnapshot</strong></li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>CommissionRecord</strong> &#8212; PENDING&#8594;PAID</li><li style="padding:.25rem 0"><strong>SalesTargetMonthly</strong></li></ul></div>
+
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-address-book" style="color:var(--cyan)"></i> CRM <span class="b b-dev">3</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>Customer</strong> &#8212; source, budget, status, assignedTo</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>SalesActivity</strong> &#8212; posts, calls, meetings</li><li style="padding:.25rem 0"><strong>Appointment</strong> &#8212; type, scheduledAt, outcome</li></ul></div>
+
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-id-card" style="color:var(--blue)"></i> HR <span class="b b-dev">7</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>HrDepartment</strong> &#8212; m&#227;, t&#234;n</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>HrPosition</strong> &#8212; Staff &#8594; Director</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>HrEmployee</strong> &#8212; h&#7891; s&#417; &#273;&#7847;y &#273;&#7911;</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>HrContract</strong> &#8212; PROBATION &#8594; INDEFINITE</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>HrAttendance</strong> &#8212; checkIn/Out</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>HrLeaveRequest</strong> &#8212; ANNUAL, SICK</li><li style="padding:.25rem 0"><strong>HrSalaryRecord</strong> &#8212; gross, net</li></ul></div>
+
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-money-bill-wave" style="color:var(--orange)"></i> Finance <span class="b b-dev">4</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>FinanceAccount</strong> &#8212; CASH, BANK, EPAY</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>FinanceCategory</strong> &#8212; INCOME, EXPENSE</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>FinanceTransaction</strong> &#8212; thu/chi</li><li style="padding:.25rem 0"><strong>DebtRecord</strong> &#8212; RECEIVABLE, PAYABLE</li></ul></div>
+
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-file-contract" style="color:var(--purple)"></i> Legal <span class="b b-dev">3</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>LegalProjectDoc</strong> &#8212; gi&#7845;y ph&#233;p</li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>LegalTransactionDoc</strong> &#8212; H&#272;, KYC</li><li style="padding:.25rem 0"><strong>LegalTemplate</strong> &#8212; m&#7851;u v&#259;n b&#7843;n</li></ul></div>
+
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-chess-board" style="color:var(--teal)"></i> Planning <span class="b b-dev">10+</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>ExecPlanLatest / ExecKpiLatest</strong></li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>SalePlanHeader/Month/Team/Staff</strong></li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>MktPlanHeader/ChannelBudget</strong></li><li style="padding:.25rem 0"><strong>AuditLog</strong></li></ul></div>
+
+<div class="card" style="padding:1.5rem"><h3 style="font-size:.95rem;display:flex;align-items:center;gap:.5rem"><i class="fas fa-sync-alt" style="color:var(--pink)"></i> Sync &amp; Audit <span class="b b-dev">3</span></h3><ul style="list-style:none;font-size:.82rem;color:var(--text3);margin-top:.75rem"><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>BizflySyncLog</strong></li><li style="padding:.25rem 0;border-bottom:1px dashed var(--border)"><strong>FactPlanSnapshotLog</strong></li><li style="padding:.25rem 0"><strong>ProductStatusLog</strong></li></ul></div>
+</div>
+</div></section>
+<hr class="section-divider">
+
+<!-- TECH STACK -->
+<section class="section" id="tech"><div class="container">
+<div class="section-header"><h2><i class="fas fa-layer-group"></i> Ki&#7871;n Tr&#250;c &amp; C&#244;ng Ngh&#7879;</h2><p>3 l&#7899;p: Frontend Universal &#8594; Backend API &#8594; Database Cloud</p></div>
+
+<div class="arch-layer"><div class="arch-label"><i class="fas fa-desktop"></i> FRONTEND &#8212; React Native / Expo (Web + iOS + Android)</div><div class="arch-items"><div class="arch-item">Workspace Hub</div><div class="arch-item">Sales Module</div><div class="arch-item">Marketing Module</div><div class="arch-item">HR Module</div><div class="arch-item">Finance Module</div><div class="arch-item">Legal Module</div><div class="arch-item">Project Module</div><div class="arch-item">B&#272;H Module</div><div class="arch-item">SHomes</div><div class="arch-item">Agency</div></div></div>
+<div class="arch-sep"><i class="fas fa-exchange-alt"></i> REST API + WebSocket</div>
+<div class="arch-layer"><div class="arch-label"><i class="fas fa-server"></i> BACKEND &#8212; NestJS + Prisma ORM</div><div class="arch-items"><div class="arch-item">Auth &amp; JWT</div><div class="arch-item">Sales-Ops</div><div class="arch-item">Customers / CRM</div><div class="arch-item">Products</div><div class="arch-item">HR</div><div class="arch-item">Finance</div><div class="arch-item">Legal</div><div class="arch-item">Project</div><div class="arch-item">Marketing Planning</div><div class="arch-item">Sales Planning</div><div class="arch-item">Exec Planning</div><div class="arch-item">Notifications (WS)</div><div class="arch-item">AI Module</div><div class="arch-item">Upload / S3</div><div class="arch-item">Bizfly Sync</div></div></div>
+<div class="arch-sep"><i class="fas fa-exchange-alt"></i> Prisma Client + Connection Pool</div>
+<div class="arch-layer"><div class="arch-label"><i class="fas fa-database"></i> DATABASE &#8212; PostgreSQL (Neon Serverless)</div><div class="arch-items"><div class="arch-item">Users &amp; Tokens</div><div class="arch-item">Sales Dimensions</div><div class="arch-item">Sales Facts</div><div class="arch-item">CRM Data</div><div class="arch-item">HR Records</div><div class="arch-item">Finance Ledger</div><div class="arch-item">Legal Docs</div><div class="arch-item">Projects &amp; Properties</div><div class="arch-item">Planning KPIs</div><div class="arch-item">Audit Logs</div></div></div>
+
+<div style="margin-top:3rem">
+<div class="section-header"><h2><i class="fas fa-cogs"></i> Tech Stack</h2></div>
+<div class="grid-3">
+<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:2.2rem;margin-bottom:.5rem">&#9883;&#65039;</div><h3 style="font-size:.95rem">Frontend</h3><p style="font-size:.82rem;color:var(--text3);margin:0">React Native + Expo SDK 52<br>TypeScript, Zustand, Reanimated<br>70+ SG* Components</p></div>
+<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:2.2rem;margin-bottom:.5rem">&#128994;</div><h3 style="font-size:.95rem">Backend</h3><p style="font-size:.82rem;color:var(--text3);margin:0">NestJS 10 + Prisma ORM<br>JWT, WebSocket Gateway<br>Modular Architecture</p></div>
+<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:2.2rem;margin-bottom:.5rem">&#128024;</div><h3 style="font-size:.95rem">Database</h3><p style="font-size:.82rem;color:var(--text3);margin:0">PostgreSQL via Neon<br>Serverless, Auto-scaling<br>40+ Prisma Models</p></div>
+<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:2.2rem;margin-bottom:.5rem">&#9650;</div><h3 style="font-size:.95rem">Hosting</h3><p style="font-size:.82rem;color:var(--text3);margin:0">Vercel (Frontend)<br>Railway / Render (Backend)<br>Neon (Database)</p></div>
+<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:2.2rem;margin-bottom:.5rem">&#128260;</div><h3 style="font-size:.95rem">CI/CD</h3><p style="font-size:.82rem;color:var(--text3);margin:0">GitHub Actions<br>Docker, Auto Deploy<br>Jest Unit Tests</p></div>
+<div class="card" style="text-align:center;padding:1.5rem"><div style="font-size:2.2rem;margin-bottom:.5rem">&#128279;</div><h3 style="font-size:.95rem">Integrations</h3><p style="font-size:.82rem;color:var(--text3);margin:0">Bizfly CRM API<br>S3 Storage, AI/ML<br>WebSocket Real-time</p></div>
+</div>
+</div>
+
+<div style="margin-top:3rem">
+<div class="section-header"><h2><i class="fas fa-link"></i> T&#237;ch H&#7907;p Li&#234;n Module</h2><p>12 &#273;i&#7875;m t&#237;ch h&#7907;p k&#7871;t n&#7889;i c&#225;c module th&#224;nh h&#7879; sinh th&#225;i</p></div>
+<div class="table-wrap"><table>
+<thead><tr><th>T&#237;ch h&#7907;p</th><th>Module A</th><th>Module B</th><th>M&#244; t&#7843;</th></tr></thead>
+<tbody>
+<tr><td><strong>Deal &#8594; Commission</strong></td><td><span class="b b-active">Sales</span></td><td><span class="b" style="background:var(--orange-bg);color:var(--orange)">Finance</span></td><td>Deal COMPLETED &#8594; t&#7921; &#273;&#7897;ng CommissionRecord &#8594; b&#7843;ng l&#432;&#417;ng</td></tr>
+<tr><td><strong>Staff &#8596; Employee</strong></td><td><span class="b b-active">Sales</span></td><td><span class="b" style="background:var(--blue-bg);color:var(--blue)">HR</span></td><td>SalesStaff li&#234;n k&#7871;t HrEmployee qua hrEmployeeId</td></tr>
+<tr><td><strong>Deal &#8596; Legal</strong></td><td><span class="b b-active">Sales</span></td><td><span class="b" style="background:var(--purple-bg);color:var(--purple)">Legal</span></td><td>FactDeal c&#243; nhi&#7873;u LegalTransactionDoc</td></tr>
+<tr><td><strong>Project &#8594; Products</strong></td><td><span class="b b-dev">Project</span></td><td><span class="b b-active">Sales</span></td><td>DimProject &#8594; PropertyProduct[] (b&#7843;ng h&#224;ng)</td></tr>
+<tr><td><strong>Project &#8596; Legal</strong></td><td><span class="b b-dev">Project</span></td><td><span class="b" style="background:var(--purple-bg);color:var(--purple)">Legal</span></td><td>DimProject c&#243; nhi&#7873;u LegalProjectDoc</td></tr>
+<tr><td><strong>Marketing &#8594; ROI</strong></td><td><span class="b" style="background:var(--pink-bg);color:var(--pink)">Marketing</span></td><td><span class="b b-active">Sales</span></td><td>Lead source &#8594; deal value &#8594; ROI</td></tr>
+<tr><td><strong>Salary &#8596; Commission</strong></td><td><span class="b" style="background:var(--blue-bg);color:var(--blue)">HR</span></td><td><span class="b b-active">Sales</span></td><td>HrSalaryRecord.commission t&#7915; CommissionRecord</td></tr>
+<tr><td><strong>B&#272;H &#8592; All</strong></td><td><span class="b" style="background:var(--teal-bg);color:var(--teal)">Executive</span></td><td><span class="b b-none">All</span></td><td>Dashboard KPI t&#7893;ng h&#7907;p to&#224;n ph&#242;ng ban</td></tr>
+<tr><td><strong>Bizfly CRM Sync</strong></td><td><span class="b b-none">External</span></td><td><span class="b b-active">Sales</span></td><td>&#272;&#7891;ng b&#7897; leads &amp; deals t&#7915; Bizfly</td></tr>
+<tr><td><strong>Notifications</strong></td><td><span class="b b-none">System</span></td><td><span class="b b-none">All</span></td><td>WebSocket push: deal m&#7899;i, ph&#234; duy&#7879;t, c&#7843;nh b&#225;o</td></tr>
+</tbody></table></div>
+</div>
+</div></section>
+
+</main>
+
+<footer class="footer">
+<div class="logo-footer">SGROUP ERP</div>
+<p style="font-size:.95rem;font-weight:600;margin-bottom:.5rem">Enterprise Resource Planning Platform v2.0</p>
+<p>C&#7853;p nh&#7853;t: Th&#225;ng 03/2026 &#8212; React Native (Expo) + NestJS + Prisma + PostgreSQL (Neon)</p>
+<p style="margin-top:.5rem">&#169; 2026 SGROUP Corporation. All rights reserved.</p>
+</footer>
+
+<script>
+function toggleTheme(){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';localStorage.setItem('theme',h.dataset.theme);initMermaid()}
+const saved=localStorage.getItem('theme');if(saved)document.documentElement.dataset.theme=saved;
+
+function initMermaid(){
+const isDark=document.documentElement.dataset.theme==='dark';
+mermaid.initialize({startOnLoad:false,theme:isDark?'dark':'default',themeVariables:isDark?{primaryColor:'#6366f1',primaryTextColor:'#f1f3f9',primaryBorderColor:'#818cf8',lineColor:'#8891a8',secondaryColor:'#1a2540',tertiaryColor:'#161e31',background:'#161e31',mainBkg:'#1a2540',nodeBorder:'#818cf8',clusterBkg:'#111827',clusterBorder:'#253354',titleColor:'#f1f3f9',edgeLabelBackground:'#161e31',fontSize:'14px'}:{primaryColor:'#4f46e5',primaryTextColor:'#1a1e2e',primaryBorderColor:'#6366f1',lineColor:'#6b7594',secondaryColor:'#ebeef5',tertiaryColor:'#f4f6fb',background:'#ffffff',mainBkg:'#f8f9fc',nodeBorder:'#6366f1',clusterBkg:'#f4f6fb',clusterBorder:'#dce1ec',titleColor:'#1a1e2e',edgeLabelBackground:'#ffffff',fontSize:'14px'}});
+document.querySelectorAll('.mermaid[data-processed]').forEach(el=>{el.removeAttribute('data-processed');el.innerHTML=el.getAttribute('data-original')});
+mermaid.run()
+}
+
+document.querySelectorAll('.topbar-nav a').forEach(link=>{link.addEventListener('click',e=>{document.querySelectorAll('.topbar-nav a').forEach(l=>l.classList.remove('active'));link.classList.add('active')})});
+
+window.addEventListener('DOMContentLoaded',()=>{
+document.querySelectorAll('.mermaid').forEach(el=>{el.setAttribute('data-original',el.textContent)});
+initMermaid();
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)'}})},{threshold:.06});
+document.querySelectorAll('.card,.mermaid-wrap,.sop-card,.arch-layer,.stat-card').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(18px)';el.style.transition='all .5s ease';obs.observe(el)});
+});
+</script>
+</body>
+</html>
