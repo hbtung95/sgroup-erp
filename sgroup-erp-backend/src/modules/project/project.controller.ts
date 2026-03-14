@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { PropertyProductService } from './property-product.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -40,6 +40,8 @@ export class ProjectController {
   }
 
   @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'project_manager')
   remove(@Param('id') id: string) {
     return this.projectService.remove(id);
   }
@@ -57,6 +59,8 @@ export class ProjectController {
   }
 
   @Post(':projectId/products/batch')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'project_manager')
   batchCreateProducts(@Param('projectId') projectId: string, @Body() items: CreatePropertyProductDto[]) {
     return this.propertyProductService.batchCreate(projectId, items);
   }
@@ -96,6 +100,8 @@ export class ProjectController {
   }
 
   @Delete(':projectId/products/:productId')
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'project_manager')
   removeProduct(@Param('productId') productId: string) {
     return this.propertyProductService.remove(productId);
   }

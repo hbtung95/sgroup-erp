@@ -39,17 +39,15 @@ export class ProductsService {
   }
 
   async lockUnit(id: string, body: { bookedBy: string; durationMinutes?: number }) {
-    const unit = await this.repo.findById(id);
-    if (!unit) throw new NotFoundException('Unit not found');
-    if (unit.status !== 'AVAILABLE') {
-      throw new BadRequestException(`Unit is currently ${unit.status}, cannot lock`);
-    }
     const duration = (body.durationMinutes || 30) * 60 * 1000;
-    return this.repo.update(id, {
-      status: 'BOOKED',
-      bookedBy: body.bookedBy,
-      lockedUntil: new Date(Date.now() + duration),
-    } as any);
+    const lockedUntil = new Date(Date.now() + duration);
+    const success = await this.repo.atomicLock(id, body.bookedBy, lockedUntil);
+
+    if (!success) {
+      throw new BadRequestException('Unit is not available for locking or already locked.');
+    }
+
+    return this.repo.findById(id);
   }
 
   async requestDeposit(id: string, body: { customerName: string; customerPhone: string }) {
@@ -75,14 +73,11 @@ export class ProductsService {
   }
 
   async cancelBooking(id: string) {
-    const unit = await this.repo.findById(id);
-    if (!unit) throw new NotFoundException('Unit not found');
-    return this.repo.update(id, {
-      status: 'AVAILABLE',
-      bookedBy: null,
-      lockedUntil: null,
-      customerPhone: null,
-    } as any);
+    const success = await this.repo.atomicUnlock(id);
+    if (!success) {
+      throw new BadRequestException('Unit is not currently locked or booked.');
+    }
+    return this.repo.findById(id);
   }
 
   async getStats(projectId?: string) {

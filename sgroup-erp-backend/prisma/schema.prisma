@@ -694,7 +694,7 @@ model Appointment {
 model PropertyProduct {
   id            String     @id @default(uuid(7))
   projectId     String
-  project       DimProject @relation(fields: [projectId], references: [id])
+  project       DimProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectName   String?
   code          String     @unique
   block         String?

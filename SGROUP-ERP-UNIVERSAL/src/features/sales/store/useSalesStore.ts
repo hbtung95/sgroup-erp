@@ -135,14 +135,7 @@ export const useSalesStore = create<SalesState>()(
       // @deprecated — backward compat stubs (use API hooks instead)
       units: [],
       transactions: [],
-      availableProjects: [
-        { name: 'Vinhomes Ocean Park', status: 'OPEN' as const },
-        { name: 'Vinhomes Smart City', status: 'OPEN' as const },
-        { name: 'Masteri Waterfront', status: 'OPEN' as const },
-        { name: 'Grand Park', status: 'OPEN' as const },
-        { name: 'The Origami', status: 'OPEN' as const },
-        { name: 'Ecopark', status: 'OPEN' as const },
-      ],
+      availableProjects: [],
       lockUnit: () => console.warn('[useSalesStore] lockUnit deprecated — use useProducts().lockUnit'),
       requestDeposit: () => console.warn('[useSalesStore] requestDeposit deprecated — use useProducts().requestDeposit'),
       approveDeposit: () => console.warn('[useSalesStore] approveDeposit deprecated — use useProducts().approveDeposit'),

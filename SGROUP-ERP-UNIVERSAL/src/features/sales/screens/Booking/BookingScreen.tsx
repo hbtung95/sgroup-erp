@@ -109,9 +109,10 @@ export function BookingScreen({ userRole }: { userRole?: SalesRole }) {
   const availableProjectsRaw = useSalesStore(s => s.availableProjects);
   const { data: rawApiProjects } = useGetProjects();
   const apiProjects = Array.isArray(rawApiProjects) ? rawApiProjects : (Array.isArray((rawApiProjects as any)?.data) ? (rawApiProjects as any).data : []);
-  const availableProjects: { name: string; status: string }[] = apiProjects.length > 0
-    ? apiProjects.map((p: any) => ({ name: p.name || p.projectName, status: p.status === 'ACTIVE' ? 'OPEN' : (p.status || 'OPEN') }))
-    : availableProjectsRaw;
+  const availableProjects: { name: string; status: string }[] = apiProjects.map((p: any) => ({ 
+    name: p.name || p.projectName, 
+    status: p.status === 'ACTIVE' ? 'OPEN' : (p.status || 'OPEN') 
+  }));
   const {
     period, setPeriod,
     customFrom, setCustomFrom, customTo, setCustomTo,

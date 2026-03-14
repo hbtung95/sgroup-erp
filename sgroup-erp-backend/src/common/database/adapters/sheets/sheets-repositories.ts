@@ -178,6 +178,24 @@ export class SheetsProductRepository
       availableValue: all.filter(p => p.status === 'AVAILABLE').reduce((s, p) => s + (p.price || 0), 0),
     };
   }
+
+  async atomicLock(id: string, bookedBy: string, lockedUntil: Date): Promise<boolean> {
+    const entity = await this.findById(id);
+    if (entity && entity.status === 'AVAILABLE') {
+      await this.update(id, { status: 'LOCKED', bookedBy, lockedUntil } as any);
+      return true;
+    }
+    return false;
+  }
+
+  async atomicUnlock(id: string): Promise<boolean> {
+    const entity = await this.findById(id);
+    if (entity && entity.status === 'LOCKED') {
+      await this.update(id, { status: 'AVAILABLE', bookedBy: null, lockedUntil: null } as any);
+      return true;
+    }
+    return false;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════

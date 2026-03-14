@@ -214,6 +214,8 @@ export interface IProductRepository extends IRepository<ProductEntity> {
     totalValue: number;
     availableValue: number;
   }>;
+  atomicLock(id: string, bookedBy: string, lockedUntil: Date): Promise<boolean>;
+  atomicUnlock(id: string): Promise<boolean>;
 }
 
 export interface ITeamRepository extends IRepository<TeamEntity> {}

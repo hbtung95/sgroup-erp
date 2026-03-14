@@ -107,10 +107,29 @@ export function useLockProduct() {
   return useMutation({
     mutationFn: ({ projectId, id, staffName }: { projectId: string; id: string; staffName?: string }) =>
       projectApi.lockProduct(projectId, id, staffName),
-    onSuccess: (data) => {
-      if (data?.projectId) {
-        queryClient.invalidateQueries({ queryKey: projectKeys.products(data.projectId) });
+    onMutate: async ({ projectId, id, staffName }) => {
+      await queryClient.cancelQueries({ queryKey: projectKeys.products(projectId) });
+
+      const previousProducts = queryClient.getQueryData<PropertyProduct[]>(projectKeys.products(projectId));
+
+      if (previousProducts) {
+        queryClient.setQueryData<PropertyProduct[]>(
+          projectKeys.products(projectId),
+          previousProducts.map(p =>
+            p.id === id ? { ...p, status: 'LOCKED', bookedBy: staffName || 'Unknown' } : p
+          )
+        );
       }
+
+      return { previousProducts, projectId };
+    },
+    onError: (_err, _newProduct, context) => {
+      if (context?.previousProducts) {
+        queryClient.setQueryData(projectKeys.products(context.projectId), context.previousProducts);
+      }
+    },
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.products(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },
   });
@@ -120,10 +139,29 @@ export function useUnlockProduct() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ projectId, id }: { projectId: string; id: string }) => projectApi.unlockProduct(projectId, id),
-    onSuccess: (data) => {
-      if (data?.projectId) {
-        queryClient.invalidateQueries({ queryKey: projectKeys.products(data.projectId) });
+    onMutate: async ({ projectId, id }) => {
+      await queryClient.cancelQueries({ queryKey: projectKeys.products(projectId) });
+
+      const previousProducts = queryClient.getQueryData<PropertyProduct[]>(projectKeys.products(projectId));
+
+      if (previousProducts) {
+        queryClient.setQueryData<PropertyProduct[]>(
+          projectKeys.products(projectId),
+          previousProducts.map(p =>
+            p.id === id ? { ...p, status: 'AVAILABLE', bookedBy: null, lockedUntil: null } as unknown as PropertyProduct : p
+          )
+        );
       }
+
+      return { previousProducts, projectId };
+    },
+    onError: (_err, _newProduct, context) => {
+      if (context?.previousProducts) {
+        queryClient.setQueryData(projectKeys.products(context.projectId), context.previousProducts);
+      }
+    },
+    onSettled: (data, error, variables) => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.products(variables.projectId) });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },
   });

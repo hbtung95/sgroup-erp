@@ -24,10 +24,12 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { HrModule } from './modules/hr/hr.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule.forRoot(), // ← Dynamic adapter selection (Prisma / Google Sheets)
     PrismaModule,             // Keep for sync & legacy compatibility

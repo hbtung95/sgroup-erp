@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePropertyProductDto } from './dto/create-property-product.dto';
 import { UpdatePropertyProductDto } from './dto/update-property-product.dto';
@@ -154,6 +155,29 @@ export class PropertyProductService {
       this.logger.log(`Synced soldUnits for project ${projectId}: ${soldCount}`);
     } catch (e) {
       this.logger.warn(`Failed to sync soldUnits: ${e}`);
+    }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleExpiredLocks() {
+    try {
+      const result = await this.prisma.propertyProduct.updateMany({
+        where: {
+          status: 'LOCKED',
+          lockedUntil: { lt: new Date() },
+        },
+        data: {
+          status: 'AVAILABLE',
+          bookedBy: null,
+          lockedUntil: null,
+        },
+      });
+      
+      if (result.count > 0) {
+        this.logger.log(`Auto-unlocked ${result.count} expired product locks.`);
+      }
+    } catch (e) {
+      this.logger.error(`Failed to handle expired locks via cron: ${e}`);
     }
   }
 

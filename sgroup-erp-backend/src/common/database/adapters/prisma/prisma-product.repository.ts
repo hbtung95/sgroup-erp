@@ -69,4 +69,20 @@ export class PrismaProductRepository implements IProductRepository {
       availableValue: products.filter(p => p.status === 'AVAILABLE').reduce((s, p) => s + p.price, 0),
     };
   }
+
+  async atomicLock(id: string, bookedBy: string, lockedUntil: Date): Promise<boolean> {
+    const result = await this.prisma.propertyProduct.updateMany({
+      where: { id, status: 'AVAILABLE' },
+      data: { status: 'LOCKED', bookedBy, lockedUntil },
+    });
+    return result.count > 0;
+  }
+
+  async atomicUnlock(id: string): Promise<boolean> {
+    const result = await this.prisma.propertyProduct.updateMany({
+      where: { id, status: 'LOCKED' },
+      data: { status: 'AVAILABLE', bookedBy: null, lockedUntil: null },
+    });
+    return result.count > 0;
+  }
 }

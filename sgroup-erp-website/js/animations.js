@@ -104,8 +104,20 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     document.head.appendChild(animationStyles);
 
+    // 4. Stat Cards Interaction
+    const setupStatCards = () => {
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                statCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+            });
+        });
+    };
+
     // Initialize
     setupRevealElements();
+    setupStatCards();
     
     // Slight delay so initial load isn't janky
     setTimeout(observeElements, 100);

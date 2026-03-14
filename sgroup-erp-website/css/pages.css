@@ -94,51 +94,71 @@
   font-weight: 400;
 }
 
-/* Stats Row — Clean dividers, no boxes */
+/* Stats Row — Premium Segmented Pill */
 .stats-row {
   display: flex;
   justify-content: center;
+  align-items: stretch;
   z-index: 2;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  background: rgba(0,0,0,0.2);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--radius-xl);
-  padding: 0 var(--space-md);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-2xl);
+  padding: 6px;
+  box-shadow: var(--shadow-sm);
+  max-width: fit-content;
+  margin: 0 auto;
+  border: 1px solid var(--border-subtle);
 }
 
 .stat-card {
-  text-align: left;
-  padding: var(--space-xl) var(--space-2xl);
+  text-align: center;
+  padding: var(--space-lg) var(--space-2xl);
   min-width: 140px;
   position: relative;
+  background: transparent;
+  border-radius: var(--radius-xl);
+  transition: all var(--duration) var(--ease);
+  cursor: pointer;
 }
 
-.stat-card:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 40px;
-  width: 1px;
-  background: rgba(255,255,255,0.1);
+.stat-card.active, .stat-card:hover {
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm), 0 10px 30px rgba(0,0,0,0.1);
+  transform: translateY(-2px) scale(1.02);
+  border-radius: var(--radius-xl);
+}
+
+.stat-card:not(.active):not(:hover) .stat-val {
+  color: var(--text-primary);
+  opacity: 0.9;
+}
+
+.stat-card:not(.active):not(:hover) .stat-label {
+  color: var(--text-secondary);
+}
+
+.stat-card.active .stat-val, .stat-card:hover .stat-val {
+  color: var(--text-primary);
+  text-shadow: 0 0 20px rgba(255,255,255,0.15);
+}
+
+.stat-card.active .stat-label, .stat-card:hover .stat-label {
+  color: var(--text-secondary);
+  font-weight: 700;
 }
 
 .stat-val {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
-  font-weight: 600;
+  font-size: 2.5rem;
+  font-weight: 700;
   color: #fff;
   line-height: 1;
   letter-spacing: -0.02em;
+  margin-bottom: 8px;
 }
 
 .stat-label {
   font-size: 0.65rem;
   color: var(--text-tertiary);
-  margin-top: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.15em;
