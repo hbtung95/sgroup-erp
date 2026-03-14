@@ -61,6 +61,30 @@ if (fs.existsSync(manifestSrc) && !fs.existsSync(manifestDest)) {
   console.log('   • Copied manifest.json to dist/');
 }
 
+// 5. Patch all JS files to remove import.meta which causes SyntaxError
+const jsDir = path.join(__dirname, '..', 'dist', '_expo', 'static', 'js', 'web');
+if (fs.existsSync(jsDir)) {
+  const files = fs.readdirSync(jsDir);
+  let patchedCount = 0;
+  for (const file of files) {
+    if (file.endsWith('.js')) {
+      const filePath = path.join(jsDir, file);
+      let content = fs.readFileSync(filePath, 'utf8');
+      if (content.includes('import.meta')) {
+        // Zustand and other libraries use import.meta.env.MODE
+        content = content.replace(/import\.meta\.env\.MODE/g, '"production"');
+        content = content.replace(/import\.meta\.env/g, '({MODE:"production"})');
+        content = content.replace(/import\.meta/g, '({env:{MODE:"production"}})');
+        fs.writeFileSync(filePath, content, 'utf8');
+        patchedCount++;
+      }
+    }
+  }
+  if (patchedCount > 0) {
+    console.log(`   • Patched import.meta in ${patchedCount} JS files`);
+  }
+}
+
 console.log('✅ Post-export patches applied:');
 console.log('   • Added type="module" to script tags');
 console.log('   • Injected __METRO_GLOBAL_PREFIX__ global (RSC fix)');
