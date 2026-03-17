@@ -149,13 +149,13 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
 
     const payload: any = {
       fullName: form.fullName,
-      englishName: form.englishName || undefined,
-      email: form.email || undefined,
-      phone: form.phone || undefined,
+      englishName: form.englishName || null,
+      email: form.email || null,
+      phone: form.phone || null,
+      departmentId: form.departmentId || null,
+      positionId: form.positionId || null,
+      teamId: form.teamId || null,
     };
-    if (form.departmentId) payload.departmentId = form.departmentId;
-    if (form.positionId) payload.positionId = form.positionId;
-    if (form.teamId) payload.teamId = form.teamId;
 
     try {
       if (modalMode === 'edit' && editId) {
