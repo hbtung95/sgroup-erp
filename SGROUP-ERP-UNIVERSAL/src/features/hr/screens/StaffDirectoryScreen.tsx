@@ -48,7 +48,7 @@ function nameToColor(name: string) {
   return colors[Math.abs(hash) % colors.length];
 }
 
-const EMPTY_FORM = { fullName: '', email: '', phone: '', departmentId: '', positionId: '', status: 'ACTIVE' };
+const EMPTY_FORM = { fullName: '', englishName: '', email: '', phone: '', departmentId: '', positionId: '', status: 'ACTIVE' };
 
 export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
   const { theme, isDark } = useAppTheme();
@@ -102,7 +102,7 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
       return;
     }
     try {
-      const payload: any = { fullName: form.fullName, email: form.email || undefined, phone: form.phone || undefined };
+      const payload: any = { fullName: form.fullName, englishName: form.englishName || undefined, email: form.email || undefined, phone: form.phone || undefined };
       if (form.departmentId) payload.departmentId = form.departmentId;
       if (form.positionId) payload.positionId = form.positionId;
       await createEmployee.mutateAsync(payload);
@@ -157,6 +157,10 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
               <View>
                 <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Họ và tên *</Text>
                 <TextInput value={form.fullName} onChangeText={v => setForm(f => ({ ...f, fullName: v }))} placeholder="Nguyễn Văn A" placeholderTextColor={cSub} style={inputStyle} />
+              </View>
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Tên tiếng Anh</Text>
+                <TextInput value={form.englishName} onChangeText={v => setForm(f => ({ ...f, englishName: v }))} placeholder="Nguyen Van A" placeholderTextColor={cSub} style={inputStyle} />
               </View>
               <View>
                 <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Phòng ban</Text>
@@ -404,6 +408,9 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 16, fontWeight: '800', color: cText, letterSpacing: -0.3 }}>{staff.fullName}</Text>
+                        {staff.englishName ? (
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: cSub, marginTop: 1, fontStyle: 'italic' }}>{staff.englishName}</Text>
+                        ) : null}
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 }}>
                           <Hash size={11} color={cSub} />
                           <Text style={{ fontSize: 11, fontWeight: '700', color: cSub }}>{staff.employeeCode}</Text>

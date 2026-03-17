@@ -114,4 +114,30 @@ export class AdminController {
   seedSettings() {
     return this.adminService.seedDefaultSettings();
   }
+
+  // ═══════════════════════════════════════════
+  // ROLE PERMISSIONS
+  // ═══════════════════════════════════════════
+  @Get('permissions')
+  getPermissions() {
+    return this.adminService.getPermissions();
+  }
+
+  @Patch('permissions')
+  @Roles('admin')
+  updatePermission(@Body() data: { role: string; module: string; permission: string }) {
+    return this.adminService.updatePermission(data.role, data.module, data.permission);
+  }
+
+  @Post('permissions/bulk')
+  @Roles('admin')
+  bulkUpdatePermissions(@Body() data: { updates: { role: string; module: string; permission: string }[] }) {
+    return this.adminService.bulkUpdatePermissions(data.updates);
+  }
+
+  @Post('permissions/reset')
+  @Roles('admin')
+  resetPermissions() {
+    return this.adminService.resetPermissionsToDefault();
+  }
 }

@@ -1,14 +1,16 @@
 /**
- * RolePermissionScreen — Manage roles & permissions matrix
- * Displays a permission matrix (Roles × Modules) with visual permission indicators
+ * RolePermissionScreen — Interactive RBAC permission matrix
+ * Click on permission cells to cycle: full → write → read → none → full
+ * Save all changes at once, or reset to defaults
  */
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Platform } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, ScrollView, Pressable, Platform, ActivityIndicator, Alert } from 'react-native';
 import {
-  Shield, Check, X, Eye, Pencil, Trash2, Info,
+  Shield, Check, X, Eye, Pencil, Info, Save, RotateCcw, Zap,
 } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
+import { usePermissions, useBulkUpdatePermissions, useResetPermissions } from '../hooks/useAdmin';
 
 // ═══════════════════════════════════════════
 // Role & Permission definitions
@@ -32,10 +34,11 @@ const MODULES = [
   { key: 'reports', label: 'Báo cáo' },
 ];
 
-type Permission = 'full' | 'read' | 'write' | 'none';
+type Permission = 'full' | 'write' | 'read' | 'none';
+const PERM_CYCLE: Permission[] = ['full', 'write', 'read', 'none'];
 
-// Default permission matrix
-const PERMISSION_MATRIX: Record<string, Record<string, Permission>> = {
+// Default permission matrix (used when no DB data exists)
+const DEFAULT_MATRIX: Record<string, Record<string, Permission>> = {
   admin:    { admin: 'full', hr: 'full', sales: 'full', finance: 'full', project: 'full', marketing: 'full', planning: 'full', reports: 'full' },
   ceo:      { admin: 'read', hr: 'read', sales: 'read', finance: 'full', project: 'full', marketing: 'read', planning: 'full', reports: 'full' },
   hr:       { admin: 'none', hr: 'full', sales: 'read', finance: 'read', project: 'read', marketing: 'none', planning: 'read', reports: 'read' },
@@ -58,18 +61,180 @@ export function RolePermissionScreen() {
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [localMatrix, setLocalMatrix] = useState<Record<string, Record<string, Permission>>>(DEFAULT_MATRIX);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalMatrix, setOriginalMatrix] = useState<Record<string, Record<string, Permission>>>(DEFAULT_MATRIX);
+  const [changedCells, setChangedCells] = useState<Set<string>>(new Set());
+
+  const { data: permData, isLoading } = usePermissions();
+  const bulkUpdate = useBulkUpdatePermissions();
+  const resetPerms = useResetPermissions();
+
+  // Sync from API data
+  useEffect(() => {
+    if (!permData) return;
+
+    let matrix: Record<string, Record<string, Permission>>;
+    if (permData.isDefault) {
+      // No permissions configured yet — use defaults
+      matrix = permData.defaults || DEFAULT_MATRIX;
+    } else if (permData.matrix) {
+      matrix = permData.matrix as Record<string, Record<string, Permission>>;
+    } else {
+      matrix = DEFAULT_MATRIX;
+    }
+
+    // Ensure all roles and modules exist in matrix
+    const complete: Record<string, Record<string, Permission>> = {};
+    for (const role of ROLES) {
+      complete[role.key] = {};
+      for (const mod of MODULES) {
+        complete[role.key][mod.key] = (matrix[role.key]?.[mod.key] as Permission) || 'none';
+      }
+    }
+
+    setLocalMatrix(complete);
+    setOriginalMatrix(JSON.parse(JSON.stringify(complete)));
+    setHasChanges(false);
+    setChangedCells(new Set());
+  }, [permData]);
+
+  // Click handler — cycle through permission levels
+  const handleCellClick = (role: string, module: string) => {
+    // Don't allow changing admin's admin permission (always full)
+    if (role === 'admin' && module === 'admin') return;
+
+    setLocalMatrix(prev => {
+      const current = prev[role]?.[module] || 'none';
+      const nextIdx = (PERM_CYCLE.indexOf(current as Permission) + 1) % PERM_CYCLE.length;
+      const next = PERM_CYCLE[nextIdx];
+
+      const newMatrix = { ...prev, [role]: { ...prev[role], [module]: next } };
+      return newMatrix;
+    });
+
+    const cellKey = `${role}:${module}`;
+    setChangedCells(prev => {
+      const next = new Set(prev);
+      // Check if the new value matches original
+      const newPerm = PERM_CYCLE[(PERM_CYCLE.indexOf(localMatrix[role]?.[module] as Permission || 'none') + 1) % PERM_CYCLE.length];
+      if (newPerm === originalMatrix[role]?.[module]) {
+        next.delete(cellKey);
+      } else {
+        next.add(cellKey);
+      }
+      return next;
+    });
+
+    setHasChanges(true);
+  };
+
+  // Save all changes
+  const handleSave = async () => {
+    const updates: { role: string; module: string; permission: string }[] = [];
+    for (const role of ROLES) {
+      for (const mod of MODULES) {
+        updates.push({
+          role: role.key,
+          module: mod.key,
+          permission: localMatrix[role.key]?.[mod.key] || 'none',
+        });
+      }
+    }
+
+    try {
+      await bulkUpdate.mutateAsync(updates);
+      setHasChanges(false);
+      setChangedCells(new Set());
+      setOriginalMatrix(JSON.parse(JSON.stringify(localMatrix)));
+      const msg = 'Đã lưu phân quyền thành công!';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Thành công', msg);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || 'Lỗi khi lưu';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Lỗi', msg);
+    }
+  };
+
+  // Reset to defaults
+  const handleReset = async () => {
+    if (Platform.OS === 'web') {
+      if (!window.confirm('⚠️ Đặt lại TẤT CẢ quyền về mặc định?')) return;
+    }
+    try {
+      await resetPerms.mutateAsync();
+      setHasChanges(false);
+      setChangedCells(new Set());
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || 'Lỗi';
+      Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Lỗi', msg);
+    }
+  };
+
+  // Count changes
+  const changeCount = useMemo(() => {
+    let count = 0;
+    for (const role of ROLES) {
+      for (const mod of MODULES) {
+        if (localMatrix[role.key]?.[mod.key] !== originalMatrix[role.key]?.[mod.key]) count++;
+      }
+    }
+    return count;
+  }, [localMatrix, originalMatrix]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 120 }}>
+        <ActivityIndicator size="large" color="#6366f1" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 28, gap: 24, paddingBottom: 120 }}>
         {/* Header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View style={{ width: 52, height: 52, borderRadius: 18, backgroundColor: isDark ? 'rgba(99,102,241,0.12)' : '#eef2ff', alignItems: 'center', justifyContent: 'center' }}>
-            <Shield size={24} color="#6366f1" />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+            <View style={{ width: 52, height: 52, borderRadius: 18, backgroundColor: isDark ? 'rgba(99,102,241,0.12)' : '#eef2ff', alignItems: 'center', justifyContent: 'center' }}>
+              <Shield size={24} color="#6366f1" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ ...sgds.typo.h2, color: cText }}>Phân quyền hệ thống</Text>
+              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>Cấu hình quyền truy cập theo vai trò</Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ ...sgds.typo.h2, color: cText }}>Phân quyền hệ thống</Text>
-            <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>Ma trận quyền truy cập theo vai trò</Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable
+              onPress={handleReset}
+              disabled={resetPerms.isPending}
+              style={{
+                flexDirection: 'row', alignItems: 'center', gap: 6,
+                paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                opacity: resetPerms.isPending ? 0.5 : 1,
+              }}
+            >
+              <RotateCcw size={14} color={cSub} />
+              <Text style={{ fontSize: 12, fontWeight: '700', color: cSub }}>Đặt lại</Text>
+            </Pressable>
+            {changeCount > 0 && (
+              <Pressable
+                onPress={handleSave}
+                disabled={bulkUpdate.isPending}
+                style={{
+                  flexDirection: 'row', alignItems: 'center', gap: 6,
+                  paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12,
+                  backgroundColor: '#6366f1',
+                  opacity: bulkUpdate.isPending ? 0.5 : 1,
+                  ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+                } as any}
+              >
+                <Save size={14} color="#fff" />
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#fff' }}>
+                  {bulkUpdate.isPending ? 'Đang lưu...' : `Lưu (${changeCount})`}
+                </Text>
+              </Pressable>
+            )}
           </View>
         </View>
 
@@ -81,7 +246,7 @@ export function RolePermissionScreen() {
         }}>
           <Info size={18} color="#6366f1" />
           <Text style={{ flex: 1, fontSize: 13, fontWeight: '600', color: cSub, lineHeight: 20 }}>
-            Bảng phân quyền hiển thị quyền truy cập mặc định của từng vai trò. Hệ thống sử dụng Role-Based Access Control (RBAC).
+            Nhấn vào ô quyền để chuyển đổi mức quyền. Thay đổi chỉ được lưu khi bấm "Lưu".
           </Text>
         </View>
 
@@ -134,23 +299,36 @@ export function RolePermissionScreen() {
             <View key={mod.key} style={{
               flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14,
               borderBottomWidth: i < MODULES.length - 1 ? 1 : 0, borderBottomColor: borderColor,
-              ...(Platform.OS === 'web' ? { transition: 'background-color 0.15s' } : {}),
-            } as any}>
+            }}>
               <Text style={{ width: 160, fontSize: 13, fontWeight: '700', color: cText }}>{mod.label}</Text>
               {(selectedRole ? ROLES.filter(r => r.key === selectedRole) : ROLES).map(role => {
-                const perm = PERMISSION_MATRIX[role.key]?.[mod.key] || 'none';
+                const perm = (localMatrix[role.key]?.[mod.key] || 'none') as Permission;
                 const config = PERM_CONFIG[perm];
                 const IconComp = config.icon;
+                const isLocked = role.key === 'admin' && mod.key === 'admin';
+                const isChanged = localMatrix[role.key]?.[mod.key] !== originalMatrix[role.key]?.[mod.key];
+
                 return (
                   <View key={role.key} style={{ flex: 1, alignItems: 'center' }}>
-                    <View style={{
-                      flexDirection: 'row', alignItems: 'center', gap: 6,
-                      paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10,
-                      backgroundColor: config.bg,
-                    }}>
+                    <Pressable
+                      onPress={() => !isLocked && handleCellClick(role.key, mod.key)}
+                      style={{
+                        flexDirection: 'row', alignItems: 'center', gap: 6,
+                        paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10,
+                        backgroundColor: config.bg,
+                        borderWidth: isChanged ? 2 : 0,
+                        borderColor: isChanged ? '#6366f1' : 'transparent',
+                        opacity: isLocked ? 0.6 : 1,
+                        ...(Platform.OS === 'web' && !isLocked ? {
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        } : {}),
+                      } as any}
+                    >
                       <IconComp size={13} color={config.color} strokeWidth={2.5} />
                       <Text style={{ fontSize: 11, fontWeight: '700', color: config.color }}>{config.label}</Text>
-                    </View>
+                      {isChanged && <Zap size={9} color="#6366f1" />}
+                    </Pressable>
                   </View>
                 );
               })}
@@ -159,7 +337,7 @@ export function RolePermissionScreen() {
         </View>
 
         {/* Legend */}
-        <View style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap' }}>
+        <View style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap', alignItems: 'center' }}>
           {Object.entries(PERM_CONFIG).map(([key, config]) => {
             const IconComp = config.icon;
             return (
@@ -171,7 +349,27 @@ export function RolePermissionScreen() {
               </View>
             );
           })}
+          {/* Changed indicator */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 8 }}>
+            <View style={{ width: 28, height: 28, borderRadius: 8, borderWidth: 2, borderColor: '#6366f1', alignItems: 'center', justifyContent: 'center' }}>
+              <Zap size={12} color="#6366f1" />
+            </View>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#6366f1' }}>Đã thay đổi</Text>
+          </View>
         </View>
+
+        {/* Status bar */}
+        {permData?.isDefault && (
+          <View style={{
+            flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14,
+            backgroundColor: 'rgba(245,158,11,0.08)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.15)',
+          }}>
+            <Info size={16} color="#f59e0b" />
+            <Text style={{ flex: 1, fontSize: 12, fontWeight: '600', color: cSub }}>
+              Chưa cấu hình. Đang hiển thị quyền mặc định. Bấm <Text style={{ fontWeight: '800', color: '#6366f1' }}>Lưu</Text> để lưu vào cơ sở dữ liệu.
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );

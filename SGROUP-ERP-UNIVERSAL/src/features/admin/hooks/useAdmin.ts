@@ -124,3 +124,36 @@ export function useSeedSettings() {
     },
   });
 }
+
+// ═══════════════════════════════════════════
+// ROLE PERMISSIONS
+// ═══════════════════════════════════════════
+
+export function usePermissions() {
+  return useQuery({
+    queryKey: ['admin', 'permissions'],
+    queryFn: adminApi.getPermissions,
+    staleTime: 30_000,
+  });
+}
+
+export function useBulkUpdatePermissions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (updates: { role: string; module: string; permission: string }[]) =>
+      adminApi.bulkUpdatePermissions(updates),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'permissions'] });
+    },
+  });
+}
+
+export function useResetPermissions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => adminApi.resetPermissions(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'permissions'] });
+    },
+  });
+}

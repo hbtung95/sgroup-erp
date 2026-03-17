@@ -323,4 +323,99 @@ export class AdminService {
     this.logger.log(`Seeded ${created} default settings (${defaults.length - created} already existed)`);
     return { created, total: defaults.length, skipped: defaults.length - created };
   }
+
+  // ═══════════════════════════════════════════
+  // ROLE PERMISSIONS (Configurable RBAC)
+  // ═══════════════════════════════════════════
+
+  private readonly DEFAULT_PERMISSIONS: Record<string, Record<string, string>> = {
+    admin:    { admin: 'full', hr: 'full', sales: 'full', finance: 'full', project: 'full', marketing: 'full', planning: 'full', reports: 'full' },
+    ceo:      { admin: 'read', hr: 'read', sales: 'read', finance: 'full', project: 'full', marketing: 'read', planning: 'full', reports: 'full' },
+    hr:       { admin: 'none', hr: 'full', sales: 'read', finance: 'read', project: 'read', marketing: 'none', planning: 'read', reports: 'read' },
+    sales:    { admin: 'none', hr: 'none', sales: 'write', finance: 'none', project: 'read', marketing: 'read', planning: 'read', reports: 'read' },
+    employee: { admin: 'none', hr: 'none', sales: 'none', finance: 'none', project: 'read', marketing: 'none', planning: 'read', reports: 'read' },
+  };
+
+  async getPermissions() {
+    const perms = await this.prisma.rolePermission.findMany({
+      orderBy: [{ role: 'asc' }, { module: 'asc' }],
+    });
+
+    // If no permissions exist, return defaults (not yet configured)
+    if (perms.length === 0) {
+      return { data: [], isDefault: true, defaults: this.DEFAULT_PERMISSIONS };
+    }
+
+    // Convert flat list to matrix
+    const matrix: Record<string, Record<string, string>> = {};
+    for (const p of perms) {
+      if (!matrix[p.role]) matrix[p.role] = {};
+      matrix[p.role][p.module] = p.permission;
+    }
+
+    return { data: perms, matrix, isDefault: false };
+  }
+
+  async updatePermission(role: string, module: string, permission: string) {
+    const validPerms = ['full', 'write', 'read', 'none'];
+    if (!validPerms.includes(permission)) {
+      throw new BadRequestException(`Permission phải là: ${validPerms.join(', ')}`);
+    }
+
+    const result = await this.prisma.rolePermission.upsert({
+      where: { role_module: { role, module } },
+      update: { permission },
+      create: { role, module, permission },
+    });
+
+    this.logger.log(`Permission updated: ${role}/${module} = ${permission}`);
+    return result;
+  }
+
+  async bulkUpdatePermissions(updates: { role: string; module: string; permission: string }[]) {
+    const validPerms = ['full', 'write', 'read', 'none'];
+
+    // Validate all entries
+    for (const u of updates) {
+      if (!validPerms.includes(u.permission)) {
+        throw new BadRequestException(`Permission "${u.permission}" không hợp lệ cho ${u.role}/${u.module}`);
+      }
+    }
+
+    // Upsert all in a transaction
+    const results = await this.prisma.$transaction(
+      updates.map(u =>
+        this.prisma.rolePermission.upsert({
+          where: { role_module: { role: u.role, module: u.module } },
+          update: { permission: u.permission },
+          create: { role: u.role, module: u.module, permission: u.permission },
+        }),
+      ),
+    );
+
+    this.logger.log(`Bulk permission update: ${results.length} entries`);
+    return { updated: results.length };
+  }
+
+  async seedDefaultPermissions() {
+    let created = 0;
+    for (const [role, modules] of Object.entries(this.DEFAULT_PERMISSIONS)) {
+      for (const [module, permission] of Object.entries(modules)) {
+        await this.prisma.rolePermission.upsert({
+          where: { role_module: { role, module } },
+          update: { permission },
+          create: { role, module, permission },
+        });
+        created++;
+      }
+    }
+    this.logger.log(`Seeded ${created} default permissions`);
+    return { created };
+  }
+
+  async resetPermissionsToDefault() {
+    // Delete all and re-seed
+    await this.prisma.rolePermission.deleteMany({});
+    return this.seedDefaultPermissions();
+  }
 }

@@ -108,3 +108,27 @@ export const seedSettings = async () => {
   const { data } = await apiClient.post('/admin/settings/seed');
   return data;
 };
+
+// ═══════════════════════════════════════════
+// ROLE PERMISSIONS
+// ═══════════════════════════════════════════
+
+export const getPermissions = async () => {
+  const { data } = await apiClient.get('/admin/permissions');
+  return data;
+};
+
+export const updatePermission = async (role: string, module: string, permission: string) => {
+  const { data } = await apiClient.patch('/admin/permissions', { role, module, permission });
+  return data;
+};
+
+export const bulkUpdatePermissions = async (updates: { role: string; module: string; permission: string }[]) => {
+  const { data } = await apiClient.post('/admin/permissions/bulk', { updates });
+  return data;
+};
+
+export const resetPermissions = async () => {
+  const { data } = await apiClient.post('/admin/permissions/reset');
+  return data;
+};

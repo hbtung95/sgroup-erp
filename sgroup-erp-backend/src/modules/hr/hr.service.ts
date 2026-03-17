@@ -151,6 +151,7 @@ export class HrService {
     if (search) {
       where.OR = [
         { fullName: { contains: search, mode: 'insensitive' } },
+        { englishName: { contains: search, mode: 'insensitive' } },
         { employeeCode: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
         { phone: { contains: search, mode: 'insensitive' } },

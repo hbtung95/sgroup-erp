@@ -542,6 +542,23 @@ model AuditLog {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// ROLE PERMISSIONS (Admin Module — Configurable RBAC)
+// ══════════════════════════════════════════════════════════════════
+
+model RolePermission {
+  id         String   @id @default(uuid(7))
+  role       String   // admin, ceo, hr, sales, employee
+  module     String   // admin, hr, sales, finance, project, marketing, planning, reports
+  permission String   @default("none") // full, write, read, none
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([role, module])
+  @@index([role])
+  @@map("role_permissions")
+}
+
+// ══════════════════════════════════════════════════════════════════
 // SALES MODULE — Dimension Tables
 // ══════════════════════════════════════════════════════════════════
 
@@ -1152,6 +1169,7 @@ model HrEmployee {
   userId         String?       @unique // Link to User account if they have app access
   employeeCode   String        @unique
   fullName       String
+  englishName    String?       @map("english_name")
   gender         String? // MALE, FEMALE, OTHER
   dateOfBirth    DateTime?
   phone          String?
