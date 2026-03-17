@@ -38,6 +38,23 @@ export const hrApi = {
     return res.data;
   },
 
+  // Teams
+  getTeams: async (departmentId?: string) => {
+    const res = await apiClient.get('/hr/teams', { params: departmentId ? { departmentId } : {} });
+    return res.data;
+  },
+  createTeam: async (data: any) => {
+    const res = await apiClient.post('/hr/teams', data);
+    return res.data;
+  },
+  updateTeam: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/hr/teams/${id}`, data);
+    return res.data;
+  },
+  deleteTeam: async (id: string) => {
+    await apiClient.delete(`/hr/teams/${id}`);
+  },
+
   // Employees
   getEmployees: async (params?: {
     search?: string;

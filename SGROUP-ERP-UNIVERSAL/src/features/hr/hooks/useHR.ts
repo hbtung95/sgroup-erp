@@ -72,6 +72,40 @@ export function useUpdatePosition() {
 }
 
 // ═══════════════════════════════════════════
+// TEAMS
+// ═══════════════════════════════════════════
+export function useTeams(departmentId?: string) {
+  return useQuery({
+    queryKey: ['hr', 'teams', departmentId],
+    queryFn: () => hrApi.getTeams(departmentId),
+  });
+}
+
+export function useCreateTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => hrApi.createTeam(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr'] }),
+  });
+}
+
+export function useUpdateTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => hrApi.updateTeam(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr'] }),
+  });
+}
+
+export function useDeleteTeam() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => hrApi.deleteTeam(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr'] }),
+  });
+}
+
+// ═══════════════════════════════════════════
 // EMPLOYEES
 // ═══════════════════════════════════════════
 export function useEmployees(params?: {

@@ -59,6 +59,30 @@ export class HrController {
   }
 
   // ═══════════════════════════════════════════
+  // TEAMS
+  // ═══════════════════════════════════════════
+  @Get('teams')
+  getTeams(@Query('departmentId') departmentId?: string) {
+    return this.hrService.findAllTeams(departmentId);
+  }
+
+  @Post('teams')
+  createTeam(@Body() data: any) {
+    return this.hrService.createTeam(data);
+  }
+
+  @Patch('teams/:id')
+  updateTeam(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.updateTeam(id, data);
+  }
+
+  @Delete('teams/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteTeam(@Param('id') id: string) {
+    return this.hrService.deleteTeam(id);
+  }
+
+  // ═══════════════════════════════════════════
   // EMPLOYEES
   // ═══════════════════════════════════════════
   @Get('employees')

@@ -60,6 +60,10 @@ export class HrService {
       include: {
         manager: { select: { id: true, fullName: true, employeeCode: true } },
         _count: { select: { employees: true } },
+        teams: {
+          include: { _count: { select: { employees: true } } },
+          orderBy: { name: 'asc' },
+        },
       },
       orderBy: { name: 'asc' },
     });
@@ -93,6 +97,40 @@ export class HrService {
 
   async updatePosition(id: string, data: any) {
     return this.prisma.hrPosition.update({ where: { id }, data });
+  }
+
+  // ═══════════════════════════════════════════
+  // TEAMS
+  // ═══════════════════════════════════════════
+  async findAllTeams(departmentId?: string) {
+    const where: any = {};
+    if (departmentId) where.departmentId = departmentId;
+    return this.prisma.hrTeam.findMany({
+      where,
+      include: {
+        department: { select: { id: true, name: true, code: true } },
+        _count: { select: { employees: true } },
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async createTeam(data: any) {
+    return this.prisma.hrTeam.create({
+      data,
+      include: { department: { select: { id: true, name: true } }, _count: { select: { employees: true } } },
+    });
+  }
+
+  async updateTeam(id: string, data: any) {
+    return this.prisma.hrTeam.update({
+      where: { id }, data,
+      include: { department: { select: { id: true, name: true } }, _count: { select: { employees: true } } },
+    });
+  }
+
+  async deleteTeam(id: string) {
+    return this.prisma.hrTeam.delete({ where: { id } });
   }
 
   // ═══════════════════════════════════════════

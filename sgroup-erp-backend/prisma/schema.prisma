@@ -1105,6 +1105,7 @@ model HrDepartment {
   updatedAt   DateTime    @updatedAt
 
   employees  HrEmployee[] @relation("EmployeeDepartment")
+  teams      HrTeam[]
   salesTeams SalesTeam[]
 
   @@map("hr_departments")
@@ -1123,6 +1124,24 @@ model HrPosition {
   employees HrEmployee[]
 
   @@map("hr_positions")
+}
+
+// 1.5 Teams trong phòng ban
+model HrTeam {
+  id           String       @id @default(uuid(7))
+  code         String       @unique
+  name         String
+  departmentId String
+  department   HrDepartment @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  description  String?
+  status       String       @default("ACTIVE")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  employees HrEmployee[] @relation("EmployeeTeam")
+
+  @@index([departmentId])
+  @@map("hr_teams")
 }
 
 // 2. Hồ sơ nhân viên trung tâm
@@ -1147,6 +1166,8 @@ model HrEmployee {
   managerId      String?
   manager        HrEmployee?   @relation("EmployeeToManager", fields: [managerId], references: [id])
   subordinates   HrEmployee[]  @relation("EmployeeToManager")
+  teamId         String?
+  team           HrTeam?       @relation("EmployeeTeam", fields: [teamId], references: [id], onDelete: SetNull)
   joinDate       DateTime
   leaveDate      DateTime?
   status         String        @default("PROBATION") // PROBATION, ACTIVE, ON_LEAVE, TERMINATED
