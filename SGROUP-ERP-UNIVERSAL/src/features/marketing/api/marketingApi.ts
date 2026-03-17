@@ -1,76 +1,76 @@
-/**
- * SGROUP ERP — Marketing API Client
- * Connects to backend /marketing-planning/* endpoints
- */
-import { API_BASE_URL } from '../../../core/api/api';
+import { apiClient } from '../../../core/api/apiClient';
 
-let _authToken: string | null = null;
+export const marketingApi = {
+  // Dashboard
+  getDashboard: async () => {
+    const res = await apiClient.get('/marketing/dashboard');
+    return res.data;
+  },
 
-export function setMarketingApiToken(token: string | null) {
-  _authToken = token;
-}
+  // Campaigns
+  getCampaigns: async (params?: { status?: string; channel?: string }) => {
+    const res = await apiClient.get('/marketing/campaigns', { params });
+    return res.data;
+  },
+  createCampaign: async (data: any) => {
+    const res = await apiClient.post('/marketing/campaigns', data);
+    return res.data;
+  },
+  updateCampaign: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/marketing/campaigns/${id}`, data);
+    return res.data;
+  },
+  deleteCampaign: async (id: string) => {
+    await apiClient.delete(`/marketing/campaigns/${id}`);
+  },
 
-async function request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-  };
-  if (_authToken) {
-    headers['Authorization'] = `Bearer ${_authToken}`;
-  }
+  // Leads
+  getLeads: async (params?: { status?: string; source?: string; campaignId?: string }) => {
+    const res = await apiClient.get('/marketing/leads', { params });
+    return res.data;
+  },
+  createLead: async (data: any) => {
+    const res = await apiClient.post('/marketing/leads', data);
+    return res.data;
+  },
+  updateLead: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/marketing/leads/${id}`, data);
+    return res.data;
+  },
+  deleteLead: async (id: string) => {
+    await apiClient.delete(`/marketing/leads/${id}`);
+  },
 
-  const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  // Content
+  getContent: async (params?: { status?: string; channel?: string }) => {
+    const res = await apiClient.get('/marketing/content', { params });
+    return res.data;
+  },
+  createContent: async (data: any) => {
+    const res = await apiClient.post('/marketing/content', data);
+    return res.data;
+  },
+  updateContent: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/marketing/content/${id}`, data);
+    return res.data;
+  },
+  deleteContent: async (id: string) => {
+    await apiClient.delete(`/marketing/content/${id}`);
+  },
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || `API Error ${res.status}`);
-  }
+  // Channels
+  getChannels: async (params?: { year?: string; month?: string }) => {
+    const res = await apiClient.get('/marketing/channels', { params });
+    return res.data;
+  },
+  upsertChannel: async (data: any) => {
+    const res = await apiClient.post('/marketing/channels', data);
+    return res.data;
+  },
 
-  return res.json();
-}
-
-function qs(params: Record<string, any>): string {
-  const p = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') p.set(k, String(v));
-  });
-  const s = p.toString();
-  return s ? `?${s}` : '';
-}
-
-// ── MARKETING PLANNING ──
-
-export const marketingPlanningApi = {
-  getHeader: (planId: string) =>
-    request(`/marketing-planning/header?planId=${planId}`),
-  getChannelBudgets: (planId: string) =>
-    request(`/marketing-planning/channel-budgets?planId=${planId}`),
-  getKpiTargets: (planId: string) =>
-    request(`/marketing-planning/kpi-targets?planId=${planId}`),
-  getAssumptions: (planId: string) =>
-    request(`/marketing-planning/assumptions?planId=${planId}`),
-  getChannelROI: (planId: string) =>
-    request(`/marketing-planning/channel-roi?planId=${planId}`),
-};
-
-// ── CAMPAIGNS (placeholder for future backend) ──
-
-export const campaignsApi = {
-  list: (filters?: Record<string, any>) =>
-    request(`/marketing/campaigns${qs(filters || {})}`),
-  getById: (id: string) =>
-    request(`/marketing/campaigns/${id}`),
-  create: (data: any) =>
-    request('/marketing/campaigns', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: any) =>
-    request(`/marketing/campaigns/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-};
-
-// ── LEADS ──
-
-export const marketingLeadsApi = {
-  list: (filters?: Record<string, any>) =>
-    request(`/marketing/leads${qs(filters || {})}`),
-  stats: (filters?: Record<string, any>) =>
-    request(`/marketing/leads/stats${qs(filters || {})}`),
+  // Budget
+  getBudget: async () => {
+    const res = await apiClient.get('/marketing/budget');
+    return res.data;
+  },
 };

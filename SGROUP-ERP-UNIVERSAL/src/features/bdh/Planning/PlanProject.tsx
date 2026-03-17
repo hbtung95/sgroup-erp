@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { CheckCircle2, LayoutGrid, HardHat } from 'lucide-react-native';
 
@@ -15,13 +15,7 @@ type ProjectItem = {
   risk: 'Thấp' | 'Trung bình' | 'Cao';
 };
 
-const DEFAULT_PROJECTS: ProjectItem[] = [
-  { name: 'Vinhomes Grand Park', units: 320, price: 4.2, targetSold: 85, cost: 120, risk: 'Thấp' },
-  { name: 'Masterise Homes', units: 180, price: 8.5, targetSold: 90, cost: 200, risk: 'Trung bình' },
-  { name: 'The Global City', units: 250, price: 5.8, targetSold: 75, cost: 180, risk: 'Trung bình' },
-  { name: 'Eaton Park', units: 150, price: 6.2, targetSold: 80, cost: 150, risk: 'Thấp' },
-  { name: 'King Crown Infinity', units: 140, price: 4.8, targetSold: 60, cost: 95, risk: 'Cao' },
-];
+const DEFAULT_PROJECTS: ProjectItem[] = [];
 
 const SCENARIOS: Array<{ key: ScenarioKey; label: string; color: string }> = [
   { key: 'BASE', label: 'Thực tế', color: '#0EA5E9' },

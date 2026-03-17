@@ -60,10 +60,10 @@ export class MarketingPlanningService {
         });
         
         wonDealsCount = deals.length;
-        revenue = deals.reduce((sum, d) => sum + (d.dealValue * 1000000000), 0); // BILLION -> VND
+        revenue = deals.reduce((sum, d) => sum + (Number(d.dealValue) * 1000000000), 0); // BILLION -> VND
       }
       
-      const roi = budget.budgetVnd > 0 ? (revenue / budget.budgetVnd) : 0;
+      const roi = Number(budget.budgetVnd) > 0 ? (revenue / Number(budget.budgetVnd)) : 0;
       
       return {
         ...budget,

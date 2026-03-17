@@ -3,27 +3,15 @@
  * Features: Training programs, compliance courses, employee progress
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { GraduationCap, FileText, CheckCircle, Clock, Search, MoreHorizontal, BookOpen, User, PlayCircle } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
 import type { HRRole } from '../HRSidebar';
+import { useCourses, useTrainees } from '../hooks/useHR';
 
-// Mock Data
-const MOCK_COURSES = [
-  { id: '1', title: 'Onboarding Tân Binh 2026', category: 'Bắt buộc', duration: '4h 30m', enrolled: 12, completed: 8, status: 'OPEN' },
-  { id: '2', title: 'Kỹ năng Đàm phán BĐS Cao cấp', category: 'Kỹ năng mềm', duration: '12h 00m', enrolled: 45, completed: 40, status: 'OPEN' },
-  { id: '3', title: 'Phòng chống Rửa tiền (AML)', category: 'Tuân thủ', duration: '2h 15m', enrolled: 248, completed: 210, status: 'URGENT' },
-  { id: '4', title: 'Lãnh đạo Kế cận (Leadership)', category: 'Phát triển', duration: '24h 00m', enrolled: 15, completed: 2, status: 'OPEN' },
-];
-
-const MOCK_TRAINEES = [
-  { id: '1', code: 'SG001', name: 'Nguyễn Văn A', course: 'Phòng chống Rửa tiền (AML)', progress: 100, score: '95/100', status: 'COMPLETED' },
-  { id: '2', code: 'SG006', name: 'Vũ Thị F', course: 'Onboarding Tân Binh 2026', progress: 65, score: '-', status: 'IN_PROGRESS' },
-  { id: '3', code: 'SG002', name: 'Trần Thị B', course: 'Lãnh đạo Kế cận (Leadership)', progress: 15, score: '-', status: 'IN_PROGRESS' },
-  { id: '4', code: 'SG003', name: 'Lê Văn C', course: 'Phòng chống Rửa tiền (AML)', progress: 0, score: '-', status: 'NOT_STARTED' },
-];
+// Data from API
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
   COMPLETED: { bg: '#dcfce7', text: '#16a34a', label: 'HOÀN THÀNH' },
@@ -37,6 +25,29 @@ export function TrainingScreen({ userRole }: { userRole?: HRRole }) {
   const cSub = theme.colors.textSecondary;
   const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  const { data: rawCourses, isLoading: loadingCourses } = useCourses();
+  const { data: rawTrainees, isLoading: loadingTrainees } = useTrainees();
+
+  const allCourses = (rawCourses || []).map((c: any) => ({
+    id: c.id,
+    title: c.title,
+    category: c.category || '',
+    duration: c.duration || '',
+    enrolled: c.enrolled,
+    completed: c.completed,
+    status: c.status,
+  }));
+
+  const allTrainees = (rawTrainees || []).map((t: any) => ({
+    id: t.id,
+    code: t.employeeCode || '',
+    name: t.name,
+    course: t.course?.title || '',
+    progress: t.progress,
+    score: t.score || '-',
+    status: t.status,
+  }));
 
   const COLUMNS: any = [
     { key: 'name', title: 'HỌC VIÊN', flex: 1.5, render: (v: any, row: any) => (
@@ -126,7 +137,9 @@ export function TrainingScreen({ userRole }: { userRole?: HRRole }) {
         <View>
           <Text style={{ fontSize: 16, fontWeight: '800', color: cText, marginBottom: 16 }}>Khóa học nổi bật</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16 }}>
-            {MOCK_COURSES.map(course => (
+            {loadingCourses ? (
+              <View style={{ padding: 30, alignItems: 'center' }}><ActivityIndicator size="large" color="#ec4899" /></View>
+            ) : allCourses.map((course: any) => (
               <View key={course.id} style={{
                 width: 280, padding: 20, borderRadius: 20,
                 backgroundColor: cardBg, borderWidth: 1, borderColor,
@@ -173,7 +186,7 @@ export function TrainingScreen({ userRole }: { userRole?: HRRole }) {
           <SGCard variant="glass" noPadding>
             <SGTable 
               columns={COLUMNS} 
-              data={MOCK_TRAINEES} 
+              data={allTrainees} 
               style={{ borderWidth: 0, backgroundColor: 'transparent' }}
             />
           </SGCard>

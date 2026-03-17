@@ -11,38 +11,7 @@ import { sgds } from '../../../shared/theme/theme';
 import { useGetSalesPerformance } from '../hooks/useOverview';
 import { ActivityIndicator } from 'react-native';
 
-const KPI = [
-  { id: 'gmv', label: 'DOANH SỐ (GMV)', value: '2,500', unit: 'Tỷ', change: 18.5, color: '#6366f1', icon: DollarSign },
-  { id: 'rev', label: 'DOANH THU', value: '125', unit: 'Tỷ', change: 12.3, color: '#3b82f6', icon: TrendingUp },
-  { id: 'deals', label: 'SỐ GIAO DỊCH', value: '714', unit: 'GD', change: 22.0, color: '#22c55e', icon: CheckCircle2 },
-  { id: 'team', label: 'NHÂN SỰ SALES', value: '156', unit: 'Người', change: 8.0, color: '#f59e0b', icon: Users },
-];
-
-const PIPELINE = [
-  { stage: 'Lead mới', count: 2840, value: 8520, color: '#94a3b8', pct: 100 },
-  { stage: 'Đã liên hệ', count: 1988, value: 5964, color: '#60a5fa', pct: 70 },
-  { stage: 'Đã hẹn gặp', count: 1136, value: 3408, color: '#818cf8', pct: 40 },
-  { stage: 'Giữ chỗ', count: 568, value: 1988, color: '#a78bfa', pct: 20 },
-  { stage: 'Đặt cọc', count: 398, value: 1393, color: '#c084fc', pct: 14 },
-  { stage: 'Ký HĐMB', count: 342, value: 1197, color: '#8b5cf6', pct: 12 },
-  { stage: 'Hoàn tất GD', count: 285, value: 998, color: '#7c3aed', pct: 10 },
-];
-
-const TOP_SELLERS = [
-  { name: 'Nguyễn Văn A', team: 'Team Alpha', deals: 28, gmv: 98, rank: 1 },
-  { name: 'Trần Thị B', team: 'Team Beta', deals: 24, gmv: 84, rank: 2 },
-  { name: 'Lê Minh C', team: 'Team Alpha', deals: 22, gmv: 77, rank: 3 },
-  { name: 'Phạm Đức D', team: 'Team Gamma', deals: 20, gmv: 70, rank: 4 },
-  { name: 'Hoàng Kim E', team: 'Team Delta', deals: 18, gmv: 63, rank: 5 },
-];
-
-const MONTHLY = [
-  { m: 'T1', target: 200, actual: 185 }, { m: 'T2', target: 200, actual: 210 },
-  { m: 'T3', target: 220, actual: 245 }, { m: 'T4', target: 220, actual: 230 },
-  { m: 'T5', target: 250, actual: 268 }, { m: 'T6', target: 250, actual: 242 },
-  { m: 'T7', target: 230, actual: 255 }, { m: 'T8', target: 230, actual: 248 },
-  { m: 'T9', target: 200, actual: 215 },
-];
+// Data loaded from API — no mock fallbacks
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
@@ -51,10 +20,10 @@ export function OverviewSales() {
   
   const { data: salesData, isLoading } = useGetSalesPerformance(2026);
 
-  const kpis = salesData?.kpis || KPI;
-  const pipeline = salesData?.pipeline || PIPELINE;
-  const topSellers = salesData?.topSellers || TOP_SELLERS;
-  const monthly = salesData?.monthly || MONTHLY;
+  const kpis = salesData?.kpis || [];
+  const pipeline = salesData?.pipeline || [];
+  const topSellers = salesData?.topSellers || [];
+  const monthly = salesData?.monthly || [];
 
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;

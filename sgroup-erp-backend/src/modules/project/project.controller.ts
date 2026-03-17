@@ -105,4 +105,67 @@ export class ProjectController {
   removeProduct(@Param('productId') productId: string) {
     return this.propertyProductService.remove(productId);
   }
+
+  // --- Policies ---
+  @Get('policies/all')
+  findAllPolicies(@Query('status') status?: string) {
+    return this.projectService.findAllPolicies(status);
+  }
+
+  @Post('policies')
+  createPolicy(@Body() data: any) {
+    return this.projectService.createPolicy(data);
+  }
+
+  @Patch('policies/:id')
+  updatePolicy(@Param('id') id: string, @Body() data: any) {
+    return this.projectService.updatePolicy(id, data);
+  }
+
+  @Delete('policies/:id')
+  deletePolicy(@Param('id') id: string) {
+    return this.projectService.deletePolicy(id);
+  }
+
+  // --- Documents (LegalProjectDoc) ---
+  @Get('docs/all')
+  findAllDocs(@Query('projectId') projectId?: string) {
+    return this.projectService.findAllDocs(projectId);
+  }
+
+  @Post('docs')
+  createDoc(@Body() data: any) {
+    return this.projectService.createDoc(data);
+  }
+
+  @Patch('docs/:id')
+  updateDoc(@Param('id') id: string, @Body() data: any) {
+    return this.projectService.updateDoc(id, data);
+  }
+
+  @Delete('docs/:id')
+  deleteDoc(@Param('id') id: string) {
+    return this.projectService.deleteDoc(id);
+  }
+
+  // --- Assignments ---
+  @Get('assignments/all')
+  findAllAssignments(@Query('projectId') projectId?: string, @Query('status') status?: string) {
+    return this.projectService.findAllAssignments({ projectId, status });
+  }
+
+  @Post('assignments')
+  createAssignment(@Body() data: any) {
+    return this.projectService.createAssignment(data);
+  }
+
+  @Patch('assignments/:id')
+  updateAssignment(@Param('id') id: string, @Body() data: any) {
+    return this.projectService.updateAssignment(id, data);
+  }
+
+  @Delete('assignments/:id')
+  deleteAssignment(@Param('id') id: string) {
+    return this.projectService.deleteAssignment(id);
+  }
 }

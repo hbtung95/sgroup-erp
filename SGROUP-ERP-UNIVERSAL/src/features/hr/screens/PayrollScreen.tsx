@@ -3,25 +3,19 @@
  * Features: View payslips, salary, allowances, deductions
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Wallet, DollarSign, ArrowUpRight, ArrowDownRight, Search, FileText, CheckCircle, Clock } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
 import type { HRRole } from '../HRSidebar';
+import { usePayroll } from '../hooks/useHR';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
 
-// Mock Data
-const MOCK_PAYROLL = [
-  { id: '1', code: 'SG001', name: 'Nguyễn Văn A', dept: 'Kinh Doanh', basic: 15000000, allowance: 2000000, commission: 8500000, deduction: 1580000, total: 23920000, status: 'PAID' },
-  { id: '2', code: 'SG002', name: 'Trần Thị B', dept: 'IT', basic: 25000000, allowance: 1500000, commission: 0, deduction: 2750000, total: 23750000, status: 'PAID' },
-  { id: '3', code: 'SG003', name: 'Lê Văn C', dept: 'Marketing', basic: 12000000, allowance: 1000000, commission: 2000000, deduction: 1250000, total: 13750000, status: 'PAID' },
-  { id: '4', code: 'SG004', name: 'Phạm Thị D', dept: 'Kế toán', basic: 18000000, allowance: 1500000, commission: 0, deduction: 1890000, total: 17610000, status: 'PENDING' },
-  { id: '5', code: 'SG005', name: 'Hoàng Văn E', dept: 'Nhân sự', basic: 20000000, allowance: 2000000, commission: 0, deduction: 2150000, total: 19850000, status: 'PENDING' },
-];
+// Data comes from API now
 
 export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
   const { theme, isDark } = useAppTheme();
@@ -29,6 +23,28 @@ export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
   const cSub = theme.colors.textSecondary;
   const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  // Fetch real payroll from API
+  const { data: rawPayroll, isLoading } = usePayroll({ year: String(currentYear), month: String(currentMonth) });
+
+  // Transform API data for table
+  const payrollData = (rawPayroll || []).map((r: any) => ({
+    id: r.id,
+    code: r.employee?.employeeCode || '',
+    name: r.employee?.fullName || '',
+    dept: r.employee?.department?.name || '',
+    basic: Number(r.baseSalaryValue) || 0,
+    allowance: Number(r.totalAllowance) || 0,
+    commission: Number(r.commission) || 0,
+    deduction: Number(r.totalDeduction) + Number(r.taxBhiT) || 0,
+    total: Number(r.netPay) || 0,
+    status: r.status === 'PAID' ? 'PAID' : r.status === 'APPROVED' ? 'APPROVED' : 'PENDING',
+  }));
+
+  const totalFund = payrollData.reduce((s: number, r: any) => s + r.total, 0);
+  const totalAllowance = payrollData.reduce((s: number, r: any) => s + r.allowance + r.commission, 0);
+  const totalDeduction = payrollData.reduce((s: number, r: any) => s + r.deduction, 0);
+  const paidPct = payrollData.length > 0 ? Math.round(payrollData.filter((r: any) => r.status === 'PAID').length / payrollData.length * 100) : 0;
 
   const COLUMNS: any = [
     { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
@@ -96,10 +112,10 @@ export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
         {/* Stats Summary */}
         <View style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
           {[
-            { label: 'TỔNG QUỸ LƯƠNG', val: '98,900,000', unit: '₫', icon: DollarSign, color: '#8b5cf6' },
-            { label: 'THƯỞNG & PHỤ CẤP', val: '16,500,000', unit: '₫', icon: ArrowUpRight, color: '#10b981' },
-            { label: 'BHXH & KHẤU TRỪ', val: '9,620,000', unit: '₫', icon: ArrowDownRight, color: '#ef4444' },
-            { label: 'ĐÃ THANH TOÁN', val: '60%', unit: '', icon: CheckCircle, color: '#3b82f6' },
+            { label: 'TỔNG QUỸ LƯƠNG', val: fmt(totalFund), unit: '₫', icon: DollarSign, color: '#8b5cf6' },
+            { label: 'THƯỢNG & PHỤ CẤP', val: fmt(totalAllowance), unit: '₫', icon: ArrowUpRight, color: '#10b981' },
+            { label: 'BHXH & KHẤU TRỪ', val: fmt(totalDeduction), unit: '₫', icon: ArrowDownRight, color: '#ef4444' },
+            { label: 'ĐÃ THANH TOÁN', val: `${paidPct}%`, unit: '', icon: CheckCircle, color: '#3b82f6' },
           ].map((s, i) => (
             <View key={i} style={{
               flex: 1, minWidth: 200, padding: 22, borderRadius: 20,
@@ -139,11 +155,18 @@ export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
 
         {/* Table */}
         <SGCard variant="glass" noPadding>
-          <SGTable 
-            columns={COLUMNS} 
-            data={MOCK_PAYROLL} 
-            style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-          />
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#8b5cf6" />
+              <Text style={{ color: cSub, marginTop: 12, fontSize: 13 }}>Đang tải bảng lương...</Text>
+            </View>
+          ) : (
+            <SGTable 
+              columns={COLUMNS} 
+              data={payrollData} 
+              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
+            />
+          )}
         </SGCard>
 
       </ScrollView>

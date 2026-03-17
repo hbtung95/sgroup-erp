@@ -3,27 +3,15 @@
  * Features: Job postings, candidate pipelines, interview scheduling
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { UserPlus, Briefcase, Clock, CheckCircle, Search, Filter, MoreHorizontal, UserCog, Users } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
 import type { HRRole } from '../HRSidebar';
+import { useJobs, useCandidates } from '../hooks/useHR';
 
-// Mock Data
-const MOCK_JOBS = [
-  { id: '1', title: 'Senior React Native Dev', dept: 'IT', type: 'Full-time', location: 'Hà Nội', candidates: 24, status: 'OPEN' },
-  { id: '2', title: 'Sales Executive', dept: 'Kinh Doanh', type: 'Full-time', location: 'HCM', candidates: 45, status: 'OPEN' },
-  { id: '3', title: 'Digital Marketing Spec.', dept: 'Marketing', type: 'Full-time', location: 'Đà Nẵng', candidates: 12, status: 'URGENT' },
-  { id: '4', title: 'HR Manager', dept: 'Nhân sự', type: 'Full-time', location: 'Hà Nội', candidates: 8, status: 'CLOSED' },
-];
-
-const MOCK_CANDIDATES = [
-  { id: '1', name: 'Lê Thế Tuấn', job: 'Senior React Native Dev', source: 'LinkedIn', date: '15/03/2026', stage: 'NEW', rating: '-' },
-  { id: '2', name: 'Nguyễn Thị Hương', job: 'Sales Executive', source: 'Facebook', date: '14/03/2026', stage: 'INTERVIEW', rating: '8/10' },
-  { id: '3', name: 'Trần Đại Nghĩa', job: 'Digital Marketing Spec.', source: 'Referral', date: '12/03/2026', stage: 'OFFERRED', rating: '9/10' },
-  { id: '4', name: 'Phạm Hương Giang', job: 'Senior React Native Dev', source: 'TopCV', date: '10/03/2026', stage: 'REJECTED', rating: '5/10' },
-];
+// Data from API
 
 const STAGE_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
   NEW: { bg: '#eff6ff', text: '#3b82f6', label: 'MỚI ỨNG TUYỂN' },
@@ -38,6 +26,29 @@ export function RecruitmentScreen({ userRole }: { userRole?: HRRole }) {
   const cSub = theme.colors.textSecondary;
   const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  const { data: rawJobs, isLoading: loadingJobs } = useJobs();
+  const { data: rawCandidates, isLoading: loadingCandidates } = useCandidates();
+
+  const allJobs = (rawJobs || []).map((j: any) => ({
+    id: j.id,
+    title: j.title,
+    dept: j.department || '',
+    type: j.type,
+    location: j.location || '',
+    candidates: j._count?.applicants ?? j.candidates ?? 0,
+    status: j.status,
+  }));
+
+  const allCandidates = (rawCandidates || []).map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    job: c.job?.title || '',
+    source: c.source || '',
+    date: new Date(c.createdAt).toLocaleDateString('vi-VN'),
+    stage: c.stage,
+    rating: c.rating || '-',
+  }));
 
   const COLUMNS: any = [
     { key: 'name', title: 'ỨNG VIÊN', flex: 1.5, render: (v: any, row: any) => (
@@ -120,7 +131,9 @@ export function RecruitmentScreen({ userRole }: { userRole?: HRRole }) {
         <View>
           <Text style={{ fontSize: 16, fontWeight: '800', color: cText, marginBottom: 16 }}>Vị trí đang mở</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16 }}>
-            {MOCK_JOBS.map(job => (
+            {loadingJobs ? (
+              <View style={{ padding: 30, alignItems: 'center' }}><ActivityIndicator size="large" color="#ec4899" /></View>
+            ) : allJobs.map((job: any) => (
               <View key={job.id} style={{
                 width: 280, padding: 20, borderRadius: 20,
                 backgroundColor: cardBg, borderWidth: 1, borderColor,
@@ -165,7 +178,7 @@ export function RecruitmentScreen({ userRole }: { userRole?: HRRole }) {
           <SGCard variant="glass" noPadding>
             <SGTable 
               columns={COLUMNS} 
-              data={MOCK_CANDIDATES} 
+              data={allCandidates} 
               style={{ borderWidth: 0, backgroundColor: 'transparent' }}
             />
           </SGCard>

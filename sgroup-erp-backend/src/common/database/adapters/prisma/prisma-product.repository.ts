@@ -41,7 +41,7 @@ export class PrismaProductRepository implements IProductRepository {
   async delete(id: string): Promise<ProductEntity> {
     return this.prisma.propertyProduct.update({
       where: { id },
-      data: { status: 'DELETED' },
+      data: { status: 'DELETED', deletedAt: new Date() } as any,
     }) as any;
   }
 
@@ -65,8 +65,8 @@ export class PrismaProductRepository implements IProductRepository {
     return {
       total: products.length,
       byStatus,
-      totalValue: products.reduce((s, p) => s + p.price, 0),
-      availableValue: products.filter(p => p.status === 'AVAILABLE').reduce((s, p) => s + p.price, 0),
+      totalValue: products.reduce((s, p) => s + Number(p.price), 0),
+      availableValue: products.filter(p => p.status === 'AVAILABLE').reduce((s, p) => s + Number(p.price), 0),
     };
   }
 

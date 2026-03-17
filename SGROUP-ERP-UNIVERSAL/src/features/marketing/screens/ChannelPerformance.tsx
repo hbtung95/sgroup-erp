@@ -1,20 +1,14 @@
 /**
  * ChannelPerformance — Details metrics for each marketing channel
  */
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, Platform, ActivityIndicator } from 'react-native';
-import { Radio, Facebook, Youtube, Send, MonitorPlay, Search as SearchIcon } from 'lucide-react-native';
+import { Radio, BarChart3 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
-import { marketingPlanningApi } from '../api/marketingApi';
+import { useChannels } from '../hooks/useMarketing';
 
-const MOCK_CHANNELS = [
-  { id: '1', name: 'Facebook Ads', icon: Facebook, color: '#1877F2', spend: 285000000, impressions: 4500000, clicks: 125000, ctr: 2.78, cpc: 2280, leads: 645, cpl: 441000, roas: 3.8 },
-  { id: '2', name: 'Google Ads', icon: SearchIcon, color: '#EA4335', spend: 210000000, impressions: 2100000, clicks: 84000, ctr: 4.00, cpc: 2500, leads: 521, cpl: 403000, roas: 4.5 },
-  { id: '3', name: 'TikTok Ads', icon: MonitorPlay, color: '#000000', colorDark: '#FFFFFF', spend: 95000000, impressions: 3800000, clicks: 65000, ctr: 1.71, cpc: 1461, leads: 184, cpl: 516000, roas: 2.8 },
-  { id: '4', name: 'Zalo Ads', icon: Send, color: '#0068FF', spend: 42000000, impressions: 1200000, clicks: 32000, ctr: 2.67, cpc: 1312, leads: 95, cpl: 442000, roas: 3.5 },
-  { id: '5', name: 'Youtube Ads', icon: Youtube, color: '#FF0000', spend: 35000000, impressions: 2500000, clicks: 18000, ctr: 0.72, cpc: 1944, leads: 42, cpl: 833000, roas: 1.5 },
-];
+// Data from API via useChannels()
 
 const fmtMoney = (v: number) => {
   if (v >= 1000000) return `${(v / 1000000).toFixed(1)} Tr`;
@@ -26,31 +20,23 @@ const fmtNum = (n: number) => n.toLocaleString('vi-VN');
 export function ChannelPerformance() {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
-  
-  const [channels, setChannels] = useState<any[]>(MOCK_CHANNELS);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    marketingPlanningApi.getChannelROI('base')
-      .then(res => {
-        if (Array.isArray(res) && res.length > 0) {
-          const mapped = res.map(d => {
-            const mock = MOCK_CHANNELS.find(m => m.name.toUpperCase().includes(d.channelKey.split('_')[0])) || MOCK_CHANNELS[0];
-            return {
-              ...mock,
-              name: d.channelLabel || mock.name,
-              spend: d.budgetVnd,
-              revenue: d.revenue || 0,
-              leads: d.leadsCount || 0,
-              roas: d.roi > 0 ? d.roi.toFixed(2) : mock.roas
-            };
-          });
-          setChannels(mapped);
-        }
-      })
-      .catch(err => console.error('Failed to load Channel ROI from backend', err))
-      .finally(() => setLoading(false));
-  }, []);
+  const CHANNEL_COLORS: Record<string,string> = { FACEBOOK: '#1877F2', GOOGLE: '#EA4335', TIKTOK: '#000000', ZALO: '#0068FF', YOUTUBE: '#FF0000', EMAIL: '#8b5cf6' };
+
+  const { data: rawChannels, isLoading } = useChannels();
+
+  const channels = (rawChannels || []).map((ch: any) => ({
+    id: ch.id,
+    name: ch.channelKey,
+    color: CHANNEL_COLORS[ch.channelKey] || '#64748b',
+    spend: Number(ch.spend) || 0,
+    revenue: Number(ch.revenue) || 0,
+    leads: ch.leads || 0,
+    conversions: ch.conversions || 0,
+    roas: ch.roas || 0,
+    impressions: 0,
+    clicks: 0,
+  }));
 
   const card: any = {
     backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 24, padding: 24,
@@ -73,19 +59,19 @@ export function ChannelPerformance() {
         </View>
 
         <View style={{ gap: 16 }}>
-          {loading ? (
+          {isLoading ? (
              <View style={{ padding: 40, alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#3b82f6" />
                 <Text style={{ marginTop: 16, color: cText }}>Đang tải dữ liệu ROI kênh quảng cáo...</Text>
              </View>
           ) : (
-            channels.map(ch => {
-              const iconColor = isDark && ch.colorDark ? ch.colorDark : ch.color;
+            channels.map((ch: any) => {
+              const iconColor = ch.color;
               return (
                 <View key={ch.id} style={card}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
                     <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${iconColor}15`, alignItems: 'center', justifyContent: 'center' }}>
-                      <ch.icon size={22} color={iconColor} />
+                      <BarChart3 size={22} color={iconColor} />
                     </View>
                     <Text style={{ fontSize: 18, fontWeight: '900', color: cText }}>{ch.name}</Text>
                   </View>

@@ -32,8 +32,8 @@ export class SalesReportService {
     const completed = deals.filter(d => d.stage === 'COMPLETED');
 
     const totalDeals = completed.length;
-    const totalGMV = completed.reduce((s, d) => s + d.dealValue, 0);
-    const totalRevenue = completed.reduce((s, d) => s + d.commission, 0);
+    const totalGMV = completed.reduce((s, d) => s + Number(d.dealValue), 0);
+    const totalRevenue = completed.reduce((s, d) => s + Number(d.commission), 0);
     const avgDealSize = totalDeals > 0 ? totalGMV / totalDeals : 0;
 
     const staffFilters: any = { status: 'ACTIVE' };
@@ -61,9 +61,9 @@ export class SalesReportService {
     const monthlyActual: Record<number, { gmv: number; deals: number; revenue: number }> = {};
     deals.forEach(d => {
       if (!monthlyActual[d.month]) monthlyActual[d.month] = { gmv: 0, deals: 0, revenue: 0 };
-      monthlyActual[d.month].gmv += d.dealValue;
+      monthlyActual[d.month].gmv += Number(d.dealValue);
       monthlyActual[d.month].deals += 1;
-      monthlyActual[d.month].revenue += d.commission;
+      monthlyActual[d.month].revenue += Number(d.commission);
     });
 
     const months = Array.from({ length: 12 }, (_, i) => {
@@ -79,7 +79,7 @@ export class SalesReportService {
         },
         actual,
         achievementRate: target?.targetGMV
-          ? Math.round((actual.gmv / target.targetGMV) * 100)
+          ? Math.round((actual.gmv / Number(target.targetGMV)) * 100)
           : 0,
       };
     });
@@ -104,12 +104,12 @@ export class SalesReportService {
         team: { id: team.id, code: team.code, name: team.name, leaderName: team.leaderName },
         staffCount: teamStaff.length,
         totalDeals: completed.length,
-        totalGMV: completed.reduce((s, d) => s + d.dealValue, 0),
-        totalRevenue: completed.reduce((s, d) => s + d.commission, 0),
+        totalGMV: completed.reduce((s, d) => s + Number(d.dealValue), 0),
+        totalRevenue: completed.reduce((s, d) => s + Number(d.commission), 0),
         pipelineDeals: teamDeals.filter(d => d.stage !== 'COMPLETED' && d.stage !== 'CANCELLED').length,
         pipelineValue: teamDeals
           .filter(d => d.stage !== 'COMPLETED' && d.stage !== 'CANCELLED')
-          .reduce((s, d) => s + d.dealValue, 0),
+          .reduce((s, d) => s + Number(d.dealValue), 0),
       };
     });
   }
@@ -131,10 +131,10 @@ export class SalesReportService {
       return {
         staff: { id: s.id, code: s.employeeCode, name: s.fullName, team: s.teamId, role: s.role },
         totalDeals: completed.length,
-        totalGMV: completed.reduce((sum, d) => sum + d.dealValue, 0),
-        totalRevenue: completed.reduce((sum, d) => sum + d.commission, 0),
+        totalGMV: completed.reduce((sum, d) => sum + Number(d.dealValue), 0),
+        totalRevenue: completed.reduce((sum, d) => sum + Number(d.commission), 0),
         pipeline: staffDeals.filter(d => d.stage !== 'COMPLETED' && d.stage !== 'CANCELLED').length,
-        target: s.personalTarget || 0,
+        target: Number(s.personalTarget) || 0,
       };
     }).sort((a, b) => b.totalGMV - a.totalGMV);
   }
@@ -157,7 +157,7 @@ export class SalesReportService {
       const count = deals.filter(d => stages.indexOf(d.stage) >= idx).length;
       const value = deals
         .filter(d => stages.indexOf(d.stage) >= idx)
-        .reduce((s, d) => s + d.dealValue, 0);
+        .reduce((s, d) => s + Number(d.dealValue), 0);
       return { stage, label: stageLabels[stage] || stage, count, value };
     });
   }
@@ -182,8 +182,8 @@ export class SalesReportService {
         totalUnits: p.totalUnits,
         soldUnits: p.soldUnits + projDeals.length,
         dealsThisYear: projDeals.length,
-        gmv: projDeals.reduce((s, d) => s + d.dealValue, 0),
-        revenue: projDeals.reduce((s, d) => s + d.commission, 0),
+        gmv: projDeals.reduce((s, d) => s + Number(d.dealValue), 0),
+        revenue: projDeals.reduce((s, d) => s + Number(d.commission), 0),
       };
     });
   }

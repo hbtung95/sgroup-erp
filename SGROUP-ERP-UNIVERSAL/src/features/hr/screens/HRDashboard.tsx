@@ -2,41 +2,19 @@
  * HRDashboard — Overview dashboard with KPIs, headcount stats, and HR activities
  */
 import React from 'react';
-import { View, Text, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { Users, UserMinus, Briefcase, Clock, TrendingUp, Building, Cake, Zap, Radio } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
+import { useHRDashboard, useDepartments, useDashboardEvents, useDashboardActivities } from '../hooks/useHR';
 
 const ACCENT = '#ec4899'; // Pink-500
 
-const MOCK_KPI = [
-  { id: 'k1', label: 'TỔNG NHÂN SỰ', value: '248', unit: 'người', color: '#ec4899', icon: Users, trend: 'up', trendVal: '12' },
-  { id: 'k2', label: 'TỈ LỆ NGHỈ VIỆC', value: '4.2', unit: '%', color: '#f43f5e', icon: UserMinus, trend: 'down', trendVal: '1.1' },
-  { id: 'k3', label: 'VỊ TRÍ ĐANG TUYỂN', value: '15', unit: 'jobs', color: '#3b82f6', icon: Briefcase, trend: 'up', trendVal: '5' },
-  { id: 'k4', label: 'THÂM NIÊN TB', value: '2.8', unit: 'năm', color: '#8b5cf6', icon: Clock, trend: 'up', trendVal: '0.2' },
-];
+// KPI cards are now driven by API data
 
-const MOCK_DEPTS = [
-  { id: '1', name: 'Sales & Kinh doanh', head: 'Nguyễn Văn A', count: 120, pct: 48, color: '#3b82f6' },
-  { id: '2', name: 'Công nghệ & IT', head: 'Trần Thị B', count: 45, pct: 18, color: '#8b5cf6' },
-  { id: '3', name: 'Marketing', head: 'Lê Văn C', count: 35, pct: 14, color: '#ec4899' },
-  { id: '4', name: 'Tài chính - Kế toán', head: 'Phạm Thị D', count: 28, pct: 11, color: '#f59e0b' },
-  { id: '5', name: 'Hành chính - Nhân sự', head: 'Hoàng Văn E', count: 20, pct: 8, color: '#22c55e' },
-];
+const DEPT_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#22c55e', '#06b6d4', '#6366f1', '#f43f5e'];
 
-const MOCK_EVENTS = [
-  { name: 'Nguyễn Thị Hoa', role: 'Sales Executive', date: '15/03', type: 'birthday', desc: 'Sinh nhật (26 tuổi)' },
-  { name: 'Trần Văn Mạnh', role: 'Senior Developer', date: '18/03', type: 'anniversary', desc: 'Kỷ niệm 3 năm làm việc' },
-  { name: 'Lê Hải Yến', role: 'Marketing Specialist', date: '21/03', type: 'birthday', desc: 'Sinh nhật (28 tuổi)' },
-  { name: 'Phạm Tuấn Anh', role: 'Business Analyst', date: '25/03', type: 'anniversary', desc: 'Kỷ niệm 1 năm làm việc' },
-];
-
-const MOCK_ACTIVITIES = [
-  { id: '1', title: 'Onboarding nhân sự mới', detail: '3 nhân sự mới bắt đầu làm việc tại phòng Kinh Doanh', time: '08:30', tone: '#22c55e' },
-  { id: '2', title: 'Cập nhật hợp đồng', detail: 'Đã gia hạn 5 HĐLĐ sắp hết hạn trong tháng 03', time: '10:15', tone: '#3b82f6' },
-  { id: '3', title: 'Yêu cầu tuyển dụng', detail: 'Phòng IT tạo yêu cầu tuyển 2 Senior Frontend Developer', time: '14:20', tone: '#f59e0b' },
-  { id: '4', title: 'Chốt bảng công', detail: 'Bảng công tháng 02 đã được Giám đốc phê duyệt', time: '16:45', tone: '#8b5cf6' },
-];
+// Events & Activities from API
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
@@ -44,6 +22,27 @@ export function HRDashboard() {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
+
+  const { data: dashboard, isLoading } = useHRDashboard();
+  const { data: departments } = useDepartments();
+  const { data: events } = useDashboardEvents();
+  const { data: activities } = useDashboardActivities();
+
+  const allEvents = events || [];
+  const allActivities = activities || [];
+
+  const KPI_CARDS = [
+    { id: 'k1', label: 'TỔNG NHÂN SỰ', value: String(dashboard?.totalEmployees ?? 0), unit: 'người', color: '#ec4899', icon: Users, trend: 'up' as const, trendVal: 5 },
+    { id: 'k2', label: 'ĐANG LÀM VIỆC', value: String(dashboard?.activeEmployees ?? 0), unit: '', color: '#22c55e', icon: Users, trend: 'up' as const, trendVal: 3 },
+    { id: 'k3', label: 'THỬ VIỆC', value: String(dashboard?.probationEmployees ?? 0), unit: '', color: '#3b82f6', icon: Briefcase, trend: 'up' as const, trendVal: 12 },
+    { id: 'k4', label: 'ĐƠN CHỜ DUYỆT', value: String(dashboard?.pendingLeaves ?? 0), unit: '', color: '#8b5cf6', icon: Clock, trend: 'down' as const, trendVal: 8 },
+  ];
+
+  const deptList = (departments || []).map((d: any, i: number) => {
+    const totalEmp = dashboard?.totalEmployees || 1;
+    const count = d._count?.employees ?? 0;
+    return { ...d, count, pct: Math.round((count / totalEmp) * 100), color: DEPT_COLORS[i % DEPT_COLORS.length] };
+  });
 
   const card: any = {
     backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 28, padding: 28,
@@ -67,7 +66,7 @@ export function HRDashboard() {
 
         {/* KPI Cards */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
-          {MOCK_KPI.map(k => (
+          {KPI_CARDS.map(k => (
             <View key={k.id} style={{
               flex: 1, minWidth: 220, backgroundColor: isDark ? 'rgba(30,41,59,0.5)' : '#ffffff',
               borderRadius: 24, padding: 24,
@@ -102,10 +101,13 @@ export function HRDashboard() {
               </View>
               <Text style={{ fontSize: 18, fontWeight: '900', color: cText, flex: 1 }}>Cán bộ theo Phòng ban</Text>
             </View>
-            {MOCK_DEPTS.map((d, i) => (
+            {deptList.length === 0 && !isLoading && (
+              <Text style={{ color: cSub, fontSize: 13, textAlign: 'center', padding: 20 }}>Chưa có phòng ban nào</Text>
+            )}
+            {deptList.map((d: any, i: number) => (
               <View key={d.id} style={{
                 flexDirection: 'row', alignItems: 'center', paddingVertical: 14,
-                borderBottomWidth: i < MOCK_DEPTS.length - 1 ? 1 : 0,
+                borderBottomWidth: i < deptList.length - 1 ? 1 : 0,
                 borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
               }}>
                 <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: `${d.color}15`, alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
@@ -114,7 +116,7 @@ export function HRDashboard() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 15, fontWeight: '800', color: cText }}>{d.name}</Text>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: '#94a3b8', marginTop: 3 }}>
-                    Trưởng phòng: {d.head}
+                    {d.manager?.fullName ? `Trưởng phòng: ${d.manager.fullName}` : `Mã: ${d.code}`}
                   </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 4 }}>
@@ -132,7 +134,7 @@ export function HRDashboard() {
               </View>
               <Text style={{ fontSize: 18, fontWeight: '900', color: cText }}>Sự kiện sắp tới</Text>
             </View>
-            {MOCK_EVENTS.map((e, i) => (
+            {allEvents.map((e: any, i: number) => (
               <View key={i} style={{ marginBottom: 18 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                   <View style={{ flex: 1 }}>
@@ -157,10 +159,10 @@ export function HRDashboard() {
             </View>
             <Text style={{ fontSize: 18, fontWeight: '900', color: cText }}>Biến động & Hoạt động</Text>
           </View>
-          {MOCK_ACTIVITIES.map((a, i) => (
-            <View key={a.id} style={{
+          {allActivities.map((a: any, i: number) => (
+            <View key={a.id || i} style={{
               flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 14,
-              borderBottomWidth: i < MOCK_ACTIVITIES.length - 1 ? 1 : 0,
+              borderBottomWidth: i < allActivities.length - 1 ? 1 : 0,
               borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
             }}>
               <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: a.tone, marginTop: 6 }} />

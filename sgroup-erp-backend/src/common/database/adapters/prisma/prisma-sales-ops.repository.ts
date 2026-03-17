@@ -36,7 +36,7 @@ export class PrismaTeamRepository implements ITeamRepository {
   }
 
   async delete(id: string): Promise<TeamEntity> {
-    return this.prisma.salesTeam.update({ where: { id }, data: { status: 'DELETED' } }) as any;
+    return this.prisma.salesTeam.update({ where: { id }, data: { status: 'DELETED', deletedAt: new Date() } as any }) as any;
   }
 
   async count(filters?: Record<string, any>): Promise<number> {
@@ -85,7 +85,7 @@ export class PrismaStaffRepository implements IStaffRepository {
   }
 
   async delete(id: string): Promise<StaffEntity> {
-    return this.prisma.salesStaff.update({ where: { id }, data: { status: 'DELETED' } }) as any;
+    return this.prisma.salesStaff.update({ where: { id }, data: { status: 'DELETED', deletedAt: new Date() } as any }) as any;
   }
 
   async count(filters?: Record<string, any>): Promise<number> {
@@ -123,7 +123,7 @@ export class PrismaProjectRepository implements IProjectRepository {
   }
 
   async delete(id: string): Promise<ProjectEntity> {
-    return this.prisma.dimProject.update({ where: { id }, data: { status: 'DELETED' } }) as any;
+    return this.prisma.dimProject.update({ where: { id }, data: { status: 'DELETED', deletedAt: new Date() } as any }) as any;
   }
 
   async count(filters?: Record<string, any>): Promise<number> {
@@ -165,7 +165,7 @@ export class PrismaDealRepository implements IDealRepository {
   }
 
   async delete(id: string): Promise<DealEntity> {
-    return this.prisma.factDeal.update({ where: { id }, data: { status: 'DELETED' } }) as any;
+    return this.prisma.factDeal.update({ where: { id }, data: { status: 'DELETED', deletedAt: new Date() } as any }) as any;
   }
 
   async count(filters?: Record<string, any>): Promise<number> {
@@ -183,8 +183,8 @@ export class PrismaDealRepository implements IDealRepository {
 
     const deals = await this.prisma.factDeal.findMany({ where });
     const total = deals.length;
-    const totalGMV = deals.reduce((s, d) => s + d.dealValue, 0);
-    const totalRevenue = deals.reduce((s, d) => s + d.commission, 0);
+    const totalGMV = deals.reduce((s, d) => s + Number(d.dealValue), 0);
+    const totalRevenue = deals.reduce((s, d) => s + Number(d.commission), 0);
     const byStage = deals.reduce((acc, d) => {
       acc[d.stage] = (acc[d.stage] || 0) + 1;
       return acc;

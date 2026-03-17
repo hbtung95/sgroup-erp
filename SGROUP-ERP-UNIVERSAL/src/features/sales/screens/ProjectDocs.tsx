@@ -26,18 +26,7 @@ const CATEGORIES = [
   { key: 'contract', label: 'Mẫu HĐ', count: 1 },
 ];
 
-const docs: DocItem[] = [
-  { id: '1', name: 'Brochure Vinhomes Ocean Park 3 – Q1/2026', project: 'Vinhomes OP3', category: 'brochure', size: '12.5 MB', date: '01/03/2026' },
-  { id: '2', name: 'Brochure Masteri Waterfront – Phase 2', project: 'Masteri WF', category: 'brochure', size: '8.2 MB', date: '15/02/2026' },
-  { id: '3', name: 'Brochure The Beverly Solari', project: 'Beverly Solari', category: 'brochure', size: '15.1 MB', date: '20/01/2026' },
-  { id: '4', name: 'Bảng giá Vinhomes OP3 – Block S2 (03/2026)', project: 'Vinhomes OP3', category: 'pricelist', size: '2.1 MB', date: '05/03/2026' },
-  { id: '5', name: 'Bảng giá Masteri Waterfront – Tower A', project: 'Masteri WF', category: 'pricelist', size: '1.8 MB', date: '01/03/2026' },
-  { id: '6', name: 'Bảng giá The Beverly Solari – Căn hộ', project: 'Beverly Solari', category: 'pricelist', size: '1.5 MB', date: '15/02/2026' },
-  { id: '7', name: 'Chính sách bán hàng Q1/2026', project: 'Tất cả', category: 'policy', size: '980 KB', date: '01/01/2026' },
-  { id: '8', name: 'Chính sách thanh toán linh hoạt 2026', project: 'Tất cả', category: 'policy', size: '450 KB', date: '01/01/2026' },
-  { id: '9', name: 'Album ảnh căn mẫu Vinhomes OP3', project: 'Vinhomes OP3', category: 'media', size: '45 MB', date: '20/02/2026' },
-  { id: '10', name: 'Mẫu HĐ đặt cọc chuẩn 2026', project: 'Tất cả', category: 'contract', size: '320 KB', date: '01/01/2026' },
-];
+const docs: DocItem[] = [];
 
 const CAT_ICONS: Record<string, any> = {
   brochure: { icon: FileText, color: '#3b82f6', bg: '#eff6ff' },

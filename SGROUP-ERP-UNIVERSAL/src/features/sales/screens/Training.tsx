@@ -32,19 +32,9 @@ const STATUS_CFG: Record<CourseStatus, { label: string; color: string }> = {
   LOCKED:      { label: 'CHƯA MỞ',    color: '#94a3b8' },
 };
 
-const courses: Course[] = [
-  { id: '1', title: 'Kỹ Năng Bán Hàng BĐS Cơ Bản', category: 'Bán hàng', duration: '4h', lessons: 8, completed: 8, status: 'COMPLETED', instructor: 'Nguyễn Minh Tuấn', rating: 4.8 },
-  { id: '2', title: 'Xử Lý Phản Đối Khách Hàng', category: 'Kỹ năng mềm', duration: '2h', lessons: 5, completed: 3, status: 'IN_PROGRESS', instructor: 'Trần Thị Hoa', rating: 4.6 },
-  { id: '3', title: 'Quy Trình Pháp Lý BĐS', category: 'Pháp lý', duration: '3h', lessons: 6, completed: 0, status: 'NOT_STARTED', instructor: 'LS. Phạm Văn Đức' },
-  { id: '4', title: 'Kỹ Thuật Telesales Hiệu Quả', category: 'Bán hàng', duration: '1.5h', lessons: 4, completed: 0, status: 'NOT_STARTED', instructor: 'Lê Thanh Hằng', rating: 4.9 },
-  { id: '5', title: 'Quản Lý CRM — Bizfly', category: 'Công nghệ', duration: '2h', lessons: 5, completed: 0, status: 'LOCKED', instructor: 'IT Dept' },
-  { id: '6', title: 'Nghệ Thuật Thuyết Trình Dự Án', category: 'Kỹ năng mềm', duration: '3h', lessons: 7, completed: 0, status: 'LOCKED', instructor: 'Vũ Thành Long' },
-];
+const courses: Course[] = [];
 
-const certs: { id: string; name: string; date: string; expiry: string; status: string }[] = [
-  { id: 'c1', name: 'Chứng chỉ Môi giới BĐS', date: '15/01/2026', expiry: '15/01/2028', status: 'ACTIVE' },
-  { id: 'c2', name: 'Chứng chỉ Bán hàng Nâng cao', date: '20/06/2025', expiry: '20/06/2027', status: 'ACTIVE' },
-];
+const certs: { id: string; name: string; date: string; expiry: string; status: string }[] = [];
 
 export function Training() {
   const { theme, isDark } = useAppTheme();

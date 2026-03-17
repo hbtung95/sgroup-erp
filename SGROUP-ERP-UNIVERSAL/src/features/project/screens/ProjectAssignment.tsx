@@ -1,35 +1,42 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { useTheme, typography } from '../../../shared/theme/theme';
 import { useThemeStore } from '../../../shared/theme/themeStore';
 import { SGCard, SGButton } from '../../../shared/ui';
 import { ShieldCheck, Users, Search, MoreVertical, Edit2, Mail, X } from 'lucide-react-native';
+import { useAssignments } from '../hooks/useProject';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 1024;
 
-const MOCK_USERS = [
-  { id: '1', name: 'Nguyễn Văn Quyết', email: 'quyet.nv@sgroup.vn', role: 'Project Manager', projects: ['SG Center', 'Eco Park'], status: 'ACTIVE', date: '10/10/2023' },
-  { id: '2', name: 'Trần Thị Thu Thảo', email: 'thao.ttt@sgroup.vn', role: 'Sales Director', projects: ['SG Center'], status: 'ACTIVE', date: '12/10/2023' },
-  { id: '3', name: 'Lê Hoàng Long', email: 'long.lh@sgroup.vn', role: 'Sales Manager', projects: ['Eco Park', 'Ocean View'], status: 'INACTIVE', date: '05/09/2023' },
-  { id: '4', name: 'Phạm Minh Đức', email: 'duc.pm@sgroup.vn', role: 'Project Manager', projects: ['Ocean View'], status: 'ACTIVE', date: '20/10/2023' },
-];
+// Data from API
+
+const getRoleColor = (role: string) => {
+  switch (role) {
+    case 'Project Manager': return '#10b981';
+    case 'Sales Director': return '#8b5cf6';
+    case 'Sales Manager': return '#f59e0b';
+    default: return '#3b82f6';
+  }
+};
 
 export function ProjectAssignment() {
   const colors = useTheme();
   const { isDark } = useThemeStore();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'Project Manager': return '#10b981';
-      case 'Sales Director': return '#8b5cf6';
-      case 'Sales Manager': return '#f59e0b';
-      default: return '#3b82f6';
-    }
-  };
+  const { data: rawAssignments, isLoading } = useAssignments();
+  const allUsers = (rawAssignments || []).map((a: any) => ({
+    id: a.id,
+    name: a.name,
+    email: a.email || '',
+    role: a.role,
+    projects: a.projectId ? [a.projectId] : [],
+    status: a.status,
+    date: new Date(a.assignedAt).toLocaleDateString('vi-VN'),
+  }));
 
-  const filteredUsers = MOCK_USERS.filter(u => {
+  const filteredUsers = allUsers.filter((u: any) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
@@ -97,7 +104,11 @@ export function ProjectAssignment() {
             <Text style={[typography.micro, { color: colors.textTertiary, width: 80, textAlign: 'right', fontWeight: '700' }]}></Text>
           </View>
 
-          {filteredUsers.map((user, idx) => (
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#8b5cf6" />
+            </View>
+          ) : filteredUsers.map((user: any, idx: number) => (
             <View key={user.id} style={[styles.tableRow, { 
               borderBottomWidth: idx < filteredUsers.length - 1 ? 1 : 0,
               borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',

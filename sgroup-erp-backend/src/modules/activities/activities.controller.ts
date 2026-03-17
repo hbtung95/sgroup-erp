@@ -15,6 +15,7 @@ export class ActivitiesController {
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async findAll(
     @Query('staffId') staffId?: string,
+    @Query('teamId') teamId?: string,
     @Query('year') year?: string,
     @Query('month') month?: string,
     @Query('dateFrom') dateFrom?: string,
@@ -22,6 +23,7 @@ export class ActivitiesController {
   ) {
     return this.service.findAll({
       staffId,
+      teamId,
       year: year ? Number(year) : undefined,
       month: month ? Number(month) : undefined,
       dateFrom, dateTo,
@@ -32,12 +34,14 @@ export class ActivitiesController {
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_director', 'ceo', 'sales_admin')
   async getSummary(
     @Query('staffId') staffId?: string,
+    @Query('teamId') teamId?: string,
     @Query('year') year?: string,
     @Query('month') month?: string,
     @Query('period') period?: string,
   ) {
     return this.service.getSummary({
       staffId,
+      teamId,
       year: Number(year || new Date().getFullYear()),
       month: month ? Number(month) : undefined,
       period: (period as any) || 'month',
@@ -54,6 +58,7 @@ export class ActivitiesController {
   @Roles('admin', 'employee', 'sales', 'team_lead', 'sales_manager', 'sales_admin')
   async create(@Body() body: {
     staffId: string; staffName?: string;
+    teamId?: string; teamName?: string;
     postsCount?: number; callsCount?: number;
     newLeads?: number; meetingsMade?: number;
     note?: string; year: number; month: number; date?: string;

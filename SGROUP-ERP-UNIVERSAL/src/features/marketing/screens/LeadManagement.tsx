@@ -2,10 +2,11 @@
  * LeadManagement — MQL/SQL lead pipeline, source attribution, quality scoring
  */
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { Users, Search, Filter, Star, Phone, Mail, Globe, ArrowRight, TrendingUp } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
+import { useLeads } from '../hooks/useMarketing';
 
 const ACCENT = '#D97706';
 
@@ -17,33 +18,26 @@ const PIPELINE_STAGES = [
   { key: 'closed', label: 'Closed Won', count: 42, color: '#059669', pct: 3.4 },
 ];
 
-type LeadStatus = 'all' | 'new' | 'contacted' | 'qualified' | 'converted';
+type LeadStatus = 'all' | 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'WON';
 
 const STATUS_TABS: { key: LeadStatus; label: string }[] = [
   { key: 'all', label: 'Tất cả' },
-  { key: 'new', label: 'Mới' },
-  { key: 'contacted', label: 'Đã liên hệ' },
-  { key: 'qualified', label: 'Đủ điều kiện' },
-  { key: 'converted', label: 'Chuyển đổi' },
+  { key: 'NEW', label: 'Mới' },
+  { key: 'CONTACTED', label: 'Đã liên hệ' },
+  { key: 'QUALIFIED', label: 'Đủ điều kiện' },
+  { key: 'WON', label: 'Chuyển đổi' },
 ];
 
 const STATUS_MAP: Record<string, { bg: string; text: string; label: string }> = {
-  new: { bg: '#eff6ff', text: '#3b82f6', label: 'MỚI' },
-  contacted: { bg: '#fef3c7', text: '#D97706', label: 'ĐÃ LIÊN HỆ' },
-  qualified: { bg: '#f5f3ff', text: '#8b5cf6', label: 'ĐỦ ĐK' },
-  converted: { bg: '#dcfce7', text: '#16a34a', label: 'CHUYỂN ĐỔI' },
+  NEW: { bg: '#eff6ff', text: '#3b82f6', label: 'MỚI' },
+  CONTACTED: { bg: '#fef3c7', text: '#D97706', label: 'ĐÃ LIÊN HỆ' },
+  QUALIFIED: { bg: '#f5f3ff', text: '#8b5cf6', label: 'ĐỦ ĐK' },
+  PROPOSAL: { bg: '#fef3c7', text: '#D97706', label: 'PROPOSAL' },
+  WON: { bg: '#dcfce7', text: '#16a34a', label: 'CHUYỂN ĐỔI' },
+  LOST: { bg: '#fee2e2', text: '#dc2626', label: 'MẤT' },
 };
 
-const MOCK_LEADS = [
-  { id: '1', name: 'Nguyễn Văn A', phone: '0912 345 678', email: 'nguyenvana@gmail.com', source: 'Facebook Ads', campaign: 'Brand Awareness Q1', score: 85, status: 'qualified', project: 'SG Center', createdAt: '2026-03-12' },
-  { id: '2', name: 'Trần Thị B', phone: '0987 654 321', email: 'tranthib@gmail.com', source: 'Google Ads', campaign: 'Product Launch Wave 2', score: 72, status: 'contacted', project: 'SG Nest', createdAt: '2026-03-11' },
-  { id: '3', name: 'Lê Hoàng C', phone: '0909 123 456', email: 'lehoangc@yahoo.com', source: 'Zalo', campaign: 'Zalo OA Campaign', score: 91, status: 'qualified', project: 'SG Center', createdAt: '2026-03-11' },
-  { id: '4', name: 'Phạm Minh D', phone: '0933 789 012', email: 'phamminhd@outlook.com', source: 'SEO', campaign: 'Organic Traffic', score: 45, status: 'new', project: 'SG Nest', createdAt: '2026-03-13' },
-  { id: '5', name: 'Hoàng Thị E', phone: '0977 456 789', email: 'hoangthie@gmail.com', source: 'Facebook Ads', campaign: 'Retargeting High Intent', score: 96, status: 'converted', project: 'SG Center', createdAt: '2026-03-10' },
-  { id: '6', name: 'Võ Quang F', phone: '0918 234 567', email: 'voquangf@gmail.com', source: 'Google Ads', campaign: 'Product Launch Wave 2', score: 68, status: 'contacted', project: 'SG Nest', createdAt: '2026-03-09' },
-  { id: '7', name: 'Đặng Văn G', phone: '0945 678 901', email: 'dangvang@gmail.com', source: 'Referral', campaign: 'N/A', score: 88, status: 'qualified', project: 'SG Center', createdAt: '2026-03-08' },
-  { id: '8', name: 'Bùi Thị H', phone: '0966 345 678', email: 'buithih@yahoo.com', source: 'Facebook Ads', campaign: 'Brand Awareness Q1', score: 34, status: 'new', project: 'SG Nest', createdAt: '2026-03-13' },
-];
+// Data from API via useLeads()
 
 const getScoreColor = (score: number) => score >= 80 ? '#22c55e' : score >= 50 ? '#f59e0b' : '#94a3b8';
 
@@ -53,15 +47,28 @@ export function LeadManagement() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<LeadStatus>('all');
 
+  const { data: rawLeads, isLoading } = useLeads(
+    filter !== 'all' ? { status: filter } : undefined
+  );
+
+  const allLeads = (rawLeads || []).map((l: any) => ({
+    id: l.id,
+    name: l.name,
+    phone: l.phone || '',
+    email: l.email || '',
+    source: l.source,
+    campaign: l.campaign?.name || '—',
+    score: l.score || 0,
+    status: l.status,
+    project: '',
+    createdAt: new Date(l.createdAt).toLocaleDateString('vi-VN'),
+  }));
+
   const filtered = useMemo(() => {
-    let list = MOCK_LEADS;
-    if (filter !== 'all') list = list.filter(l => l.status === filter);
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(l => l.name.toLowerCase().includes(q) || l.phone.includes(q) || l.source.toLowerCase().includes(q));
-    }
-    return list;
-  }, [search, filter]);
+    if (!search.trim()) return allLeads;
+    const q = search.toLowerCase();
+    return allLeads.filter((l: any) => l.name.toLowerCase().includes(q) || l.phone.includes(q) || l.source.toLowerCase().includes(q));
+  }, [allLeads, search]);
 
   const card: any = {
     backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 24, padding: 24,
@@ -79,7 +86,7 @@ export function LeadManagement() {
           </LinearGradient>
           <View>
             <Text style={{ fontSize: 26, fontWeight: '900', color: cText }}>MQL & LEAD MANAGEMENT</Text>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: '#94a3b8', marginTop: 3 }}>{MOCK_LEADS.length} leads • Conversion rate 3.4%</Text>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#94a3b8', marginTop: 3 }}>{allLeads.length} leads</Text>
           </View>
         </View>
 
@@ -144,8 +151,13 @@ export function LeadManagement() {
 
         {/* Lead Cards */}
         <View style={{ gap: 12 }}>
-          {filtered.map(lead => {
-            const s = STATUS_MAP[lead.status] || STATUS_MAP.new;
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={ACCENT} />
+              <Text style={{ color: '#94a3b8', marginTop: 12, fontSize: 13 }}>Đang tải lead...</Text>
+            </View>
+          ) : filtered.map((lead: any) => {
+            const s = STATUS_MAP[lead.status] || STATUS_MAP.NEW;
             return (
               <View key={lead.id} style={card}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>

@@ -2,18 +2,20 @@
  * LeavesScreen — HR Leave Requests Management
  */
 import React from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Calendar, Search, CheckCircle, Clock, XCircle, FileText } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
+import { useLeaves } from '../hooks/useHR';
 
-const MOCK_LEAVES = [
-  { id: '1', code: 'SG002', name: 'Trần Thị B', dept: 'IT', type: 'Nghỉ phép năm', from: '20/03/2026', to: '21/03/2026', days: 2, status: 'APPROVED' },
-  { id: '2', code: 'SG004', name: 'Phạm Thị D', dept: 'Kế toán', type: 'Nghỉ ốm', from: '15/03/2026', to: '15/03/2026', days: 1, status: 'PENDING' },
-  { id: '3', code: 'SG006', name: 'Vũ Thị F', dept: 'Kinh Doanh', type: 'Nghỉ thai sản', from: '01/02/2026', to: '01/08/2026', days: 180, status: 'APPROVED' },
-  { id: '4', code: 'SG003', name: 'Lê Văn C', dept: 'Marketing', type: 'Nghỉ không lương', from: '12/03/2026', to: '14/03/2026', days: 3, status: 'REJECTED' },
-];
+// Leave type display map
+const LEAVE_TYPE_LABELS: Record<string, string> = {
+  ANNUAL: 'Nghỉ phép năm',
+  SICK: 'Nghỉ ốm',
+  UNPAID: 'Nghỉ không lương',
+  MATERNITY: 'Nghỉ thai sản',
+};
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
   APPROVED: { bg: '#dcfce7', text: '#16a34a', label: 'ĐÃ DUYỆT' },
@@ -27,6 +29,27 @@ export function LeavesScreen() {
   const cSub = theme.colors.textSecondary;
   const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  // Fetch real leaves from API
+  const { data: rawLeaves, isLoading } = useLeaves();
+  const fmtDate = (d: string) => new Date(d).toLocaleDateString('vi-VN');
+
+  // Transform for table display
+  const leavesData = (rawLeaves || []).map((l: any) => ({
+    id: l.id,
+    code: l.employee?.employeeCode || '',
+    name: l.employee?.fullName || '',
+    dept: '',
+    type: LEAVE_TYPE_LABELS[l.leaveType] || l.leaveType,
+    from: fmtDate(l.startDate),
+    to: fmtDate(l.endDate),
+    days: l.totalDays,
+    status: l.status,
+  }));
+
+  const pendingCount = leavesData.filter((l: any) => l.status === 'PENDING').length;
+  const approvedCount = leavesData.filter((l: any) => l.status === 'APPROVED').length;
+  const rejectedCount = leavesData.filter((l: any) => l.status === 'REJECTED').length;
 
   const COLUMNS: any = [
     { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
@@ -76,9 +99,9 @@ export function LeavesScreen() {
         {/* Stats Summary */}
         <View style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
           {[
-            { label: 'CHỜ DUYỆT', val: '12', icon: Clock, color: '#f59e0b' },
-            { label: 'ĐÃ DUYỆT TRONG THÁNG', val: '45', icon: CheckCircle, color: '#10b981' },
-            { label: 'TỪ CHỐI', val: '3', icon: XCircle, color: '#ef4444' },
+            { label: 'CHỜ DUYỆT', val: String(pendingCount), icon: Clock, color: '#f59e0b' },
+            { label: 'ĐÃ DUYỆT', val: String(approvedCount), icon: CheckCircle, color: '#10b981' },
+            { label: 'TỪ CHỐI', val: String(rejectedCount), icon: XCircle, color: '#ef4444' },
           ].map((s, i) => (
             <View key={i} style={{
               flex: 1, minWidth: 200, padding: 22, borderRadius: 20,
@@ -109,11 +132,18 @@ export function LeavesScreen() {
 
         {/* Table */}
         <SGCard variant="glass" noPadding>
-          <SGTable 
-            columns={COLUMNS} 
-            data={MOCK_LEAVES} 
-            style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-          />
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#f59e0b" />
+              <Text style={{ color: cSub, marginTop: 12, fontSize: 13 }}>Đang tải đơn từ...</Text>
+            </View>
+          ) : (
+            <SGTable 
+              columns={COLUMNS} 
+              data={leavesData} 
+              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
+            />
+          )}
         </SGCard>
       </ScrollView>
     </View>

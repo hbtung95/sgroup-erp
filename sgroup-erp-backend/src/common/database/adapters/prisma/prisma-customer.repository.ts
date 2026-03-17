@@ -43,7 +43,7 @@ export class PrismaCustomerRepository implements ICustomerRepository {
   async delete(id: string): Promise<CustomerEntity> {
     return this.prisma.customer.update({
       where: { id },
-      data: { status: 'DELETED' },
+      data: { status: 'DELETED', deletedAt: new Date() } as any,
     }) as any;
   }
 

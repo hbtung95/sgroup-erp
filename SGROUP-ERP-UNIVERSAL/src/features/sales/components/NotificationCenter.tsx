@@ -23,11 +23,7 @@ const TYPE_COLORS: Record<string, string> = {
 
 export function NotificationCenter({ isDark = false }: Props) {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    // Sample notifications — will be replaced by WebSocket data
-    { id: '1', title: 'Deal mới', message: 'Nguyễn Văn A vừa tạo deal 2.5 tỷ', type: 'deal', read: false, timestamp: new Date().toISOString() },
-    { id: '2', title: 'Booking cần duyệt', message: '3 booking đang chờ phê duyệt', type: 'booking', read: false, timestamp: new Date().toISOString() },
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

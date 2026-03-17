@@ -177,7 +177,7 @@ export class FinanceTransactionService {
       })
     ]);
 
-    const totalCash = accountBalances.reduce((acc, account) => acc + account.currentBalance, 0);
+    const totalCash = accountBalances.reduce((acc, account) => acc + Number(account.currentBalance), 0);
 
     return {
       stats: {

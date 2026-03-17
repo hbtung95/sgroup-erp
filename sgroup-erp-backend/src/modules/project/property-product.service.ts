@@ -35,7 +35,7 @@ export class PropertyProductService {
       data: {
         ...createDto,
         projectName: project.name,
-      },
+      } as any,
     });
   }
 
@@ -74,7 +74,7 @@ export class PropertyProductService {
     }
     const updated = await this.prisma.propertyProduct.update({
       where: { id },
-      data: updateDto,
+      data: updateDto as any,
     });
     // Audit log + sync if status changed
     if (updateDto.status && updateDto.status !== product.status) {
@@ -195,7 +195,7 @@ export class PropertyProductService {
       projectName: project.name,
     }));
 
-    return this.prisma.propertyProduct.createMany({ data });
+    return this.prisma.propertyProduct.createMany({ data: data as any });
   }
 
   // ──────────────────────────── BATCH GENERATE ────────────────────────────
@@ -250,7 +250,7 @@ export class PropertyProductService {
       return { created: 0, skipped: products.length, total: 0 };
     }
 
-    const result = await this.prisma.propertyProduct.createMany({ data: newProducts });
+    const result = await this.prisma.propertyProduct.createMany({ data: newProducts as any });
 
     // Update totalUnits on project
     const totalProducts = await this.prisma.propertyProduct.count({ where: { projectId } });
@@ -284,7 +284,7 @@ export class PropertyProductService {
       for (const product of products) {
         await this.prisma.propertyProduct.update({
           where: { id: product.id },
-          data: { status: newStatus, bookedBy: deal.staffName || deal.customerName },
+          data: { status: newStatus, bookedBy: deal.staffName || deal.customerName } as any,
         });
         await this.logStatusChange(product.id, product.status, newStatus, deal.staffName, `deal.created (${deal.stage})`);
         await this.syncSoldUnits(product.projectId);
@@ -315,7 +315,7 @@ export class PropertyProductService {
         for (const product of products) {
           await this.prisma.propertyProduct.update({
             where: { id: product.id },
-            data: { status: newStatus, bookedBy: newDeal.staffName || newDeal.customerName },
+            data: { status: newStatus, bookedBy: newDeal.staffName || newDeal.customerName } as any,
           });
           await this.logStatusChange(product.id, product.status, newStatus, newDeal.staffName, `deal.status_changed (${oldDeal.stage} → ${newDeal.stage})`);
           await this.syncSoldUnits(product.projectId);

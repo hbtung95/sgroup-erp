@@ -174,8 +174,8 @@ export class SheetsProductRepository
     return {
       total: all.length,
       byStatus,
-      totalValue: all.reduce((s, p) => s + (p.price || 0), 0),
-      availableValue: all.filter(p => p.status === 'AVAILABLE').reduce((s, p) => s + (p.price || 0), 0),
+      totalValue: all.reduce((s, p) => s + Number(p.price || 0), 0),
+      availableValue: all.filter(p => p.status === 'AVAILABLE').reduce((s, p) => s + Number(p.price || 0), 0),
     };
   }
 
@@ -284,8 +284,8 @@ export class SheetsDealRepository
   async getStats(filters: { year: number; month?: number; teamId?: string }) {
     const all = await this.findAll(filters as any);
     const total = all.length;
-    const totalGMV = all.reduce((s, d) => s + (d.dealValue || 0), 0);
-    const totalRevenue = all.reduce((s, d) => s + (d.commission || 0), 0);
+    const totalGMV = all.reduce((s, d) => s + Number(d.dealValue || 0), 0);
+    const totalRevenue = all.reduce((s, d) => s + Number(d.commission || 0), 0);
     const byStage = all.reduce((acc, d) => {
       acc[d.stage] = (acc[d.stage] || 0) + 1;
       return acc;

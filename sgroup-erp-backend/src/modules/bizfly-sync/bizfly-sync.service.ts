@@ -88,9 +88,9 @@ export class BizflySyncService {
       totalERPDeals: erpDeals.length,
       linkedToBizfly: bizflyLinked.length,
       manualEntries: manualOnly.length,
-      totalGMV: erpDeals.reduce((s, d) => s + d.dealValue, 0),
-      linkedGMV: bizflyLinked.reduce((s, d) => s + d.dealValue, 0),
-      manualGMV: manualOnly.reduce((s, d) => s + d.dealValue, 0),
+      totalGMV: erpDeals.reduce((s, d) => s + Number(d.dealValue), 0),
+      linkedGMV: bizflyLinked.reduce((s, d) => s + Number(d.dealValue), 0),
+      manualGMV: manualOnly.reduce((s, d) => s + Number(d.dealValue), 0),
       reconciliationStatus: 'PARTIAL',
       note: 'Full reconciliation available after Bizfly CRM API is configured.',
     };

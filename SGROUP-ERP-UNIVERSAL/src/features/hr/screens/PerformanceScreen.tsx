@@ -3,23 +3,24 @@
  * Features: View employee KPIs, review cycles, and performance ratings
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { TrendingUp, Target, Award, Star, Search, CheckCircle, Clock } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
 import type { HRRole } from '../HRSidebar';
+import { usePerformance } from '../hooks/useHR';
 
 const currentYear = new Date().getFullYear();
 
-// Mock Data
-const MOCK_PERFORMANCE = [
-  { id: '1', code: 'SG001', name: 'Nguyễn Văn A', dept: 'Kinh Doanh', role: 'Trưởng phòng', target: 100, actual: 115, rating: 'A', status: 'COMPLETED' },
-  { id: '2', code: 'SG002', name: 'Trần Thị B', dept: 'IT', role: 'Senior Developer', target: 100, actual: 95, rating: 'B+', status: 'COMPLETED' },
-  { id: '3', code: 'SG003', name: 'Lê Văn C', dept: 'Marketing', role: 'Chuyên viên', target: 100, actual: 105, rating: 'A-', status: 'COMPLETED' },
-  { id: '4', code: 'SG004', name: 'Phạm Thị D', dept: 'Kế toán', role: 'Kế toán trưởng', target: 100, actual: 88, rating: 'B', status: 'IN_PROGRESS' },
-  { id: '5', code: 'SG005', name: 'Hoàng Văn E', dept: 'Nhân sự', role: 'HR Manager', target: 100, actual: 0, rating: '-', status: 'NOT_STARTED' },
-];
+// Data comes from API now
+function scoreToRating(score: number): string {
+  if (score >= 90) return 'A';
+  if (score >= 80) return 'A-';
+  if (score >= 70) return 'B+';
+  if (score >= 60) return 'B';
+  return 'C';
+}
 
 const RATING_COLORS: Record<string, string> = {
   'A': '#8b5cf6',
@@ -36,6 +37,30 @@ export function PerformanceScreen({ userRole }: { userRole?: HRRole }) {
   const cSub = theme.colors.textSecondary;
   const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  const currentQuarter = `Q${Math.ceil((new Date().getMonth() + 1) / 3)}-${currentYear}`;
+  const { data: rawPerformance, isLoading } = usePerformance({ period: currentQuarter });
+
+  const perfData = (rawPerformance || []).map((p: any) => {
+    const score = p.overallScore || 0;
+    const statusMap: Record<string, string> = { DRAFT: 'NOT_STARTED', SUBMITTED: 'IN_PROGRESS', ACKNOWLEDGED: 'COMPLETED' };
+    return {
+      id: p.id,
+      code: p.employee?.employeeCode || '',
+      name: p.employee?.fullName || '',
+      dept: '',
+      role: '',
+      target: 100,
+      actual: Math.round(score),
+      rating: score > 0 ? scoreToRating(score) : '-',
+      status: statusMap[p.status] || p.status,
+    };
+  });
+
+  const completedCount = perfData.filter((r: any) => r.status === 'COMPLETED').length;
+  const inProgressCount = perfData.filter((r: any) => r.status === 'IN_PROGRESS').length;
+  const highPerformers = perfData.filter((r: any) => ['A', 'A-'].includes(r.rating)).length;
+  const completePct = perfData.length > 0 ? Math.round(completedCount / perfData.length * 100) : 0;
 
   const COLUMNS: any = [
     { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
@@ -101,10 +126,10 @@ export function PerformanceScreen({ userRole }: { userRole?: HRRole }) {
         {/* Stats Summary */}
         <View style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
           {[
-            { label: 'TỔNG NHÂN VIÊN Đ.GIÁ', val: '248', unit: 'người', icon: Target, color: '#3b82f6' },
-            { label: 'TỈ LỆ HOÀN TẤT', val: '86', unit: '%', icon: CheckCircle, color: '#10b981' },
-            { label: 'XẾP LOẠI A & A-', val: '45', unit: '%', icon: Star, color: '#8b5cf6' },
-            { label: 'ĐANG ĐÁNH GIÁ', val: '34', unit: 'user', icon: Clock, color: '#f59e0b' },
+            { label: 'TỔNG NHÂN VIÊN Đ.GIÁ', val: String(perfData.length), unit: 'người', icon: Target, color: '#3b82f6' },
+            { label: 'TỈ LỆ HOÀN TẤT', val: String(completePct), unit: '%', icon: CheckCircle, color: '#10b981' },
+            { label: 'XẾP LOẠI A & A-', val: String(highPerformers), unit: 'người', icon: Star, color: '#8b5cf6' },
+            { label: 'ĐANG ĐÁNH GIÁ', val: String(inProgressCount), unit: '', icon: Clock, color: '#f59e0b' },
           ].map((s, i) => (
             <View key={i} style={{
               flex: 1, minWidth: 200, padding: 22, borderRadius: 20,
@@ -144,11 +169,18 @@ export function PerformanceScreen({ userRole }: { userRole?: HRRole }) {
 
         {/* Table */}
         <SGCard variant="glass" noPadding>
-          <SGTable 
-            columns={COLUMNS} 
-            data={MOCK_PERFORMANCE} 
-            style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-          />
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#10b981" />
+              <Text style={{ color: cSub, marginTop: 12, fontSize: 13 }}>Đang tải dữ liệu...</Text>
+            </View>
+          ) : (
+            <SGTable 
+              columns={COLUMNS} 
+              data={perfData} 
+              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
+            />
+          )}
         </SGCard>
 
       </ScrollView>

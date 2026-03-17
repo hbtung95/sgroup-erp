@@ -23,6 +23,7 @@ import { FinanceModule } from './modules/finance/finance.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { HrModule } from './modules/hr/hr.module';
+import { MarketingModule } from './modules/marketing/marketing.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -51,6 +52,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     FinanceModule,
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
     HrModule,
+    MarketingModule,
     NotificationsModule,
   ],
   providers: [

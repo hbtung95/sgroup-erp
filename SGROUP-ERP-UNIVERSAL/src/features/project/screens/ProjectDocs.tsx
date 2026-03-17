@@ -1,31 +1,43 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { useTheme, typography } from '../../../shared/theme/theme';
 import { useThemeStore } from '../../../shared/theme/themeStore';
 import { SGCard, SGButton } from '../../../shared/ui';
 import { FolderPlus, FileCheck, FolderOpen, MoreVertical, FileText, Image as ImageIcon, Download } from 'lucide-react-native';
+import { useProjectDocs } from '../hooks/useProject';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 1024;
 
-const MOCK_FOLDERS = [
-  { id: '1', name: 'Pháp lý dự án', count: 12, size: '45 MB', updatedAt: '2023-10-12', color: '#10b981' },
-  { id: '2', name: 'Sale Kit', count: 24, size: '120 MB', updatedAt: '2023-10-15', color: '#3b82f6' },
-  { id: '3', name: 'Mặt bằng & Thiết kế', count: 8, size: '85 MB', updatedAt: '2023-10-10', color: '#f59e0b' },
-  { id: '4', name: 'Chính sách', count: 3, size: '5 MB', updatedAt: '2023-10-16', color: '#8b5cf6' },
-];
-
-const MOCK_FILES = [
-  { id: '1', name: 'Giấy phép xây dựng.pdf', type: 'pdf', size: '2.5 MB', uploader: 'Nguyễn Văn A', date: '12/10/2023' },
-  { id: '2', name: 'Sale_Kit_Full_Version_v2.pptx', type: 'powerpoint', size: '45 MB', uploader: 'Trần Thị B', date: '15/10/2023' },
-  { id: '3', name: 'Mặt bằng Tầng 3-15.png', type: 'image', size: '4.2 MB', uploader: 'Nguyễn Văn A', date: '10/10/2023' },
-  { id: '4', name: 'Quy_trinh_giu_cho_Q4.docx', type: 'word', size: '1.2 MB', uploader: 'Lê Văn C', date: '16/10/2023' },
-];
+// Data from API
+const DOC_TYPE_COLORS: Record<string,string> = { GENERAL: '#10b981', LICENSE: '#3b82f6', DECISION: '#f59e0b', CERTIFICATE: '#8b5cf6' };
 
 export function ProjectDocs() {
   const colors = useTheme();
   const { isDark } = useThemeStore();
   const [activeTab, setActiveTab] = useState('folders');
+
+  const { data: rawDocs, isLoading } = useProjectDocs();
+  const allDocs = rawDocs || [];
+
+  // Group docs by docType to create 'folders'
+  const folders = Object.entries(
+    allDocs.reduce((acc: any, d: any) => {
+      const t = d.docType || 'GENERAL';
+      if (!acc[t]) acc[t] = { count: 0, color: DOC_TYPE_COLORS[t] || '#64748b' };
+      acc[t].count++;
+      return acc;
+    }, {} as Record<string, any>)
+  ).map(([key, val]: any, i) => ({ id: String(i), name: key, count: val.count, color: val.color, size: '', updatedAt: '' }));
+
+  const files = allDocs.map((d: any) => ({
+    id: d.id,
+    name: d.name,
+    type: d.fileUrl?.includes('.pdf') ? 'pdf' : d.fileUrl?.includes('.png') || d.fileUrl?.includes('.jpg') ? 'image' : 'word',
+    size: '',
+    uploader: d.createdBy || '',
+    date: d.createdAt ? new Date(d.createdAt).toLocaleDateString('vi-VN') : '',
+  }));
 
   const getFileIcon = (type: string) => {
     switch (type) {
@@ -86,9 +98,15 @@ export function ProjectDocs() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-          {/* Folders Grid */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20, marginBottom: 36 }}>
-            {MOCK_FOLDERS.map(folder => (
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#3b82f6" />
+            </View>
+          ) : (
+            <>
+            {/* Folders Grid */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20, marginBottom: 36 }}>
+            {folders.map(folder => (
               <TouchableOpacity key={folder.id} style={[styles.folderCard, { 
                 backgroundColor: isDark ? 'rgba(255,255,255,0.025)' : 'rgba(255,255,255,0.9)',
                 borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
@@ -115,7 +133,7 @@ export function ProjectDocs() {
           {/* Files List */}
           <Text style={[typography.h4, { color: colors.text, marginBottom: 18, fontWeight: '800' }]}>Danh sách Tài liệu</Text>
           <View style={{ gap: 12 }}>
-            {MOCK_FILES.map((file, idx) => (
+            {files.map((file: any, idx: number) => (
               <View key={file.id} style={[styles.fileRow, {
                 backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.9)',
                 borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
@@ -140,6 +158,8 @@ export function ProjectDocs() {
               </View>
             ))}
           </View>
+            </>
+          )}
         </ScrollView>
       </View>
     </View>

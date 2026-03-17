@@ -20,7 +20,7 @@ export function CrmViewer() {
     setTimeout(() => {
       setIsSyncing(false);
       setLastSync('Vừa xong');
-    }, 2500); // Mock 2.5s network request
+    }, 2500);
   };
 
   const cardStyle: any = {
@@ -70,19 +70,19 @@ export function CrmViewer() {
           <View style={[cardStyle, { flex: 1 }]}>
              <ArrowDownToLine size={24} color="#8b5cf6" style={{ marginBottom: 16 }} />
              <Text style={{ fontSize: 13, fontWeight: '700', color: cSub, textTransform: 'uppercase' }}>Leads Đổ Về</Text>
-             <Text style={{ fontSize: 36, fontWeight: '900', color: cText, marginTop: 4 }}>1,482</Text>
-             <Text style={{ fontSize: 13, fontWeight: '600', color: '#10b981', marginTop: 8 }}>+24 hôm nay</Text>
+             <Text style={{ fontSize: 36, fontWeight: '900', color: cText, marginTop: 4 }}>—</Text>
+             <Text style={{ fontSize: 13, fontWeight: '600', color: '#10b981', marginTop: 8 }}>Chờ kết nối API</Text>
           </View>
           <View style={[cardStyle, { flex: 1 }]}>
              <CheckCircle2 size={24} color="#10b981" style={{ marginBottom: 16 }} />
              <Text style={{ fontSize: 13, fontWeight: '700', color: cSub, textTransform: 'uppercase' }}>Khách Tương Tác</Text>
-             <Text style={{ fontSize: 36, fontWeight: '900', color: cText, marginTop: 4 }}>856</Text>
-             <Text style={{ fontSize: 13, fontWeight: '600', color: '#10b981', marginTop: 8 }}>+12 hôm nay</Text>
+             <Text style={{ fontSize: 36, fontWeight: '900', color: cText, marginTop: 4 }}>—</Text>
+             <Text style={{ fontSize: 13, fontWeight: '600', color: '#10b981', marginTop: 8 }}>Chờ kết nối API</Text>
           </View>
           <View style={[cardStyle, { flex: 1 }]}>
              <FileText size={24} color="#3b82f6" style={{ marginBottom: 16 }} />
              <Text style={{ fontSize: 13, fontWeight: '700', color: cSub, textTransform: 'uppercase' }}>Total Sync Events</Text>
-             <Text style={{ fontSize: 36, fontWeight: '900', color: cText, marginTop: 4 }}>15.2K</Text>
+             <Text style={{ fontSize: 36, fontWeight: '900', color: cText, marginTop: 4 }}>—</Text>
              <Text style={{ fontSize: 13, fontWeight: '600', color: '#3b82f6', marginTop: 8 }}>Auto-sync (15m)</Text>
           </View>
         </View>
@@ -98,12 +98,7 @@ export function CrmViewer() {
           />
           
           <View style={{ backgroundColor: isDark ? '#0f172a' : '#f8fafc', borderRadius: 16, padding: 24, gap: 16, borderWidth: 1, borderColor: isDark ? '#1e293b' : '#f1f5f9' }}>
-            {[
-              { id: 1, time: 'Vừa xong', type: 'NEW_LEAD', msg: 'Nhận 1 Lead mới từ Form "Facebook Ads - T10". Chỉ định cho NVKD Trần Văn A.' },
-              { id: 2, time: '10 phút trước', type: 'UPDATE', msg: 'Cập nhật trạng thái Kanban "KH Lê Thị B" -> Đoạn hẹn gặp.' },
-              { id: 3, time: '1 tiếng trước', type: 'ROUTING', msg: 'Auto-Routing: Chia đều 5 Leads mới cho Team Alpha.' },
-              { id: 4, time: '3 tiếng trước', type: 'CALL_LOG', msg: 'Đồng bộ lịch sử 12 cuộc gọi Telesale qua Bizfly Call Center.' },
-            ].map(log => (
+            {[].map((log: any) => (
               <View key={log.id} style={{ flexDirection: 'row', gap: 16 }}>
                 <Text style={{ fontSize: 13, fontWeight: '700', color: cSub, width: 80, marginTop: 2 }}>{log.time}</Text>
                 <View style={{ flex: 1 }}>

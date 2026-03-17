@@ -1,41 +1,32 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { useTheme, typography } from '../../../shared/theme/theme';
 import { useThemeStore } from '../../../shared/theme/themeStore';
 import { SGCard, SGButton } from '../../../shared/ui';
 import { Plus, Percent, CalendarClock, ChevronRight, CheckCircle2 } from 'lucide-react-native';
+import { usePolicies } from '../hooks/useProject';
 
 const { width } = Dimensions.get('window');
 const isDesktop = width > 1024;
 
-const MOCK_POLICIES = [
-  { 
-    id: '1', name: 'Chiết khấu Thanh toán sớm 95%', 
-    startDate: '01/10/2023', endDate: '31/12/2023',
-    status: 'ACTIVE',
-    rules: ['Chiết khấu 8% vào giá bán', 'Miễn phí quản lý 2 năm', 'Tặng gói nội thất 100tr'],
-    color: '#10b981'
-  },
-  { 
-    id: '2', name: 'Chính sách Vay NH 70% Ân hạn gốc lãi', 
-    startDate: '15/10/2023', endDate: '15/01/2024',
-    status: 'ACTIVE',
-    rules: ['Bảo lãnh NH MBBank', 'Hỗ trợ lãi suất 0% trong 18 tháng', 'Ân hạn nợ gốc 18 tháng'],
-    color: '#3b82f6'
-  },
-  { 
-    id: '3', name: 'Hoa hồng Đại lý Quý 4/2023', 
-    startDate: '01/10/2023', endDate: '31/12/2023',
-    status: 'DRAFT',
-    rules: ['Phí MG căn tiêu chuẩn: 2.5%', 'Phí MG căn góc: 3%', 'Thưởng nóng 20tr/căn'],
-    color: '#f59e0b'
-  },
-];
+// Data from API
 
 export function ProjectPolicies() {
   const colors = useTheme();
   const { isDark } = useThemeStore();
   const [activeTab, setActiveTab] = useState('active');
+
+  const { data: rawPolicies, isLoading } = usePolicies();
+  const policies = (rawPolicies || []).map((p: any) => {
+    let rules: string[] = [];
+    try { rules = p.rules ? JSON.parse(p.rules) : []; } catch { rules = []; }
+    return {
+      ...p,
+      rules,
+      startDate: p.startDate ? new Date(p.startDate).toLocaleDateString('vi-VN') : '',
+      endDate: p.endDate ? new Date(p.endDate).toLocaleDateString('vi-VN') : '',
+    };
+  });
 
   return (
     <View style={styles.container}>
@@ -83,7 +74,11 @@ export function ProjectPolicies() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 40 }}>
-              {MOCK_POLICIES.filter(p => activeTab === 'active' ? p.status === 'ACTIVE' : p.status === 'DRAFT').map(policy => (
+              {isLoading ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color="#10b981" />
+                </View>
+              ) : policies.filter((p: any) => activeTab === 'active' ? p.status === 'ACTIVE' : p.status === 'DRAFT').map((policy: any) => (
                 <TouchableOpacity key={policy.id} style={[styles.policyCard, {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.9)',
                   borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',

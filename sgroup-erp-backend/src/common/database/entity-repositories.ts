@@ -19,12 +19,16 @@ export interface CustomerEntity {
   id: string; fullName: string; phone?: string; email?: string;
   source?: string; projectInterest?: string; budget?: string;
   status: string; assignedTo?: string; assignedName?: string;
-  isVip: boolean; lastContactAt?: Date; note?: string;
-  year: number; month: number; createdAt: Date; updatedAt: Date;
+  isVip: boolean; lastContactAt?: Date;
+  companyName?: string; birthday?: Date; address?: string;
+  tags?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string;
+  note?: string; year: number; month: number;
+  createdAt: Date; updatedAt: Date; deletedAt?: Date;
 }
 
 export interface ActivityEntity {
   id: string; date: Date; staffId: string; staffName?: string;
+  teamId?: string; teamName?: string;
   postsCount: number; callsCount: number; newLeads: number;
   meetingsMade: number; note?: string;
   year: number; month: number; createdAt: Date; updatedAt: Date;
@@ -117,7 +121,9 @@ export interface BizflySyncLogEntity {
 export interface AuditLogEntity {
   id: string; auditId: string; action: string;
   entity: string; entityId?: string;
-  actorEmail?: string; meta?: string; createdAt: Date;
+  actorEmail?: string; ipAddress?: string;
+  oldValue?: any; newValue?: any;
+  meta?: string; createdAt: Date;
 }
 
 export interface SalesDailyEntity {

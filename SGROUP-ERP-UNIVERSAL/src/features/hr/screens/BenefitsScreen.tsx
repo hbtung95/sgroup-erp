@@ -2,18 +2,14 @@
  * BenefitsScreen — HR Benefits and Social Insurance
  */
 import React from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Briefcase, Search, ShieldCheck, Heart, Plane, Plus } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
+import { useEmployees } from '../hooks/useHR';
 
-const MOCK_BENEFITS = [
-  { id: '1', code: 'SG001', name: 'Nguyễn Văn A', bhxh: '0123456789', pkHealth: 'Gói Cao cấp A', status: 'ACTIVE' },
-  { id: '2', code: 'SG002', name: 'Trần Thị B', bhxh: '0987654321', pkHealth: 'Gói Tiêu chuẩn', status: 'ACTIVE' },
-  { id: '3', code: 'SG003', name: 'Lê Văn C', bhxh: '0112233445', pkHealth: 'Gói Tiêu chuẩn', status: 'ACTIVE' },
-  { id: '4', code: 'SG004', name: 'Phạm Thị D', bhxh: '-', pkHealth: '-', status: 'PENDING' },
-];
+// Benefits screen now uses employee data from the API
 
 export function BenefitsScreen() {
   const { theme, isDark } = useAppTheme();
@@ -21,6 +17,18 @@ export function BenefitsScreen() {
   const cSub = theme.colors.textSecondary;
   const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  const { data: empData, isLoading } = useEmployees({ status: 'ACTIVE' });
+  const employees = empData?.data || [];
+
+  const benefitsData = employees.map((e: any) => ({
+    id: e.id,
+    code: e.employeeCode,
+    name: e.fullName,
+    bhxh: e.identityNumber || '-',
+    pkHealth: e.status === 'ACTIVE' ? 'Gói Tiêu chuẩn' : '-',
+    status: e.status === 'ACTIVE' ? 'ACTIVE' : 'PENDING',
+  }));
 
   const COLUMNS: any = [
     { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
@@ -108,11 +116,18 @@ export function BenefitsScreen() {
 
         {/* Table */}
         <SGCard variant="glass" noPadding>
-          <SGTable 
-            columns={COLUMNS} 
-            data={MOCK_BENEFITS} 
-            style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-          />
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#10b981" />
+              <Text style={{ color: cSub, marginTop: 12, fontSize: 13 }}>Đang tải dữ liệu...</Text>
+            </View>
+          ) : (
+            <SGTable 
+              columns={COLUMNS} 
+              data={benefitsData} 
+              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
+            />
+          )}
         </SGCard>
       </ScrollView>
     </View>

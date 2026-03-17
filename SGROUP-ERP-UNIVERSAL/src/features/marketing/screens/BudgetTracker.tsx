@@ -2,29 +2,15 @@
  * BudgetTracker — Budget & Spend Tracking
  */
 import React from 'react';
-import { View, Text, ScrollView, Platform } from 'react-native';
+import { View, Text, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { Wallet, TrendingUp, AlertCircle, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
+import { useBudget } from '../hooks/useMarketing';
 
 const ACCENT = '#D97706';
 
-const MOCK_BUDGET_SUMMARY = [
-  { id: '1', label: 'TỔNG NGÂN SÁCH THÁNG', value: '1.20', unit: 'Tỷ ₫', icon: Wallet, color: '#3b82f6', trend: '+15%' },
-  { id: '2', label: 'ĐÃ TIÊU (SPEND)', value: '680', unit: 'Tr ₫', icon: TrendingUp, color: ACCENT, trend: '+8%' },
-  { id: '3', label: 'CÒN LẠI (REMAINING)', value: '520', unit: 'Tr ₫', icon: Activity, color: '#22c55e', trend: '-12%' },
-  { id: '4', label: 'TỶ LỆ TIÊU HAO', value: '56.6', unit: '%', icon: AlertCircle, color: '#f59e0b', trend: '+4%' },
-];
-
-const MOCK_CHANNEL_BUDGETS = [
-  { id: 'c1', channel: 'Facebook Ads', allocated: 450000000, spent: 285000000, roas: '4.2x' },
-  { id: 'c2', channel: 'Google Ads', allocated: 350000000, spent: 210000000, roas: '5.1x' },
-  { id: 'c3', channel: 'TikTok Ads', allocated: 150000000, spent: 95000000, roas: '2.8x' },
-  { id: 'c4', channel: 'Zalo Ads', allocated: 80000000, spent: 42000000, roas: '3.5x' },
-  { id: 'c5', channel: 'PR & Events', allocated: 100000000, spent: 28000000, roas: 'N/A' },
-  { id: 'c6', channel: 'KOL/Influencer', allocated: 50000000, spent: 15000000, roas: '1.9x' },
-  { id: 'c7', channel: 'Email/SMS', allocated: 20000000, spent: 5000000, roas: '8.4x' },
-];
+// Data from API via useBudget()
 
 const fmtMoney = (v: number) => {
   if (v >= 1000000000) return `${(v / 1000000000).toFixed(1)} Tỷ`;
@@ -36,6 +22,21 @@ export function BudgetTracker() {
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;
+
+  const { data: budget, isLoading } = useBudget();
+
+  const totalAllocated = budget?.totalAllocated ?? 0;
+  const totalSpent = budget?.totalSpent ?? 0;
+  const remaining = budget?.remaining ?? 0;
+  const burnRate = totalAllocated > 0 ? Math.round(totalSpent / totalAllocated * 100) : 0;
+  const channelBudgets = budget?.channels || [];
+
+  const BUDGET_SUMMARY = [
+    { id: '1', label: 'TỔNG NGÂN SÁCH', value: fmtMoney(totalAllocated), unit: '', icon: Wallet, color: '#3b82f6' },
+    { id: '2', label: 'ĐÃ TIÊU (SPEND)', value: fmtMoney(totalSpent), unit: '', icon: TrendingUp, color: ACCENT },
+    { id: '3', label: 'CÒN LẠI', value: fmtMoney(remaining), unit: '', icon: Activity, color: '#22c55e' },
+    { id: '4', label: 'TỶ LỆ TIÊU HAO', value: String(burnRate), unit: '%', icon: AlertCircle, color: '#f59e0b' },
+  ];
 
   const card: any = {
     backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 24, padding: 24,
@@ -59,21 +60,21 @@ export function BudgetTracker() {
 
         {/* Summary Cards */}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-          {MOCK_BUDGET_SUMMARY.map(item => (
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={ACCENT} />
+            </View>
+          ) : BUDGET_SUMMARY.map(item => (
             <View key={item.id} style={[card, { flex: 1, minWidth: 200 }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
                 <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: `${item.color}15`, alignItems: 'center', justifyContent: 'center' }}>
                   {(() => { const Icon = item.icon; return <Icon size={20} color={item.color} />; })()}
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: item.trend.startsWith('+') ? '#22c55e15' : '#ef444415', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
-                  {item.trend.startsWith('+') ? <ArrowUpRight size={12} color="#16a34a" /> : <ArrowDownRight size={12} color="#ef4444" />}
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: item.trend.startsWith('+') ? '#16a34a' : '#ef4444' }}>{item.trend}</Text>
-                </View>
               </View>
               <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>{item.label}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
                 <Text style={{ fontSize: 32, fontWeight: '900', color: cText, letterSpacing: -1 }}>{item.value}</Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#94a3b8' }}>{item.unit}</Text>
+                {item.unit ? <Text style={{ fontSize: 14, fontWeight: '700', color: '#94a3b8' }}>{item.unit}</Text> : null}
               </View>
             </View>
           ))}
@@ -83,8 +84,8 @@ export function BudgetTracker() {
         <View style={card}>
           <Text style={{ fontSize: 18, fontWeight: '900', color: cText, marginBottom: 24 }}>Phân Bổ Ngân Sách Theo Kênh</Text>
           <View style={{ gap: 20 }}>
-            {MOCK_CHANNEL_BUDGETS.sort((a,b) => b.allocated - a.allocated).map((item, index) => {
-              const spendPct = Math.round((item.spent / item.allocated) * 100);
+            {channelBudgets.sort((a: any, b: any) => b.allocated - a.allocated).map((item: any, index: number) => {
+              const spendPct = item.allocated > 0 ? Math.round((item.spent / item.allocated) * 100) : 0;
               const isOver = spendPct > 90;
               const isWarning = spendPct > 75 && !isOver;
               const barColor = isOver ? '#ef4444' : isWarning ? '#f59e0b' : '#3b82f6';

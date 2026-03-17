@@ -12,6 +12,7 @@ export class PrismaActivityRepository implements IActivityRepository {
   async findAll(filters?: Record<string, any>): Promise<ActivityEntity[]> {
     const where: any = {};
     if (filters?.staffId) where.staffId = filters.staffId;
+    if (filters?.teamId) where.teamId = filters.teamId;
     if (filters?.year) where.year = filters.year;
     if (filters?.month) where.month = filters.month;
     if (filters?.dateFrom || filters?.dateTo) {
@@ -48,12 +49,14 @@ export class PrismaActivityRepository implements IActivityRepository {
     if (filters?.year) where.year = filters.year;
     if (filters?.month) where.month = filters.month;
     if (filters?.staffId) where.staffId = filters.staffId;
+    if (filters?.teamId) where.teamId = filters.teamId;
     return this.prisma.salesActivity.count({ where });
   }
 
-  async getSummary(filters: { staffId?: string; year: number; month?: number }) {
+  async getSummary(filters: { staffId?: string; teamId?: string; year: number; month?: number }) {
     const where: any = { year: filters.year };
     if (filters.staffId) where.staffId = filters.staffId;
+    if (filters.teamId) where.teamId = filters.teamId;
     if (filters.month) where.month = filters.month;
 
     const activities = await this.prisma.salesActivity.findMany({ where });

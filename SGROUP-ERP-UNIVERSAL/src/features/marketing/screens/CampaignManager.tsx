@@ -2,40 +2,32 @@
  * CampaignManager — Campaign list with status filters, search, and performance metrics
  */
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { Megaphone, Search, Plus, TrendingUp, Users, Wallet, Eye, MousePointerClick, ArrowUpRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
+import { useCampaigns } from '../hooks/useMarketing';
 
 const ACCENT = '#D97706';
 
-type CampaignStatus = 'all' | 'running' | 'paused' | 'draft' | 'completed';
+type CampaignStatus = 'all' | 'RUNNING' | 'PAUSED' | 'DRAFT' | 'COMPLETED';
 
 const STATUS_TABS: { key: CampaignStatus; label: string }[] = [
   { key: 'all', label: 'Tất cả' },
-  { key: 'running', label: 'Đang chạy' },
-  { key: 'paused', label: 'Tạm dừng' },
-  { key: 'draft', label: 'Nháp' },
-  { key: 'completed', label: 'Hoàn tất' },
+  { key: 'RUNNING', label: 'Đang chạy' },
+  { key: 'PAUSED', label: 'Tạm dừng' },
+  { key: 'DRAFT', label: 'Nháp' },
+  { key: 'COMPLETED', label: 'Hoàn tất' },
 ];
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  running: { bg: '#dcfce7', text: '#16a34a', label: 'ĐANG CHẠY' },
-  paused: { bg: '#fef3c7', text: '#D97706', label: 'TẠM DỪNG' },
-  draft: { bg: '#f1f5f9', text: '#64748b', label: 'NHÁP' },
-  completed: { bg: '#eff6ff', text: '#3b82f6', label: 'HOÀN TẤT' },
+  RUNNING: { bg: '#dcfce7', text: '#16a34a', label: 'ĐANG CHẠY' },
+  PAUSED: { bg: '#fef3c7', text: '#D97706', label: 'TẠM DỪNG' },
+  DRAFT: { bg: '#f1f5f9', text: '#64748b', label: 'NHÁP' },
+  COMPLETED: { bg: '#eff6ff', text: '#3b82f6', label: 'HOÀN TẤT' },
 };
 
-const MOCK_CAMPAIGNS = [
-  { id: '1', name: 'Brand Awareness Q1 2026', channel: 'Facebook Ads', objective: 'Brand Awareness', budget: 120000000, spend: 98000000, impressions: 2450000, clicks: 68000, leads: 342, ctr: 2.78, cpl: 286000, roas: 3.8, status: 'running', startDate: '2026-01-15', endDate: '2026-03-31' },
-  { id: '2', name: 'Product Launch Wave 2 — Dự án SG Center', channel: 'Google Ads', objective: 'Lead Generation', budget: 200000000, spend: 156000000, impressions: 1890000, clicks: 52000, leads: 521, ctr: 2.75, cpl: 299000, roas: 4.5, status: 'running', startDate: '2026-02-01', endDate: '2026-04-30' },
-  { id: '3', name: 'Retargeting — High Intent Visitors', channel: 'Facebook Ads', objective: 'Conversions', budget: 80000000, spend: 72000000, impressions: 980000, clicks: 34000, leads: 198, ctr: 3.47, cpl: 364000, roas: 5.2, status: 'running', startDate: '2026-02-15', endDate: '2026-03-15' },
-  { id: '4', name: 'Email Nurture — Leads Q4 2025', channel: 'Email', objective: 'Nurture', budget: 15000000, spend: 12000000, impressions: 45000, clicks: 8900, leads: 89, ctr: 19.8, cpl: 135000, roas: 6.1, status: 'running', startDate: '2026-01-01', endDate: '2026-06-30' },
-  { id: '5', name: 'Zalo OA — Chăm sóc khách hàng', channel: 'Zalo', objective: 'Engagement', budget: 45000000, spend: 38000000, impressions: 320000, clicks: 18000, leads: 156, ctr: 5.63, cpl: 244000, roas: 3.2, status: 'paused', startDate: '2026-01-20', endDate: '2026-03-20' },
-  { id: '6', name: 'TikTok — Dự án SG Nest', channel: 'TikTok Ads', objective: 'Awareness', budget: 90000000, spend: 0, impressions: 0, clicks: 0, leads: 0, ctr: 0, cpl: 0, roas: 0, status: 'draft', startDate: '2026-04-01', endDate: '2026-06-30' },
-  { id: '7', name: 'SEO Content — Blog BĐS', channel: 'SEO', objective: 'Organic Traffic', budget: 30000000, spend: 28000000, impressions: 890000, clicks: 42000, leads: 231, ctr: 4.72, cpl: 121000, roas: 7.8, status: 'completed', startDate: '2025-10-01', endDate: '2026-01-31' },
-  { id: '8', name: 'PR — Event Offline Q4', channel: 'PR/Events', objective: 'Brand', budget: 150000000, spend: 145000000, impressions: 0, clicks: 0, leads: 412, ctr: 0, cpl: 352000, roas: 2.9, status: 'completed', startDate: '2025-11-01', endDate: '2025-12-31' },
-];
+// Data comes from API
 
 const fmtMoney = (v: number) => {
   if (v >= 1000000000) return `${(v / 1000000000).toFixed(1)} Tỷ`;
@@ -51,15 +43,28 @@ export function CampaignManager() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<CampaignStatus>('all');
 
+  const { data: rawCampaigns, isLoading } = useCampaigns(
+    statusFilter !== 'all' ? { status: statusFilter } : undefined
+  );
+
+  const allCampaigns = (rawCampaigns || []).map((c: any) => ({
+    ...c,
+    budget: Number(c.budget) || 0,
+    spend: Number(c.spend) || 0,
+    impressions: 0,
+    clicks: 0,
+    ctr: 0,
+    cpl: c.leads > 0 ? Math.round(Number(c.spend) / c.leads) : 0,
+    roas: 0,
+  }));
+
   const filtered = useMemo(() => {
-    let list = MOCK_CAMPAIGNS;
-    if (statusFilter !== 'all') list = list.filter(c => c.status === statusFilter);
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(c => c.name.toLowerCase().includes(q) || c.channel.toLowerCase().includes(q));
-    }
-    return list;
-  }, [search, statusFilter]);
+    if (!search.trim()) return allCampaigns;
+    const q = search.toLowerCase();
+    return allCampaigns.filter((c: any) => c.name.toLowerCase().includes(q) || c.channel.toLowerCase().includes(q));
+  }, [allCampaigns, search]);
+
+  const runningCount = allCampaigns.filter((c: any) => c.status === 'RUNNING').length;
 
   const card: any = {
     backgroundColor: isDark ? 'rgba(20,24,35,0.45)' : '#fff', borderRadius: 24, padding: 24,
@@ -78,7 +83,7 @@ export function CampaignManager() {
             </LinearGradient>
             <View>
               <Text style={{ fontSize: 26, fontWeight: '900', color: cText }}>QUẢN LÝ CHIẾN DỊCH</Text>
-              <Text style={{ fontSize: 13, fontWeight: '600', color: '#94a3b8', marginTop: 3 }}>{MOCK_CAMPAIGNS.length} chiến dịch • {MOCK_CAMPAIGNS.filter(c => c.status === 'running').length} đang chạy</Text>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#94a3b8', marginTop: 3 }}>{allCampaigns.length} chiến dịch • {runningCount} đang chạy</Text>
             </View>
           </View>
           <TouchableOpacity style={{
@@ -131,7 +136,12 @@ export function CampaignManager() {
         </View>
 
         {/* Campaign Cards */}
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <View style={{ padding: 60, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={ACCENT} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#94a3b8', marginTop: 12 }}>Đang tải chiến dịch...</Text>
+          </View>
+        ) : filtered.length === 0 ? (
           <View style={{ padding: 60, alignItems: 'center' }}>
             <Text style={{ fontSize: 48, marginBottom: 16 }}>📭</Text>
             <Text style={{ fontSize: 16, fontWeight: '800', color: cText }}>Không tìm thấy chiến dịch</Text>
@@ -139,7 +149,7 @@ export function CampaignManager() {
           </View>
         ) : (
           <View style={{ gap: 16 }}>
-            {filtered.map(c => {
+            {filtered.map((c: any) => {
               const s = STATUS_STYLES[c.status] || STATUS_STYLES.draft;
               const spendPct = c.budget > 0 ? Math.round((c.spend / c.budget) * 100) : 0;
               return (

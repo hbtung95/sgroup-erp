@@ -2,21 +2,22 @@
  * ContentCalendar — Content schedule and pipeline management
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { CalendarDays, FileText, Share2, Video, Mail, CheckCircle2, Clock, AlertCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
+import { useContent } from '../hooks/useMarketing';
 
 const ACCENT = '#D97706';
 
-type ContentStatus = 'all' | 'published' | 'scheduled' | 'draft';
+type ContentStatus = 'all' | 'PUBLISHED' | 'SCHEDULED' | 'DRAFT';
 type ContentType = 'all' | 'social' | 'blog' | 'video' | 'email';
 
 const STATUS_TABS: { key: ContentStatus; label: string }[] = [
   { key: 'all', label: 'Tất cả' },
-  { key: 'published', label: 'Đã xuất bản' },
-  { key: 'scheduled', label: 'Đã lên lịch' },
-  { key: 'draft', label: 'Bản nháp' },
+  { key: 'PUBLISHED', label: 'Đã xuất bản' },
+  { key: 'SCHEDULED', label: 'Đã lên lịch' },
+  { key: 'DRAFT', label: 'Bản nháp' },
 ];
 
 const CONTENT_TYPES: { key: ContentType; label: string; icon: any; color: string }[] = [
@@ -26,13 +27,7 @@ const CONTENT_TYPES: { key: ContentType; label: string; icon: any; color: string
   { key: 'email', label: 'Newsletter', icon: Mail, color: '#8b5cf6' },
 ];
 
-const MOCK_CONTENT = [
-  { id: '1', title: 'Ra mắt phân khu mới SG Center', date: '2026-03-15', time: '10:00', author: 'Minh T.', type: 'social', status: 'scheduled', channel: 'Facebook Page' },
-  { id: '2', title: '5 Lý do nên đầu tư biệt thự ven sông', date: '2026-03-14', time: '14:30', author: 'Hương N.', type: 'blog', status: 'published', channel: 'Website SGROUP' },
-  { id: '3', title: 'Review tiến độ thực tế SG Nest', date: '2026-03-16', time: '19:00', author: 'Tuấn A.', type: 'video', status: 'scheduled', channel: 'TikTok / Reels' },
-  { id: '4', title: 'Newsletter: Thị trường BĐS Quý 1', date: '2026-03-20', time: '09:00', author: 'Lan P.', type: 'email', status: 'draft', channel: 'Customer DB' },
-  { id: '5', title: 'Infographic: CSBH SG Center', date: '2026-03-13', time: '08:00', author: 'Minh T.', type: 'social', status: 'published', channel: 'Zalo OA' },
-];
+// Data from API
 
 export function ContentCalendar() {
   const { theme, isDark } = useAppTheme();
@@ -40,8 +35,27 @@ export function ContentCalendar() {
   const [statusFilter, setStatusFilter] = useState<ContentStatus>('all');
   const [typeFilter, setTypeFilter] = useState<ContentType>('all');
 
-  const filtered = MOCK_CONTENT.filter(c =>
-    (statusFilter === 'all' || c.status === statusFilter) &&
+  const { data: rawContent, isLoading } = useContent(
+    statusFilter !== 'all' ? { status: statusFilter } : undefined
+  );
+
+  const TYPE_KEY_MAP: Record<string, string> = { POST: 'social', VIDEO: 'video', REEL: 'social', STORY: 'social', BLOG: 'blog', EMAIL: 'email' };
+
+  const allContent = (rawContent || []).map((c: any) => {
+    const d = c.scheduledDate ? new Date(c.scheduledDate) : new Date(c.createdAt);
+    return {
+      id: c.id,
+      title: c.title,
+      date: d.toISOString().split('T')[0],
+      time: d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+      author: c.author || '',
+      type: TYPE_KEY_MAP[c.contentType] || 'social',
+      status: c.status.toLowerCase(),
+      channel: c.channel,
+    };
+  });
+
+  const filtered = allContent.filter((c: any) =>
     (typeFilter === 'all' || c.type === typeFilter)
   );
 

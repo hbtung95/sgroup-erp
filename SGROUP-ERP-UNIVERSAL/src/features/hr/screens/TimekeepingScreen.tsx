@@ -3,23 +3,17 @@
  * Features: Daily overview, employee attendance list, leave requests
  */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Clock, CheckCircle, AlertCircle, Calendar, Users, XCircle, Search } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
 import type { HRRole } from '../HRSidebar';
+import { useAttendance } from '../hooks/useHR';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
-// Mock data for today's attendance
-const MOCK_ATTENDANCE = [
-  { id: '1', code: 'SG001', name: 'Nguyễn Văn A', dept: 'Kinh Doanh', shift: 'Hành chính', checkIn: '08:15', checkOut: '—', status: 'ON_TIME' },
-  { id: '2', code: 'SG002', name: 'Trần Thị B', dept: 'IT', shift: 'Hành chính', checkIn: '08:45', checkOut: '—', status: 'LATE' },
-  { id: '3', code: 'SG003', name: 'Lê Văn C', dept: 'Marketing', shift: 'Hành chính', checkIn: '08:25', checkOut: '—', status: 'ON_TIME' },
-  { id: '4', code: 'SG004', name: 'Phạm Thị D', dept: 'Kế toán', shift: 'Hành chính', checkIn: '08:31', checkOut: '—', status: 'LATE' },
-  { id: '5', code: 'SG006', name: 'Vũ Thị F', dept: 'Kinh Doanh', shift: 'Hành chính', checkIn: '—', checkOut: '—', status: 'ABSENT' },
-];
+// Status config for attendance display
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
   ON_TIME: { bg: '#dcfce7', text: '#16a34a', label: 'Đúng giờ' },
@@ -34,7 +28,32 @@ export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
   const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
   const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
-  const currentDate = new Date().toLocaleDateString('vi-VN');
+  const today = new Date();
+  const currentDate = today.toLocaleDateString('vi-VN');
+  const todayStr = today.toISOString().split('T')[0];
+
+  // Fetch real attendance from API
+  const { data: rawAttendance, isLoading } = useAttendance({ date: todayStr });
+
+  // Transform API data for table display
+  const attendanceData = (rawAttendance || []).map((a: any) => {
+    const fmtTime = (d: string | null) => d ? new Date(d).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—';
+    const statusMap: Record<string, string> = { PRESENT: 'ON_TIME', LATE: 'LATE', ABSENT: 'ABSENT', HALF_DAY: 'LATE', DAY_OFF: 'ABSENT' };
+    return {
+      id: a.id,
+      code: a.employee?.employeeCode || '',
+      name: a.employee?.fullName || '',
+      dept: a.employee?.department?.name || '',
+      shift: 'Hành chính',
+      checkIn: fmtTime(a.checkInTime),
+      checkOut: fmtTime(a.checkOutTime),
+      status: statusMap[a.status] || a.status,
+    };
+  });
+
+  const presentCount = attendanceData.filter((a: any) => a.status === 'ON_TIME').length;
+  const lateCount = attendanceData.filter((a: any) => a.status === 'LATE').length;
+  const absentCount = attendanceData.filter((a: any) => a.status === 'ABSENT').length;
 
   const COLUMNS: any = [
     { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
@@ -83,10 +102,10 @@ export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
         {/* Stats Summary */}
         <View style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
           {[
-            { label: 'TỔNG NHÂN SỰ', val: 248, icon: Users, color: '#3b82f6' },
-            { label: 'ĐÃ ĐIỂM DANH', val: 230, icon: CheckCircle, color: '#22c55e' },
-            { label: 'ĐI TRỄ', val: 12, icon: AlertCircle, color: '#f59e0b' },
-            { label: 'VẮNG MẶT', val: 6, icon: XCircle, color: '#ef4444' },
+            { label: 'TỔNG ĐIỂM DANH', val: attendanceData.length, icon: Users, color: '#3b82f6' },
+            { label: 'ĐÚNG GIờ', val: presentCount, icon: CheckCircle, color: '#22c55e' },
+            { label: 'ĐI TRỄ', val: lateCount, icon: AlertCircle, color: '#f59e0b' },
+            { label: 'VẮNG MẶT', val: absentCount, icon: XCircle, color: '#ef4444' },
           ].map((s, i) => (
             <View key={i} style={{
               flex: 1, minWidth: 160, padding: 20, borderRadius: 20,
@@ -123,11 +142,18 @@ export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
 
         {/* Table */}
         <SGCard variant="glass" noPadding>
-          <SGTable 
-            columns={COLUMNS} 
-            data={MOCK_ATTENDANCE} 
-            style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-          />
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#3b82f6" />
+              <Text style={{ color: cSub, marginTop: 12, fontSize: 13 }}>Đang tải dữ liệu chấm công...</Text>
+            </View>
+          ) : (
+            <SGTable 
+              columns={COLUMNS} 
+              data={attendanceData} 
+              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
+            />
+          )}
         </SGCard>
 
       </ScrollView>

@@ -1,9 +1,10 @@
 /**
  * StaffDirectoryScreen — Premium HR Staff Directory page
  * Features: stat cards, search/filter, modern staff cards with department display
+ * Now connected to real database via HR API
  */
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, Pressable, Platform, TextInput } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform, TextInput, ActivityIndicator } from 'react-native';
 import {
   UserCog, Plus, Users, Target, Search, Filter, Mail, Hash, Phone, Building, Star
 } from 'lucide-react-native';
@@ -11,35 +12,25 @@ import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard } from '../../../shared/ui/components';
 import type { HRRole } from '../HRSidebar';
+import { useEmployees, useHRDashboard } from '../hooks/useHR';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
-// Mock Data
-const MOCK_STAFF = [
-  { id: '1', code: 'SG001', name: 'Nguyễn Văn A', dept: 'Sales & Kinh Doanh', role: 'Trưởng phòng', email: 'vana@sgroup.vn', phone: '0901234567', status: 'ACTIVE', joinDate: '2021-03-15' },
-  { id: '2', code: 'SG002', name: 'Trần Thị B', dept: 'Công nghệ & IT', role: 'Senior Developer', email: 'thib@sgroup.vn', phone: '0912345678', status: 'ACTIVE', joinDate: '2022-06-10' },
-  { id: '3', code: 'SG003', name: 'Lê Văn C', dept: 'Marketing', role: 'Chuyên viên', email: 'vanc@sgroup.vn', phone: '0923456789', status: 'ACTIVE', joinDate: '2023-01-20' },
-  { id: '4', code: 'SG004', name: 'Phạm Thị D', dept: 'Tài chính - Kế toán', role: 'Kế toán trưởng', email: 'thid@sgroup.vn', phone: '0934567890', status: 'ACTIVE', joinDate: '2020-11-05' },
-  { id: '5', code: 'SG005', name: 'Hoàng Văn E', dept: 'Hành chính - Nhân sự', role: 'HR Manager', email: 'vane@sgroup.vn', phone: '0945678901', status: 'ACTIVE', joinDate: '2021-08-12' },
-  { id: '6', code: 'SG006', name: 'Vũ Thị F', dept: 'Sales & Kinh Doanh', role: 'Nhân viên', email: 'thif@sgroup.vn', phone: '0956789012', status: 'ON_LEAVE', joinDate: '2024-02-01' },
-];
-
 const FILTER_TABS = [
   { key: 'all', label: 'Tất cả' },
-  { key: 'Sales & Kinh Doanh', label: 'Sales' },
-  { key: 'Công nghệ & IT', label: 'IT' },
-  { key: 'Marketing', label: 'Marketing' },
-  { key: 'Hành chính - Nhân sự', label: 'HR' },
+  { key: 'ACTIVE', label: 'Đang làm' },
+  { key: 'PROBATION', label: 'Thử việc' },
+  { key: 'ON_LEAVE', label: 'Đang nghỉ' },
+  { key: 'TERMINATED', label: 'Đã nghỉ' },
 ];
 
 // Role config for badges (generic for HR)
 const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  'Trưởng phòng': { label: 'Trưởng phòng', color: '#ef4444', bg: '#ef444410' },
-  'HR Manager': { label: 'HR Manager', color: '#f59e0b', bg: '#f59e0b10' },
-  'Kế toán trưởng': { label: 'Kế toán trưởng', color: '#8b5cf6', bg: '#8b5cf610' },
-  'Senior Developer': { label: 'Senior', color: '#3b82f6', bg: '#3b82f610' },
-  'Chuyên viên': { label: 'Chuyên viên', color: '#22c55e', bg: '#22c55e10' },
-  'Nhân viên': { label: 'Nhân viên', color: '#64748b', bg: '#f1f5f9' },
+  'Director': { label: 'Giám đốc', color: '#ef4444', bg: '#ef444410' },
+  'Manager': { label: 'Quản lý', color: '#f59e0b', bg: '#f59e0b10' },
+  'Leader': { label: 'Trưởng nhóm', color: '#8b5cf6', bg: '#8b5cf610' },
+  'Senior': { label: 'Senior', color: '#3b82f6', bg: '#3b82f610' },
+  'Staff': { label: 'Nhân viên', color: '#22c55e', bg: '#22c55e10' },
 };
 
 // Get initials from a full name
@@ -70,30 +61,22 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
 
   const canEdit = userRole === 'admin' || userRole === 'hr_manager' || userRole === 'hr_director';
 
-  // Search + filter
-  const filteredStaff = useMemo(() => {
-    let list = MOCK_STAFF;
-    if (activeFilter !== 'all') {
-      list = list.filter((s: any) => s.dept === activeFilter);
-    }
-    if (searchText.trim()) {
-      const q = searchText.toLowerCase();
-      list = list.filter((s: any) =>
-        (s.name || '').toLowerCase().includes(q) ||
-        (s.code || '').toLowerCase().includes(q) ||
-        (s.email || '').toLowerCase().includes(q) ||
-        (s.dept || '').toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [activeFilter, searchText]);
+  // Fetch real data from API
+  const { data: dashboardData } = useHRDashboard();
+  const { data: employeesData, isLoading, error } = useEmployees({
+    search: searchText || undefined,
+    status: activeFilter !== 'all' ? activeFilter : undefined,
+  });
 
-  // Stats
+  const employees = employeesData?.data || [];
+  const total = employeesData?.meta?.total || 0;
+
+  // Stats from dashboard
   const statCards = [
-    { label: 'Tổng nhân sự', value: MOCK_STAFF.length, icon: Users, color: '#ec4899', gradient: ['#ec4899', '#be185d'] },
-    { label: 'Phòng ban', value: 5, icon: Building, color: '#8b5cf6', gradient: ['#8b5cf6', '#7c3aed'] },
-    { label: 'Thử việc', value: 2, icon: Star, color: '#f59e0b', gradient: ['#f59e0b', '#d97706'] },
-    { label: 'Nghỉ phép', value: 1, icon: Target, color: '#3b82f6', gradient: ['#3b82f6', '#2563eb'] },
+    { label: 'Tổng nhân sự', value: dashboardData?.totalEmployees ?? 0, icon: Users, color: '#ec4899', gradient: ['#ec4899', '#be185d'] },
+    { label: 'Phòng ban', value: dashboardData?.departmentCount ?? 0, icon: Building, color: '#8b5cf6', gradient: ['#8b5cf6', '#7c3aed'] },
+    { label: 'Thử việc', value: dashboardData?.probationEmployees ?? 0, icon: Star, color: '#f59e0b', gradient: ['#f59e0b', '#d97706'] },
+    { label: 'Nghỉ phép', value: dashboardData?.onLeaveCount ?? 0, icon: Target, color: '#3b82f6', gradient: ['#3b82f6', '#2563eb'] },
   ];
 
   return (
@@ -206,20 +189,41 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
           </View>
         </View>
 
+        {/* ── Loading State ── */}
+        {isLoading && (
+          <View style={{ padding: 60, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#ec4899" />
+            <Text style={{ fontSize: 14, color: cSub, marginTop: 12 }}>Đang tải dữ liệu...</Text>
+          </View>
+        )}
+
+        {/* ── Error State ── */}
+        {error && (
+          <SGCard variant="glass" style={{ padding: 40, alignItems: 'center' }}>
+            <Text style={{ fontSize: 48, marginBottom: 16 }}>⚠️</Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: cText, marginBottom: 6 }}>Lỗi tải dữ liệu</Text>
+            <Text style={{ fontSize: 13, color: cSub, textAlign: 'center' }}>
+              {(error as any)?.message || 'Không thể kết nối đến máy chủ'}
+            </Text>
+          </SGCard>
+        )}
+
         {/* ── Staff Grid ── */}
-        {filteredStaff.length === 0 ? (
+        {!isLoading && !error && employees.length === 0 ? (
           <SGCard variant="glass" style={{ padding: 60, alignItems: 'center' }}>
             <Text style={{ fontSize: 48, marginBottom: 16 }}>👥</Text>
             <Text style={{ fontSize: 18, fontWeight: '800', color: cText, marginBottom: 6 }}>Không có dữ liệu</Text>
             <Text style={{ fontSize: 13, color: cSub, textAlign: 'center' }}>
-              {searchText ? 'Không tìm thấy kết quả phù hợp' : 'Danh sách nhân sự trống.'}
+              {searchText ? 'Không tìm thấy kết quả phù hợp' : 'Danh sách nhân sự trống. Hãy thêm nhân viên mới.'}
             </Text>
           </SGCard>
-        ) : (
+        ) : !isLoading && !error && (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-            {filteredStaff.map((staff, idx) => {
-              const roleConf = ROLE_CONFIG[staff.role] || { label: staff.role, color: '#64748b', bg: '#f1f5f9' };
-              const avatarColor = nameToColor(staff.name);
+            {employees.map((staff: any, idx: number) => {
+              const posLevel = staff.position?.level || 'Staff';
+              const roleConf = ROLE_CONFIG[posLevel] || { label: posLevel, color: '#64748b', bg: '#f1f5f9' };
+              const avatarColor = nameToColor(staff.fullName || '');
+              const deptName = staff.department?.name || '—';
 
               return (
                 <Pressable
@@ -248,14 +252,14 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                         borderWidth: 2, borderColor: avatarColor + '30',
                       }}>
                         <Text style={{ fontSize: 17, fontWeight: '900', color: avatarColor }}>
-                          {getInitials(staff.name)}
+                          {getInitials(staff.fullName || '')}
                         </Text>
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: cText, letterSpacing: -0.3 }}>{staff.name}</Text>
+                        <Text style={{ fontSize: 16, fontWeight: '800', color: cText, letterSpacing: -0.3 }}>{staff.fullName}</Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 }}>
                           <Hash size={11} color={cSub} />
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: cSub }}>{staff.code}</Text>
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: cSub }}>{staff.employeeCode}</Text>
                         </View>
                       </View>
                       {/* Role badge */}
@@ -265,7 +269,7 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                         borderWidth: 1, borderColor: roleConf.color + '20',
                       }}>
                         <Text style={{ fontSize: 10, fontWeight: '900', color: roleConf.color, letterSpacing: 0.3 }}>
-                          {roleConf.label}
+                          {staff.position?.name || roleConf.label}
                         </Text>
                       </View>
                     </View>
@@ -283,15 +287,15 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                       }}>
                         <Building size={12} color="#8b5cf6" />
                       </View>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: staff.dept !== '—' ? cText : cSub }}>
-                        {staff.dept}
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: deptName !== '—' ? cText : cSub }}>
+                        {deptName}
                       </Text>
                       <View style={{
                         paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginLeft: 'auto',
-                        backgroundColor: staff.status === 'ACTIVE' ? '#dcfce7' : '#fef3c7',
+                        backgroundColor: staff.status === 'ACTIVE' ? '#dcfce7' : staff.status === 'PROBATION' ? '#dbeafe' : '#fef3c7',
                       }}>
-                        <Text style={{ fontSize: 10, fontWeight: '800', color: staff.status === 'ACTIVE' ? '#16a34a' : '#d97706' }}>
-                          {staff.status === 'ACTIVE' ? 'ĐANG LÀM' : 'ĐANG NGHỈ'}
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: staff.status === 'ACTIVE' ? '#16a34a' : staff.status === 'PROBATION' ? '#2563eb' : '#d97706' }}>
+                          {staff.status === 'ACTIVE' ? 'ĐANG LÀM' : staff.status === 'PROBATION' ? 'THỬ VIỆC' : staff.status === 'ON_LEAVE' ? 'ĐANG NGHỈ' : staff.status}
                         </Text>
                       </View>
                     </View>
@@ -300,11 +304,11 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                     <View style={{ flexDirection: 'row', gap: 12 }}>
                       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10, borderRadius: 12, backgroundColor: isDark ? 'rgba(59,130,246,0.06)' : '#eff6ff' }}>
                         <Mail size={14} color="#3b82f6" />
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: cText }} numberOfLines={1}>{staff.email}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: cText }} numberOfLines={1}>{staff.email || '—'}</Text>
                       </View>
                       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10, borderRadius: 12, backgroundColor: isDark ? 'rgba(139,92,246,0.06)' : '#f5f3ff' }}>
                         <Phone size={14} color="#8b5cf6" />
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: cText }}>{staff.phone}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: cText }}>{staff.phone || '—'}</Text>
                       </View>
                     </View>
                   </View>
@@ -315,10 +319,10 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
         )}
 
         {/* ── Results count ── */}
-        {filteredStaff.length > 0 && (
+        {!isLoading && employees.length > 0 && (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
             <Text style={{ fontSize: 12, color: cSub, fontWeight: '600' }}>
-              Hiển thị {filteredStaff.length}/{MOCK_STAFF.length} nhân viên
+              Hiển thị {employees.length}/{total} nhân viên
             </Text>
           </View>
         )}

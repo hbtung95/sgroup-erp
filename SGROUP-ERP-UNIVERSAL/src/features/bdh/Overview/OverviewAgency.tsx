@@ -11,31 +11,7 @@ import { sgds } from '../../../shared/theme/theme';
 import { useGetAgencyPerformance } from '../hooks/useOverview';
 import { ActivityIndicator } from 'react-native';
 
-const KPI = [
-  { id: 'agents', label: 'TỔNG ĐẠI LÝ', value: '48', unit: 'Đại lý', change: 20, color: '#6366f1', icon: Building2 },
-  { id: 'f1', label: 'ĐẠI LÝ F1', value: '12', unit: 'Trực tiếp', change: 8, color: '#3b82f6', icon: Users },
-  { id: 'gmv', label: 'GMV TỪ ĐẠI LÝ', value: '850', unit: 'Tỷ', change: 25, color: '#22c55e', icon: DollarSign },
-  { id: 'comm', label: 'HOA HỒNG TRẢ', value: '42.5', unit: 'Tỷ', change: 18, color: '#f59e0b', icon: Award },
-];
-
-const AGENCIES = [
-  { name: 'CenLand', type: 'F1', deals: 85, gmv: 298, comm: 14.9, rating: 4.8, region: 'Toàn quốc', color: '#6366f1' },
-  { name: 'DKRA', type: 'F1', deals: 62, gmv: 217, comm: 10.9, rating: 4.6, region: 'HCM', color: '#3b82f6' },
-  { name: 'MGLand', type: 'F1', deals: 45, gmv: 158, comm: 7.9, rating: 4.5, region: 'HCM + HN', color: '#22c55e' },
-  { name: 'LinkHouse', type: 'F2', deals: 38, gmv: 95, comm: 3.8, rating: 4.3, region: 'HN', color: '#f59e0b' },
-  { name: 'Đất Xanh', type: 'F1', deals: 32, gmv: 82, comm: 4.1, rating: 4.4, region: 'Toàn quốc', color: '#ec4899' },
-  { name: 'An Gia', type: 'F2', deals: 28, gmv: 70, comm: 2.8, rating: 4.2, region: 'BD + DN', color: '#06b6d4' },
-  { name: 'Propzy', type: 'F2', deals: 22, gmv: 55, comm: 2.2, rating: 4.0, region: 'HCM', color: '#8b5cf6' },
-  { name: 'ERA Vietnam', type: 'F2', deals: 18, gmv: 45, comm: 1.8, rating: 4.1, region: 'HCM', color: '#64748b' },
-];
-
-const MONTHLY = [
-  { m: 'T1', f1: 65, f2: 30 }, { m: 'T2', f1: 72, f2: 35 },
-  { m: 'T3', f1: 85, f2: 42 }, { m: 'T4', f1: 78, f2: 38 },
-  { m: 'T5', f1: 92, f2: 45 }, { m: 'T6', f1: 88, f2: 40 },
-  { m: 'T7', f1: 82, f2: 42 }, { m: 'T8', f1: 75, f2: 38 },
-  { m: 'T9', f1: 70, f2: 32 },
-];
+// Data loaded from API — no mock fallbacks
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
@@ -44,9 +20,9 @@ export function OverviewAgency() {
   
   const { data: agencyData, isLoading } = useGetAgencyPerformance(2026);
 
-  const kpis = agencyData?.kpis || KPI;
-  const agencies = agencyData?.agencies || AGENCIES;
-  const monthly = agencyData?.monthly || MONTHLY;
+  const kpis = agencyData?.kpis || [];
+  const agencies = agencyData?.agencies || [];
+  const monthly = agencyData?.monthly || [];
 
   const cText = theme.colors.textPrimary;
   const cSub = theme.colors.textSecondary;

@@ -6,26 +6,110 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Direct connection for migrations (bypasses pooler)
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ENUMS — Type-safe status, role, stage values
+// ══════════════════════════════════════════════════════════════════
+
+enum DealStage {
+  LEAD
+  MEETING
+  BOOKING
+  DEPOSIT
+  CONTRACT
+  COMPLETED
+  CANCELLED
+}
+
+enum LeadSource {
+  FACEBOOK_ADS
+  GOOGLE_ADS
+  HOTLINE
+  REFERRAL
+  WALK_IN
+  WEBSITE
+  SELF_GEN
+  MARKETING
+}
+
+enum PropertyUnitStatus {
+  AVAILABLE
+  BOOKED
+  LOCKED
+  PENDING_DEPOSIT
+  DEPOSIT
+  SOLD
+  COMPLETED
+}
+
+enum DebtType {
+  RECEIVABLE_CUSTOMER
+  RECEIVABLE_DEVELOPER
+  PAYABLE_STAFF
+}
+
+enum ContractType {
+  PROBATION
+  DEFINITE
+  INDEFINITE
+  FREELANCE
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  UNPAID
+  MATERNITY
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  HALF_DAY
+  DAY_OFF
+}
+
+enum AppointmentType {
+  MEETING
+  SITE_VISIT
+  FOLLOW_UP
+  SIGNING
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
 }
 
 // ══════════════════════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════════════════════
 model User {
-  id         String   @id @default(uuid(7))
-  email      String   @unique
+  id         String     @id @default(uuid(7))
+  email      String     @unique
   name       String
   password   String
-  role       String   @default("employee") // admin, hr, employee
+  role       String     @default("employee") // admin, hr, employee
   department String? // SALES, MARKETING, HR, FINANCE, OPS
-  salesRole  String? // sales, sales_manager, sales_director, ceo, sales_admin
-  teamId     String? // FK → SalesTeam.id (for sales/sales_manager)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  salesRole  String?    @map("sales_role")
+  teamId     String?    @map("team_id")
+  team       SalesTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
 
-  refreshTokens RefreshToken[]
+  refreshTokens     RefreshToken[]
+  notifications     Notification[]
+  salesStaffProfile SalesStaff?
+
+  @@map("users")
 }
 
 // Refresh Token — dùng cho logout thực sự và token revocation
@@ -33,63 +117,75 @@ model User {
 model RefreshToken {
   id         String    @id @default(uuid(7))
   token      String    @unique
-  userId     String
+  userId     String    @map("user_id")
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt  DateTime
-  revokedAt  DateTime? // null = token còn hợp lệ
-  createdAt  DateTime  @default(now())
-  deviceInfo String? // browser/device info để quản lý sessions
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  deviceInfo String?   @map("device_info")
 
   @@index([userId])
   @@index([expiresAt])
+  @@map("refresh_tokens")
 }
 
 // ══════════════════════════════════════════════════════════════════
 // EXEC PLANNING (port from GAS Service_ExecPlanning.js)
 // ══════════════════════════════════════════════════════════════════
 model PlanScenarioLog {
-  id            String   @id @default(uuid(7))
-  planId        String
-  moduleKey     String   @default("EXEC")
-  scenario      String // base, optimistic, pessimistic
+  id            String    @id @default(uuid(7))
+  planId        String    @map("plan_id")
+  moduleKey     String    @default("EXEC") @map("module_key")
+  scenario      String
   year          Int
-  createdAt     DateTime @default(now())
-  createdBy     String
-  schemaVersion String   @default("1")
-  isDeleted     Boolean  @default(false)
-  rawJson       Json? // JSONB — cho phép query bên trong JSON
+  createdAt     DateTime  @default(now()) @map("created_at")
+  createdBy     String    @map("created_by")
+  schemaVersion String    @default("1") @map("schema_version")
+  deletedAt     DateTime? @map("deleted_at")
+  rawJson       Json?     @map("raw_json")
   note          String?
+
+  @@index([planId])
+  @@index([year, scenario])
+  @@index([createdAt(sort: Desc)])
+  @@map("plan_scenario_logs")
 }
 
 model PlanBundleLog {
-  id            String   @id @default(uuid(7))
-  planId        String
-  moduleKey     String   @default("EXEC")
+  id            String    @id @default(uuid(7))
+  planId        String    @map("plan_id")
+  moduleKey     String    @default("EXEC") @map("module_key")
   scenario      String
   year          Int
-  tabKey        String // PLAN_TOTAL, PLAN_MARKETING, etc.
-  createdAt     DateTime @default(now())
-  createdBy     String
-  schemaVersion String   @default("1")
-  isDeleted     Boolean  @default(false)
-  rawJson       Json? // JSONB — cho phép query bên trong JSON
+  tabKey        String    @map("tab_key")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  createdBy     String    @map("created_by")
+  schemaVersion String    @default("1") @map("schema_version")
+  deletedAt     DateTime? @map("deleted_at")
+  rawJson       Json?     @map("raw_json")
   note          String?
+
+  @@index([planId])
+  @@index([year, scenario, tabKey])
+  @@index([createdAt(sort: Desc)])
+  @@map("plan_bundle_logs")
 }
 
 model ExecPlanLatest {
   id             String   @id @default(uuid(7))
   year           Int
-  scenarioKey    String
-  tabKey         String
-  latestPlanId   String?
-  latestBundleId String?
-  updatedAt      DateTime @default(now())
-  updatedBy      String?
-  schemaVersion  String   @default("1")
-  rawJson        Json? // JSONB — cho phép query bên trong JSON
+  scenarioKey    String   @map("scenario_key")
+  tabKey         String   @map("tab_key")
+  latestPlanId   String?  @map("latest_plan_id")
+  latestBundleId String?  @map("latest_bundle_id")
+  updatedAt      DateTime @default(now()) @map("updated_at")
+  updatedBy      String?  @map("updated_by")
+  schemaVersion  String   @default("1") @map("schema_version")
+  rawJson        Json?    @map("raw_json")
   note           String?
 
   @@unique([year, scenarioKey, tabKey])
+  @@map("exec_plan_latest")
 }
 
 model ExecKpiLatest {
@@ -107,6 +203,7 @@ model ExecKpiLatest {
   note         String?
 
   @@unique([year, scenarioKey, tabKey, kpiKey])
+  @@map("exec_kpi_latest")
 }
 
 model ExecKpiLog {
@@ -124,6 +221,11 @@ model ExecKpiLog {
   createdBy    String?
   rawJson      String?
   note         String?
+
+  @@index([snapshotId])
+  @@index([year, scenarioKey])
+  @@index([createdAt(sort: Desc)])
+  @@map("exec_kpi_logs")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -141,6 +243,7 @@ model SalePlanLatest {
   note        String?
 
   @@unique([year, scenarioKey])
+  @@map("sale_plan_latest")
 }
 
 model SalePlanHeader {
@@ -150,8 +253,8 @@ model SalePlanHeader {
   scenarioKey   String
   ownerEmail    String?
   status        String   @default("DRAFT")
-  targetGMV     Float    @default(0)
-  avgDealValue  Float    @default(0)
+  targetGMV     Decimal  @default(0) @db.Decimal(18, 4)
+  avgDealValue  Decimal  @default(0) @db.Decimal(18, 4)
   headcount     Int      @default(0)
   marketingRate Float    @default(0)
   rateDeal      Float    @default(0)
@@ -160,6 +263,10 @@ model SalePlanHeader {
   note          String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("sale_plan_headers")
 }
 
 model SalePlanMonth {
@@ -169,13 +276,17 @@ model SalePlanMonth {
   scenarioKey String
   month       Int
   weight      Float    @default(0)
-  gmv         Float    @default(0)
+  gmv         Decimal  @default(0) @db.Decimal(18, 4)
   deals       Int      @default(0)
   bookings    Int      @default(0)
   meetings    Int      @default(0)
   leadsSale   Int      @default(0)
   note        String?
   createdAt   DateTime @default(now())
+
+  @@unique([planId, year, scenarioKey, month])
+  @@index([planId])
+  @@map("sale_plan_months")
 }
 
 model SalePlanTeam {
@@ -193,6 +304,10 @@ model SalePlanTeam {
   sortOrder   Int      @default(0)
   note        String?
   createdAt   DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("sale_plan_teams")
 }
 
 model SalePlanStaff {
@@ -213,6 +328,10 @@ model SalePlanStaff {
   rateDeal      Float    @default(0)
   note          String?
   createdAt     DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("sale_plan_staff")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -225,11 +344,14 @@ model MktPlanHeader {
   scenarioKey    String
   ownerEmail     String?
   status         String   @default("DRAFT")
-  totalBudgetVnd Float    @default(0)
+  totalBudgetVnd Decimal  @default(0) @db.Decimal(18, 4)
   currency       String   @default("VND")
   note           String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([year, scenarioKey])
+  @@map("mkt_plan_headers")
 }
 
 model MktPlanChannelBudget {
@@ -239,12 +361,16 @@ model MktPlanChannelBudget {
   scenarioKey     String
   channelKey      String
   channelLabel    String?
-  budgetVnd       Float    @default(0)
+  budgetVnd       Decimal  @default(0) @db.Decimal(18, 4)
   pct             Float    @default(0)
   kpiLeadTarget   Float?
-  kpiCplTargetVnd Float?
+  kpiCplTargetVnd Decimal? @db.Decimal(18, 4)
   note            String?
   updatedAt       DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey, channelKey])
+  @@map("mkt_plan_channel_budgets")
 }
 
 model MktPlanKpiTarget {
@@ -258,6 +384,10 @@ model MktPlanKpiTarget {
   unit        String?
   note        String?
   updatedAt   DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("mkt_plan_kpi_targets")
 }
 
 model MktPlanAssumption {
@@ -271,6 +401,103 @@ model MktPlanAssumption {
   unit        String?
   note        String?
   updatedAt   DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("mkt_plan_assumptions")
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MARKETING MODULE — Operational (Campaigns, Leads, Content, Channels)
+// ══════════════════════════════════════════════════════════════════
+
+model MktCampaign {
+  id          String   @id @default(uuid(7))
+  name        String
+  channel     String   @default("FACEBOOK") // FACEBOOK, GOOGLE, ZALO, TIKTOK, EMAIL, SMS, OFFLINE
+  budget      Decimal  @default(0) @db.Decimal(18, 2)
+  spend       Decimal  @default(0) @db.Decimal(18, 2)
+  leads       Int      @default(0)
+  conversions Int      @default(0)
+  status      String   @default("DRAFT") // DRAFT, RUNNING, PAUSED, COMPLETED, CANCELLED
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mktLeads MktLead[]
+
+  @@index([status])
+  @@index([channel])
+  @@index([startDate, endDate])
+  @@map("mkt_campaigns")
+}
+
+model MktLead {
+  id          String       @id @default(uuid(7))
+  name        String
+  email       String?
+  phone       String?
+  source      String       @default("WEBSITE") // WEBSITE, FACEBOOK, GOOGLE, ZALO, REFERRAL, EVENT, OTHER
+  status      String       @default("NEW") // NEW, CONTACTED, QUALIFIED, PROPOSAL, WON, LOST
+  assignedTo  String?
+  assignedName String?
+  campaignId  String?
+  campaign    MktCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  note        String?
+  score       Int          @default(0) // Lead score 0-100
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status])
+  @@index([source])
+  @@index([campaignId])
+  @@index([assignedTo])
+  @@index([createdAt(sort: Desc)])
+  @@map("mkt_leads")
+}
+
+model MktContent {
+  id            String   @id @default(uuid(7))
+  title         String
+  contentType   String   @default("POST") // POST, VIDEO, REEL, STORY, BLOG, EMAIL
+  channel       String   @default("FACEBOOK") // FACEBOOK, INSTAGRAM, TIKTOK, YOUTUBE, BLOG, EMAIL
+  scheduledDate DateTime?
+  publishedDate DateTime?
+  status        String   @default("DRAFT") // DRAFT, SCHEDULED, PUBLISHED, ARCHIVED
+  author        String?
+  description   String?
+  engagement    Int      @default(0) // Total interactions
+  reach         Int      @default(0) // Total reach
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([channel])
+  @@index([scheduledDate])
+  @@map("mkt_contents")
+}
+
+model MktChannelPerformance {
+  id         String   @id @default(uuid(7))
+  channelKey String // FACEBOOK, GOOGLE, ZALO, TIKTOK, etc.
+  period     String // "2026-03" format
+  year       Int
+  month      Int
+  leads      Int      @default(0)
+  spend      Decimal  @default(0) @db.Decimal(18, 2)
+  roas       Float    @default(0)
+  cpl        Decimal  @default(0) @db.Decimal(18, 2) // Cost per lead
+  conversions Int     @default(0)
+  revenue    Decimal  @default(0) @db.Decimal(18, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([channelKey, period])
+  @@index([year, month])
+  @@map("mkt_channel_performances")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -285,6 +512,11 @@ model FactPlanSnapshotLog {
   ownerEmail  String?
   json        String?
   createdAt   DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@index([createdAt(sort: Desc)])
+  @@map("fact_plan_snapshot_logs")
 }
 
 model AuditLog {
@@ -294,8 +526,17 @@ model AuditLog {
   entity     String
   entityId   String?
   actorEmail String?
+  ipAddress  String? // Track access source
+  oldValue   Json? // Previous state (JSONB)
+  newValue   Json? // New state (JSONB)
   meta       String?
   createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorEmail])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -310,7 +551,7 @@ model DimProject {
   location    String?
   type        String? // "Chung cư", "Biệt thự", "Shophouse"
   feeRate     Float     @default(0) // Phí MG mặc định (%)
-  avgPrice    Float     @default(0) // Giá bán TB (Tỷ)
+  avgPrice    Decimal   @default(0) @db.Decimal(18, 4) // Giá bán TB (Tỷ)
   totalUnits  Int       @default(0)
   soldUnits   Int       @default(0)
   status      String    @default("ACTIVE") // ACTIVE, PAUSED, CLOSED
@@ -319,11 +560,20 @@ model DimProject {
   note        String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
+  deals               FactDeal[]
   legalDocs           LegalProjectDoc[]
   products            PropertyProduct[]
   financeTransactions FinanceTransaction[]
   debtRecords         DebtRecord[]
+  bookings            SalesBooking[]
+  deposits            SalesDeposit[]
+  appointments        Appointment[]
+
+  @@index([status])
+  @@index([deletedAt])
+  @@map("dim_projects")
 }
 
 model SalesTeam {
@@ -333,22 +583,34 @@ model SalesTeam {
   leaderId     String?
   leaderName   String?
   departmentId String?
-  department   HrDepartment? @relation(fields: [departmentId], references: [id])
+  department   HrDepartment? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   region       String?
   status       String        @default("ACTIVE")
   sortOrder    Int           @default(0)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
 
-  members    SalesStaff[]
-  deals      FactDeal[]
-  dailyStats FactSalesDaily[]
-  targets    SalesTargetMonthly[]
+  members       SalesStaff[]
+  deals         FactDeal[]
+  dailyStats    FactSalesDaily[]
+  targets       SalesTargetMonthly[]
+  activities    SalesActivity[]
+  bookings      SalesBooking[]
+  deposits      SalesDeposit[]
+  commissions   CommissionRecord[]
+  users         User[]
+  transfersFrom SalesTeamTransfer[]  @relation("TransferFrom")
+  transfersTo   SalesTeamTransfer[]  @relation("TransferTo")
+
+  @@index([deletedAt])
+  @@map("sales_teams")
 }
 
 model SalesStaff {
   id             String      @id @default(uuid(7))
-  userId         String?
+  userId         String?     @unique
+  user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   hrEmployeeId   String?     @unique
   hrEmployee     HrEmployee? @relation(fields: [hrEmployeeId], references: [id])
   employeeCode   String?     @unique
@@ -356,21 +618,32 @@ model SalesStaff {
   phone          String?
   email          String?
   teamId         String?
-  team           SalesTeam?  @relation(fields: [teamId], references: [id])
+  team           SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
   role           String      @default("sales") // sales, senior_sales, team_lead
   status         String      @default("ACTIVE")
   joinDate       DateTime?
   leaveDate      DateTime?
   leadsCapacity  Float       @default(30)
-  personalTarget Float       @default(0) // Target GMV tháng (Tỷ)
+  personalTarget Decimal     @default(0) @db.Decimal(18, 4) // Target GMV tháng (Tỷ)
   note           String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+  deletedAt      DateTime?
 
-  deals      FactDeal[]
-  dailyStats FactSalesDaily[]
-  activities SalesActivity[]
-  targets    SalesTargetMonthly[]
+  deals               FactDeal[]
+  dailyStats          FactSalesDaily[]
+  activities          SalesActivity[]
+  targets             SalesTargetMonthly[]
+  bookings            SalesBooking[]
+  deposits            SalesDeposit[]
+  appointments        Appointment[]
+  commissions         CommissionRecord[]
+  financeTransactions FinanceTransaction[]
+  debtRecords         DebtRecord[]
+  teamTransfers       SalesTeamTransfer[]
+
+  @@index([deletedAt])
+  @@map("sales_staff")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -382,25 +655,26 @@ model FactDeal {
   dealCode      String?     @unique
   bizflyCrmId   String?
   projectId     String?
-  projectName   String?
+  project       DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectName   String? // denorm: snapshot tại thời điểm tạo deal
   staffId       String?
-  staff         SalesStaff? @relation(fields: [staffId], references: [id])
-  staffName     String?
+  staff         SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  staffName     String? // denorm: snapshot
   teamId        String?
-  team          SalesTeam?  @relation(fields: [teamId], references: [id])
-  teamName      String?
+  team          SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  teamName      String? // denorm: snapshot
   customerName  String?
   customerPhone String?
   productCode   String?
   productType   String?
-  dealValue     Float       @default(0) // Tỷ
+  dealValue     Decimal     @default(0) @db.Decimal(18, 4) // Tỷ
   feeRate       Float       @default(0) // %
-  commission    Float       @default(0) // Tỷ
-  stage         String      @default("LEAD") // LEAD, MEETING, BOOKING, DEPOSIT, CONTRACT, COMPLETED, CANCELLED
+  commission    Decimal     @default(0) @db.Decimal(18, 4) // Tỷ
+  stage         DealStage   @default(LEAD)
   dealDate      DateTime?
   bookingDate   DateTime?
   contractDate  DateTime?
-  source        String? // MARKETING, SELF_GEN, REFERRAL
+  source        LeadSource?
   note          String?
   year          Int
   month         Int
@@ -409,31 +683,39 @@ model FactDeal {
   updatedAt     DateTime    @updatedAt
   deletedAt     DateTime? // Soft delete
 
-  legalDocs LegalTransactionDoc[]
+  legalDocs           LegalTransactionDoc[]
+  commissions         CommissionRecord[]
+  financeTransactions FinanceTransaction[]
+  debtRecords         DebtRecord[]
 
   @@index([year, month])
+  @@index([projectId])
   @@index([teamId])
   @@index([staffId])
   @@index([stage])
   @@index([status])
   @@index([createdAt(sort: Desc)])
   @@index([deletedAt])
+  @@map("fact_deals")
 }
 
 model SalesBooking {
-  id               String    @id @default(uuid(7))
+  id               String      @id @default(uuid(7))
   projectId        String?
+  project          DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   projectName      String
   customerName     String
   customerPhone    String
-  bookingAmount    Float     @default(0)
-  bookingCount     Int       @default(1)
+  bookingAmount    Decimal     @default(0) @db.Decimal(18, 4)
+  bookingCount     Int         @default(1)
   staffId          String?
+  staff            SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
   staffName        String?
   teamId           String?
+  team             SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
   teamName         String?
-  status           String    @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELED
-  bookingDate      DateTime  @default(now())
+  status           String      @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELED
+  bookingDate      DateTime    @default(now())
   note             String?
   createdByUserId  String?
   createdByName    String?
@@ -442,8 +724,8 @@ model SalesBooking {
   reviewedAt       DateTime?
   year             Int
   month            Int
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
   deletedAt        DateTime?
 
   @@index([year, month])
@@ -453,25 +735,29 @@ model SalesBooking {
   @@index([status])
   @@index([bookingDate(sort: Desc)])
   @@index([deletedAt])
+  @@map("sales_bookings")
 }
 
 model SalesDeposit {
-  id               String    @id @default(uuid(7))
+  id               String      @id @default(uuid(7))
   projectId        String?
+  project          DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   projectName      String
   unitCode         String
   customerName     String
   customerPhone    String
-  depositAmount    Float     @default(0)
+  depositAmount    Decimal     @default(0) @db.Decimal(18, 4)
   staffId          String?
+  staff            SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
   staffName        String?
   teamId           String?
+  team             SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
   teamName         String?
   paymentMethod    String?
   receiptNo        String?
   notes            String?
-  status           String    @default("PENDING") // PENDING, CONFIRMED, CANCELLED, REFUNDED
-  depositDate      DateTime  @default(now())
+  status           String      @default("PENDING") // PENDING, CONFIRMED, CANCELLED, REFUNDED
+  depositDate      DateTime    @default(now())
   createdByUserId  String?
   createdByName    String?
   reviewedByUserId String?
@@ -479,8 +765,8 @@ model SalesDeposit {
   reviewedAt       DateTime?
   year             Int
   month            Int
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
   deletedAt        DateTime?
 
   @@index([year, month])
@@ -490,6 +776,7 @@ model SalesDeposit {
   @@index([status])
   @@index([depositDate(sort: Desc)])
   @@index([deletedAt])
+  @@map("sales_deposits")
 }
 
 model FactSalesDaily {
@@ -499,9 +786,9 @@ model FactSalesDaily {
   month          Int
   week           Int
   teamId         String?
-  team           SalesTeam?  @relation(fields: [teamId], references: [id])
+  team           SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
   staffId        String?
-  staff          SalesStaff? @relation(fields: [staffId], references: [id])
+  staff          SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
   newLeads       Int         @default(0)
   meetings       Int         @default(0)
   bookings       Int         @default(0)
@@ -509,13 +796,14 @@ model FactSalesDaily {
   contracts      Int         @default(0)
   completedDeals Int         @default(0)
   cancelledDeals Int         @default(0)
-  gmv            Float       @default(0)
-  revenue        Float       @default(0)
+  gmv            Decimal     @default(0) @db.Decimal(18, 4)
+  revenue        Decimal     @default(0) @db.Decimal(18, 4)
   source         String      @default("MANUAL") // MANUAL, BIZFLY_SYNC
   syncedAt       DateTime?
   createdAt      DateTime    @default(now())
 
   @@unique([date, teamId, staffId])
+  @@map("fact_sales_daily")
 }
 
 model FactPipelineSnapshot {
@@ -531,11 +819,12 @@ model FactPipelineSnapshot {
   depositCount       Int      @default(0)
   contractCount      Int      @default(0)
   completedCount     Int      @default(0)
-  totalPipelineValue Float    @default(0)
+  totalPipelineValue Decimal  @default(0) @db.Decimal(18, 4)
   source             String   @default("MANUAL")
   createdAt          DateTime @default(now())
 
   @@unique([snapshotDate, teamId])
+  @@map("fact_pipeline_snapshots")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -543,16 +832,19 @@ model FactPipelineSnapshot {
 // ══════════════════════════════════════════════════════════════════
 
 model CommissionRecord {
-  id               String    @id @default(uuid(7))
+  id               String     @id @default(uuid(7))
   dealId           String
+  deal             FactDeal   @relation(fields: [dealId], references: [id])
   staffId          String
+  staff            SalesStaff @relation(fields: [staffId], references: [id])
   staffName        String?
   teamId           String?
+  team             SalesTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
   role             String // SALES, MANAGER, DIRECTOR
-  dealValue        Float     @default(0)
-  commissionRate   Float     @default(0)
-  commissionAmount Float     @default(0)
-  status           String    @default("PENDING") // PENDING, APPROVED, PAID
+  dealValue        Decimal    @default(0) @db.Decimal(18, 4)
+  commissionRate   Float      @default(0)
+  commissionAmount Decimal    @default(0) @db.Decimal(18, 4)
+  status           String     @default("PENDING") // PENDING, APPROVED, PAID
   period           String? // "2026-03"
   approvedBy       String?
   approvedAt       DateTime?
@@ -560,8 +852,15 @@ model CommissionRecord {
   year             Int
   month            Int
   note             String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([dealId])
+  @@index([staffId])
+  @@index([teamId])
+  @@index([year, month])
+  @@index([status])
+  @@map("commission_records")
 }
 
 model SalesTargetMonthly {
@@ -569,10 +868,10 @@ model SalesTargetMonthly {
   year           Int
   month          Int
   teamId         String?
-  team           SalesTeam?  @relation(fields: [teamId], references: [id])
+  team           SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
   staffId        String?
-  staff          SalesStaff? @relation(fields: [staffId], references: [id])
-  targetGMV      Float       @default(0)
+  staff          SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  targetGMV      Decimal     @default(0) @db.Decimal(18, 4)
   targetDeals    Int         @default(0)
   targetLeads    Int         @default(0)
   targetMeetings Int         @default(0)
@@ -583,6 +882,7 @@ model SalesTargetMonthly {
   updatedAt      DateTime    @updatedAt
 
   @@unique([year, month, teamId, staffId, scenarioKey])
+  @@map("sales_target_monthly")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -602,6 +902,10 @@ model BizflySyncLog {
   completedAt   DateTime?
   initiatedBy   String?
   metadata      String?
+
+  @@index([status])
+  @@index([startedAt(sort: Desc)])
+  @@map("bizfly_sync_logs")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -609,26 +913,37 @@ model BizflySyncLog {
 // ══════════════════════════════════════════════════════════════════
 
 model Customer {
-  id              String    @id @default(uuid(7))
+  id              String      @id @default(uuid(7))
   fullName        String
   phone           String?
   email           String?
-  source          String? // FACEBOOK_ADS, GOOGLE_ADS, HOTLINE, REFERRAL, WALK_IN, WEBSITE
+  source          LeadSource?
   projectInterest String?
   budget          String?
-  status          String    @default("NEW") // NEW, CONTACTED, INTERESTED, MEETING, NEGOTIATION, WON, LOST
+  status          String      @default("NEW") // NEW, CONTACTED, INTERESTED, MEETING, NEGOTIATION, WON, LOST
   assignedTo      String? // staffId
   assignedName    String?
-  isVip           Boolean   @default(false)
+  isVip           Boolean     @default(false)
   lastContactAt   DateTime?
+  // Expanded CRM fields
+  companyName     String? // Tên công ty (B2B)
+  birthday        DateTime? // Marketing automation
+  address         String? // Địa chỉ liên hệ
+  tags            String? // JSON array of tags
+  utmSource       String? // UTM tracking
+  utmMedium       String?
+  utmCampaign     String?
   note            String?
   year            Int
   month           Int
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   deletedAt       DateTime? // Soft delete — null = còn active
 
-  legalDocs LegalTransactionDoc[]
+  legalDocs           LegalTransactionDoc[]
+  appointments        Appointment[]
+  financeTransactions FinanceTransaction[]
+  debtRecords         DebtRecord[]
 
   @@index([year, month])
   @@index([status])
@@ -636,6 +951,7 @@ model Customer {
   @@index([source])
   @@index([createdAt(sort: Desc)])
   @@index([deletedAt])
+  @@map("customers")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -648,6 +964,9 @@ model SalesActivity {
   staffId      String
   staff        SalesStaff @relation(fields: [staffId], references: [id])
   staffName    String?
+  teamId       String?
+  team         SalesTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  teamName     String?
   postsCount   Int        @default(0)
   callsCount   Int        @default(0)
   newLeads     Int        @default(0)
@@ -660,7 +979,9 @@ model SalesActivity {
 
   @@index([year, month])
   @@index([staffId])
+  @@index([teamId])
   @@index([date(sort: Desc)])
+  @@map("sales_activities")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -668,23 +989,33 @@ model SalesActivity {
 // ══════════════════════════════════════════════════════════════════
 
 model Appointment {
-  id            String   @id @default(uuid(7))
+  id            String            @id @default(uuid(7))
   staffId       String
+  staff         SalesStaff        @relation(fields: [staffId], references: [id])
   staffName     String?
   customerId    String?
+  customer      Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
   customerName  String?
   customerPhone String?
   projectId     String?
+  project       DimProject?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
   projectName   String?
-  type          String   @default("MEETING") // MEETING, SITE_VISIT, FOLLOW_UP, SIGNING
+  type          AppointmentType   @default(MEETING)
   scheduledAt   DateTime
-  duration      Int      @default(60) // minutes
+  duration      Int               @default(60) // minutes
   location      String?
-  status        String   @default("SCHEDULED") // SCHEDULED, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+  status        AppointmentStatus @default(SCHEDULED)
   outcome       String?
   note          String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([staffId])
+  @@index([customerId])
+  @@index([projectId])
+  @@index([scheduledAt(sort: Desc)])
+  @@index([status])
+  @@map("appointments")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -692,29 +1023,32 @@ model Appointment {
 // ══════════════════════════════════════════════════════════════════
 
 model PropertyProduct {
-  id            String     @id @default(uuid(7))
+  id            String             @id @default(uuid(7))
   projectId     String
-  project       DimProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project       DimProject         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectName   String?
-  code          String     @unique
+  code          String             @unique
   block         String?
-  floor         Int        @default(0)
-  area          Float      @default(0)
-  price         Float      @default(0) // Tỷ VND
+  floor         Int                @default(0)
+  area          Float              @default(0)
+  price         Decimal            @default(0) @db.Decimal(18, 4) // Tỷ VND
   direction     String?
-  bedrooms      Int        @default(0)
-  status        String     @default("AVAILABLE") // AVAILABLE, BOOKED, LOCKED, PENDING_DEPOSIT, DEPOSIT, SOLD, COMPLETED
+  bedrooms      Int                @default(0)
+  status        PropertyUnitStatus @default(AVAILABLE)
   bookedBy      String?
   lockedUntil   DateTime?
   customerPhone String?
   note          String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  deletedAt     DateTime?
 
   statusLogs ProductStatusLog[]
 
   @@index([projectId])
   @@index([status])
+  @@index([deletedAt])
+  @@map("property_products")
 }
 
 model ProductStatusLog {
@@ -726,6 +1060,32 @@ model ProductStatusLog {
   changedBy String?
   reason    String?
   createdAt DateTime        @default(now())
+
+  @@index([productId])
+  @@index([createdAt(sort: Desc)])
+  @@map("product_status_logs")
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SALES MODULE — Team Transfer History
+// ══════════════════════════════════════════════════════════════════
+
+model SalesTeamTransfer {
+  id           String     @id @default(uuid(7))
+  staffId      String
+  staff        SalesStaff @relation(fields: [staffId], references: [id])
+  fromTeamId   String?
+  fromTeam     SalesTeam? @relation("TransferFrom", fields: [fromTeamId], references: [id], onDelete: SetNull)
+  toTeamId     String
+  toTeam       SalesTeam  @relation("TransferTo", fields: [toTeamId], references: [id])
+  transferDate DateTime   @default(now())
+  reason       String?
+  approvedBy   String?
+  createdAt    DateTime   @default(now())
+
+  @@index([staffId])
+  @@index([transferDate(sort: Desc)])
+  @@map("sales_team_transfers")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -734,17 +1094,20 @@ model ProductStatusLog {
 
 // 1. Tổ chức nhân sự
 model HrDepartment {
-  id          String   @id @default(uuid(7))
-  code        String   @unique
+  id          String      @id @default(uuid(7))
+  code        String      @unique
   name        String
   description String?
-  managerId   String? // FK to HrEmployee
-  status      String   @default("ACTIVE")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  managerId   String?
+  manager     HrEmployee? @relation("DepartmentManager", fields: [managerId], references: [id], onDelete: SetNull)
+  status      String      @default("ACTIVE")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  employees  HrEmployee[]
+  employees  HrEmployee[] @relation("EmployeeDepartment")
   salesTeams SalesTeam[]
+
+  @@map("hr_departments")
 }
 
 model HrPosition {
@@ -758,6 +1121,8 @@ model HrPosition {
   updatedAt   DateTime @updatedAt
 
   employees HrEmployee[]
+
+  @@map("hr_positions")
 }
 
 // 2. Hồ sơ nhân viên trung tâm
@@ -776,9 +1141,9 @@ model HrEmployee {
   bankName       String?
   bankAccount    String?
   departmentId   String?
-  department     HrDepartment? @relation(fields: [departmentId], references: [id])
+  department     HrDepartment? @relation("EmployeeDepartment", fields: [departmentId], references: [id], onDelete: SetNull)
   positionId     String?
-  position       HrPosition?   @relation(fields: [positionId], references: [id])
+  position       HrPosition?   @relation(fields: [positionId], references: [id], onDelete: SetNull)
   managerId      String?
   manager        HrEmployee?   @relation("EmployeeToManager", fields: [managerId], references: [id])
   subordinates   HrEmployee[]  @relation("EmployeeToManager")
@@ -788,65 +1153,85 @@ model HrEmployee {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  contracts     HrContract[]
-  attendances   HrAttendance[]
-  leaveRequests HrLeaveRequest[]
-  salaryRecords HrSalaryRecord[]
-  reviews       HrPerformanceReview[]
-  salesProfile  SalesStaff?
+  contracts          HrContract[]
+  attendances        HrAttendance[]
+  leaveRequests      HrLeaveRequest[]      @relation("LeaveEmployee")
+  approvedLeaves     HrLeaveRequest[]      @relation("LeaveApprover")
+  salaryRecords      HrSalaryRecord[]
+  reviews            HrPerformanceReview[] @relation("ReviewEmployee")
+  reviewsGiven       HrPerformanceReview[] @relation("ReviewReviewer")
+  salesProfile       SalesStaff?
+  managedDepartments HrDepartment[]        @relation("DepartmentManager")
+
+  @@index([departmentId])
+  @@index([positionId])
+  @@index([status])
+  @@map("hr_employees")
 }
 
 // 3. Hợp đồng lao động
 model HrContract {
-  id           String     @id @default(uuid(7))
+  id           String       @id @default(uuid(7))
   employeeId   String
-  employee     HrEmployee @relation(fields: [employeeId], references: [id])
-  contractCode String     @unique
-  contractType String // PROBATION, DEFINITE, INDEFINITE, FREELANCE
+  employee     HrEmployee   @relation(fields: [employeeId], references: [id])
+  contractCode String       @unique
+  contractType ContractType
   startDate    DateTime
   endDate      DateTime?
-  baseSalary   Float      @default(0) // Lương cơ bản/Vùng
-  grossSalary  Float      @default(0) // Lương thoả thuận
-  status       String     @default("ACTIVE") // DRAFT, ACTIVE, EXPIRED, TERMINATED
+  baseSalary   Decimal      @default(0) @db.Decimal(18, 2) // Lương cơ bản/Vùng
+  grossSalary  Decimal      @default(0) @db.Decimal(18, 2) // Lương thoả thuận
+  status       String       @default("ACTIVE") // DRAFT, ACTIVE, EXPIRED, TERMINATED
   documentUrl  String? // Link to PDF
   note         String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([endDate])
+  @@map("hr_contracts")
 }
 
 // 4. Chấm công & Nghỉ phép
 model HrAttendance {
-  id           String     @id @default(uuid(7))
+  id           String           @id @default(uuid(7))
   employeeId   String
-  employee     HrEmployee @relation(fields: [employeeId], references: [id])
+  employee     HrEmployee       @relation(fields: [employeeId], references: [id])
   date         DateTime
   checkInTime  DateTime?
   checkOutTime DateTime?
-  workingHours Float      @default(0)
-  status       String     @default("PRESENT") // PRESENT, LATE, ABSENT, HALF_DAY, DAY_OFF
+  workingHours Float            @default(0)
+  status       AttendanceStatus @default(PRESENT)
   locationInfo String? // GPS or IP tracking if needed
   note         String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@unique([employeeId, date])
+  @@map("hr_attendances")
 }
 
 model HrLeaveRequest {
-  id         String     @id @default(uuid(7))
+  id         String      @id @default(uuid(7))
   employeeId String
-  employee   HrEmployee @relation(fields: [employeeId], references: [id])
-  leaveType  String // ANNUAL, SICK, UNPAID, MATERNITY
+  employee   HrEmployee  @relation("LeaveEmployee", fields: [employeeId], references: [id])
+  leaveType  LeaveType
   startDate  DateTime
   endDate    DateTime
   totalDays  Float
   reason     String
-  status     String     @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  status     String      @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
   approverId String?
+  approver   HrEmployee? @relation("LeaveApprover", fields: [approverId], references: [id], onDelete: SetNull)
   approvedAt DateTime?
   note       String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("hr_leave_requests")
 }
 
 // 5. Tiền lương (Bảng lương chuẩn hoá)
@@ -860,27 +1245,49 @@ model HrSalaryRecord {
   standardWorkDays Float      @default(0) // Ngày công chuẩn
   actualWorkDays   Float      @default(0) // Ngày đi làm
   paidLeaveDays    Float      @default(0) // Ngày nghỉ có phép
-  baseSalaryValue  Float      @default(0)
-  totalAllowance   Float      @default(0)
-  totalDeduction   Float      @default(0) // Phạt, trễ giờ...
-  taxBhiT          Float      @default(0) // Thuế, BHXH, BHYT trích trừ
-  commission       Float      @default(0) // Bonus/Hoa hồng tự động map từ module Sales sang
-  netPay           Float      @default(0) // Thực lãnh
+  baseSalaryValue  Decimal    @default(0) @db.Decimal(18, 2)
+  totalAllowance   Decimal    @default(0) @db.Decimal(18, 2)
+  totalDeduction   Decimal    @default(0) @db.Decimal(18, 2) // Phạt, trễ giờ...
+  taxBhiT          Decimal    @default(0) @db.Decimal(18, 2) // Thuế, BHXH, BHYT trích trừ
+  commission       Decimal    @default(0) @db.Decimal(18, 2) // Bonus/Hoa hồng tự động map từ module Sales sang
+  netPay           Decimal    @default(0) @db.Decimal(18, 2) // Thực lãnh
   status           String     @default("DRAFT") // DRAFT, REVIEWING, APPROVED, PAID
   paidAt           DateTime?
   note             String?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
+  salaryItems HrSalaryItem[]
+
   @@unique([employeeId, period])
+  @@index([year, month])
+  @@index([status])
+  @@map("hr_salary_records")
+}
+
+// 5.1 Chi tiết phụ cấp / khoản trừ cho bảng lương
+model HrSalaryItem {
+  id        String         @id @default(uuid(7))
+  salaryId  String
+  salary    HrSalaryRecord @relation(fields: [salaryId], references: [id], onDelete: Cascade)
+  type      String // ALLOWANCE, DEDUCTION, BONUS
+  itemCode  String // MEAL, TRANSPORT, PHONE, LATE_PENALTY...
+  itemName  String
+  amount    Decimal        @default(0) @db.Decimal(18, 2)
+  note      String?
+  createdAt DateTime       @default(now())
+
+  @@index([salaryId])
+  @@map("hr_salary_items")
 }
 
 // 6. Đánh giá hiệu suất
 model HrPerformanceReview {
   id           String     @id @default(uuid(7))
   employeeId   String
-  employee     HrEmployee @relation(fields: [employeeId], references: [id])
+  employee     HrEmployee @relation("ReviewEmployee", fields: [employeeId], references: [id])
   reviewerId   String
+  reviewer     HrEmployee @relation("ReviewReviewer", fields: [reviewerId], references: [id])
   period       String // e.g., "Q1-2026"
   overallScore Float      @default(0) // scale 1-5 or 1-100
   kpiSnapshot  String? // JSON of KPIs attained
@@ -890,6 +1297,83 @@ model HrPerformanceReview {
   status       String     @default("DRAFT") // DRAFT, SUBMITTED, ACKNOWLEDGED
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+
+  @@index([employeeId])
+  @@index([reviewerId])
+  @@index([period])
+  @@map("hr_performance_reviews")
+}
+
+model HrJobPosting {
+  id          String    @id @default(uuid(7))
+  title       String
+  department  String?
+  type        String    @default("Full-time")
+  location    String?
+  description String?
+  candidates  Int       @default(0)
+  status      String    @default("OPEN") // OPEN, URGENT, CLOSED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  applicants  HrCandidate[]
+
+  @@index([status])
+  @@map("hr_job_postings")
+}
+
+model HrCandidate {
+  id        String       @id @default(uuid(7))
+  jobId     String?
+  job       HrJobPosting? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  name      String
+  email     String?
+  phone     String?
+  source    String?  // LinkedIn, Facebook, TopCV, Referral
+  stage     String   @default("NEW") // NEW, INTERVIEW, OFFERRED, REJECTED, HIRED
+  rating    String?
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobId])
+  @@index([stage])
+  @@map("hr_candidates")
+}
+
+model HrCourse {
+  id          String    @id @default(uuid(7))
+  title       String
+  category    String?
+  duration    String?
+  description String?
+  enrolled    Int       @default(0)
+  completed   Int       @default(0)
+  status      String    @default("OPEN") // OPEN, URGENT, CLOSED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  trainees    HrTrainee[]
+
+  @@index([status])
+  @@map("hr_courses")
+}
+
+model HrTrainee {
+  id        String    @id @default(uuid(7))
+  courseId   String?
+  course    HrCourse? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  employeeCode String?
+  name      String
+  progress  Int       @default(0) // 0-100
+  score     String?
+  status    String    @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([courseId])
+  @@index([status])
+  @@map("hr_trainees")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -910,14 +1394,56 @@ model LegalProjectDoc {
   createdBy   String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([expiredDate])
+  @@map("legal_project_docs")
 }
+
+model ProjectPolicy {
+  id          String     @id @default(uuid(7))
+  projectId   String?
+  name        String
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String     @default("DRAFT") // ACTIVE, DRAFT, EXPIRED
+  rules       String?    // JSON array of rule strings
+  color       String     @default("#10b981")
+  description String?
+  createdBy   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status])
+  @@index([projectId])
+  @@map("project_policies")
+}
+
+model ProjectAssignment {
+  id         String     @id @default(uuid(7))
+  projectId  String?
+  userId     String?
+  name       String     // User display name
+  email      String?
+  role       String     @default("Sales Rep") // Project Manager, Sales Director, Sales Manager, etc.
+  status     String     @default("ACTIVE") // ACTIVE, INACTIVE
+  assignedAt DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@map("project_assignments")
+}
+
 
 model LegalTransactionDoc {
   id         String    @id @default(uuid(7))
   dealId     String
   deal       FactDeal  @relation(fields: [dealId], references: [id])
   customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   name       String // e.g., "Hợp đồng cọc mã 001", "CMND Nguyễn Văn A"
   docType    String    @default("CONTRACT") // CONTRACT, KYC, RECEIPT, ANNEX
   fileUrl    String?
@@ -927,6 +1453,11 @@ model LegalTransactionDoc {
   createdBy  String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+
+  @@index([dealId])
+  @@index([customerId])
+  @@index([status])
+  @@map("legal_transaction_docs")
 }
 
 model LegalTemplate {
@@ -939,6 +1470,8 @@ model LegalTemplate {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("legal_templates")
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -952,8 +1485,8 @@ model FinanceAccount {
   accountType    String   @default("BANK") // CASH, BANK, EPAY
   bankName       String?
   bankNumber     String?
-  initialBalance Float    @default(0)
-  currentBalance Float    @default(0)
+  initialBalance Decimal  @default(0) @db.Decimal(18, 2)
+  currentBalance Decimal  @default(0) @db.Decimal(18, 2)
   currency       String   @default("VND")
   status         String   @default("ACTIVE") // ACTIVE, INACTIVE
   note           String?
@@ -961,6 +1494,8 @@ model FinanceAccount {
   updatedAt      DateTime @updatedAt
 
   transactions FinanceTransaction[]
+
+  @@map("finance_accounts")
 }
 
 model FinanceCategory {
@@ -974,14 +1509,17 @@ model FinanceCategory {
   updatedAt    DateTime @updatedAt
 
   transactions FinanceTransaction[]
+  budgets      FinanceBudget[]
+
+  @@map("finance_categories")
 }
 
 model FinanceTransaction {
-  id              String @id @default(uuid(7))
-  transactionCode String @unique // PT..., PC...
+  id              String  @id @default(uuid(7))
+  transactionCode String  @unique // PT..., PC...
   type            String // INCOME (Thu), EXPENSE (Chi)
-  amount          Float  @default(0)
-  currency        String @default("VND")
+  amount          Decimal @default(0) @db.Decimal(18, 2)
+  currency        String  @default("VND")
 
   accountId String
   account   FinanceAccount @relation(fields: [accountId], references: [id])
@@ -991,10 +1529,13 @@ model FinanceTransaction {
 
   // Liên kết (Relations) với các module khác
   dealId     String?
+  deal       FactDeal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
   projectId  String?
-  project    DimProject? @relation(fields: [projectId], references: [id])
+  project    DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   customerId String?
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
   staffId    String?
+  staff      SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
 
   // Thông tin đối tượng Thanh toán / Thu tiền
   payerName    String?
@@ -1016,23 +1557,37 @@ model FinanceTransaction {
   createdBy String?
 
   debtRecords DebtRecord[]
+
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([dealId])
+  @@index([projectId])
+  @@index([customerId])
+  @@index([staffId])
+  @@index([paymentDate(sort: Desc)])
+  @@index([status])
+  @@index([type])
+  @@map("finance_transactions")
 }
 
 model DebtRecord {
-  id       String @id @default(uuid(7))
-  debtCode String @unique
-  debtType String // RECEIVABLE_CUSTOMER, RECEIVABLE_DEVELOPER, PAYABLE_STAFF
+  id       String   @id @default(uuid(7))
+  debtCode String   @unique
+  debtType DebtType
 
   // Đối tượng Công nợ
   customerId String?
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
   projectId  String?
-  project    DimProject? @relation(fields: [projectId], references: [id])
+  project    DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   staffId    String?
+  staff      SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
   dealId     String?
+  deal       FactDeal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
 
-  totalAmount     Float @default(0)
-  paidAmount      Float @default(0)
-  remainingAmount Float @default(0)
+  totalAmount     Decimal @default(0) @db.Decimal(18, 2)
+  paidAmount      Decimal @default(0) @db.Decimal(18, 2)
+  remainingAmount Decimal @default(0) @db.Decimal(18, 2)
 
   dueDate DateTime?
   status  String    @default("UNPAID") // UNPAID, PARTIAL, PAID, OVERDUE, CANCELLED
@@ -1043,5 +1598,80 @@ model DebtRecord {
 
   // Link với các lần thanh toán (Phiếu thu / Phiếu chi)
   transactionId String?
-  transaction   FinanceTransaction? @relation(fields: [transactionId], references: [id])
+  transaction   FinanceTransaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([projectId])
+  @@index([staffId])
+  @@index([dealId])
+  @@index([transactionId])
+  @@index([debtType])
+  @@index([status])
+  @@index([dueDate])
+  @@map("debt_records")
 }
+
+// ══════════════════════════════════════════════════════════════════
+// FINANCE — Budget Tracking
+// ══════════════════════════════════════════════════════════════════
+
+model FinanceBudget {
+  id           String          @id @default(uuid(7))
+  year         Int
+  month        Int
+  categoryId   String
+  category     FinanceCategory @relation(fields: [categoryId], references: [id])
+  budgetAmount Decimal         @default(0) @db.Decimal(18, 2)
+  actualAmount Decimal         @default(0) @db.Decimal(18, 2)
+  variance     Decimal         @default(0) @db.Decimal(18, 2)
+  note         String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([year, month, categoryId])
+  @@map("finance_budgets")
+}
+
+// ══════════════════════════════════════════════════════════════════
+// NOTIFICATION SYSTEM
+// ══════════════════════════════════════════════════════════════════
+
+model Notification {
+  id         String    @id @default(uuid(7))
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  body       String
+  type       String    @default("INFO") // INFO, WARNING, APPROVAL, DEADLINE
+  entityType String? // "DEAL", "LEAVE_REQUEST", "TRANSACTION"
+  entityId   String?
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@map("notifications")
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FILE ATTACHMENT MANAGEMENT
+// ══════════════════════════════════════════════════════════════════
+
+model FileAttachment {
+  id         String   @id @default(uuid(7))
+  fileName   String
+  fileUrl    String
+  fileSize   Int? // bytes
+  mimeType   String?
+  entityType String // "LEGAL_DOC", "CONTRACT", "TRANSACTION", "HR_CONTRACT"
+  entityId   String
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt(sort: Desc)])
+  @@map("file_attachments")
+}
+
