@@ -76,6 +76,7 @@ async function bootstrap() {
     'http://localhost:8082',
     'http://localhost:8083',
     'http://localhost:19006',
+    'https://sgroup-erp.vercel.app',
   ];
 
   if (process.env.FRONTEND_URL) {
@@ -93,8 +94,8 @@ async function bootstrap() {
       // Kiểm tra danh sách whitelist
       if (allowedOrigins.includes(origin)) return callback(null, true);
 
-      // Dev only: cho phép *.vercel.app
-      if (!isProduction && /\.vercel\.app$/.test(origin)) {
+      // Cho phép *.vercel.app (preview deployments)
+      if (/\.vercel\.app$/.test(origin)) {
         return callback(null, true);
       }
 
