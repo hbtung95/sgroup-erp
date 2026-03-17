@@ -11,34 +11,36 @@ import { useThemeStore } from '../../shared/theme/themeStore';
 import { useAuthStore } from '../auth/store/authStore';
 
 // Import Screens
+import { AdminDashboard } from './screens/AdminDashboard';
 import { OrgConfigScreen } from '../hr/screens/OrgConfigScreen';
+import { UserManagementScreen } from './screens/UserManagementScreen';
 
 // Placeholder for screens under development
 function PlaceholderScreen({ label }: { label: string }) {
   const colors = useTheme();
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 100 }}>
-      <Text style={{ fontSize: 60, marginBottom: 24 }}>⚙️</Text>
-      <Text style={[typography.h3, { color: colors.text, marginBottom: 8 }]}>Module Đang Phát Triển</Text>
+      <Text style={{ fontSize: 60, marginBottom: 24 }}>🔧</Text>
+      <Text style={[typography.h3, { color: colors.text, marginBottom: 8 }]}>Đang phát triển</Text>
       <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center', maxWidth: 400 }]}>
-        Tính năng "{label}" đang được phát triển.
+        Tính năng "{label}" sẽ được triển khai trong bản cập nhật tiếp theo.
       </Text>
     </View>
   );
 }
 
 const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
-  ADMIN_DASHBOARD: () => <PlaceholderScreen label="Tổng quan Quản trị" />,
+  ADMIN_DASHBOARD: AdminDashboard,
   ADMIN_ORG_CONFIG: OrgConfigScreen,
-  ADMIN_POSITIONS: () => <PlaceholderScreen label="Chức vụ" />,
+  ADMIN_USERS: UserManagementScreen,
   ADMIN_ROLES: () => <PlaceholderScreen label="Phân quyền" />,
   ADMIN_SYSTEM: () => <PlaceholderScreen label="Cài đặt hệ thống" />,
 };
 
 export function AdminShell() {
-  const [activeKey, setActiveKey] = useState('ADMIN_ORG_CONFIG');
-  const [activeLabel, setActiveLabel] = useState('Phòng ban & Team');
-  const [activeSection, setActiveSection] = useState('organization');
+  const [activeKey, setActiveKey] = useState('ADMIN_DASHBOARD');
+  const [activeLabel, setActiveLabel] = useState('Tổng quan');
+  const [activeSection, setActiveSection] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const colors = useTheme();
   const { isDark } = useThemeStore();
@@ -55,6 +57,7 @@ export function AdminShell() {
   const sectionLabels: Record<string, string> = {
     dashboard: 'TỔNG QUAN',
     organization: 'CẤU HÌNH TỔ CHỨC',
+    users: 'NGƯỜI DÙNG',
     system: 'HỆ THỐNG',
   };
 

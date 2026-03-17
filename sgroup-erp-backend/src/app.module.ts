@@ -25,6 +25,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { HrModule } from './modules/hr/hr.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AdminModule as SysAdminModule } from './modules/admin/admin.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -32,9 +33,9 @@ import { ScheduleModule } from '@nestjs/schedule';
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
-    DatabaseModule.forRoot(), // ← Dynamic adapter selection (Prisma / Google Sheets)
-    PrismaModule,             // Keep for sync & legacy compatibility
-    SyncModule,               // ← Admin sync endpoints
+    DatabaseModule.forRoot(),
+    PrismaModule,
+    SyncModule,
     AuthModule,
     ExecPlanningModule,
     SalesPlanningModule,
@@ -54,6 +55,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     HrModule,
     MarketingModule,
     NotificationsModule,
+    SysAdminModule,
   ],
   providers: [
     {

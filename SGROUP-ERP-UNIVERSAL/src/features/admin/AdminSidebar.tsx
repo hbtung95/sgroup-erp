@@ -1,6 +1,6 @@
 /**
  * AdminSidebar — System Administration Sidebar
- * Sections: Dashboard, Org Config, System Settings
+ * Sections: Dashboard, Org Config, Users, System
  */
 import React from 'react';
 import {
@@ -11,7 +11,7 @@ import { useThemeStore } from '../../shared/theme/themeStore';
 import { useAuthStore } from '../auth/store/authStore';
 import {
   LayoutDashboard, Building, Users, Settings, ChevronLeft, ChevronRight,
-  LogOut, UserCircle, Plus, Shield, Database, Globe, Bell,
+  LogOut, UserCircle, Shield,
 } from 'lucide-react-native';
 import { SGThemeToggle } from '../../shared/ui/components/SGThemeToggle';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,7 +20,7 @@ export interface AdminSidebarItem {
   key: string;
   label: string;
   icon: any;
-  section: 'dashboard' | 'organization' | 'system';
+  section: 'dashboard' | 'organization' | 'users' | 'system';
 }
 
 const SIDEBAR_ITEMS: AdminSidebarItem[] = [
@@ -29,7 +29,9 @@ const SIDEBAR_ITEMS: AdminSidebarItem[] = [
 
   // Organization
   { key: 'ADMIN_ORG_CONFIG',  label: 'Phòng ban & Team',       icon: Building,        section: 'organization' },
-  { key: 'ADMIN_POSITIONS',   label: 'Chức vụ',                icon: Users,           section: 'organization' },
+
+  // Users
+  { key: 'ADMIN_USERS',       label: 'Quản lý User',           icon: Users,           section: 'users' },
 
   // System
   { key: 'ADMIN_ROLES',       label: 'Phân quyền',             icon: Shield,          section: 'system' },
@@ -51,6 +53,7 @@ export function AdminSidebar({ activeKey, onSelect, collapsed, onToggleCollapse 
   const sections = [
     { key: 'dashboard',     label: '' },
     { key: 'organization',  label: 'CẤU HÌNH TỔ CHỨC' },
+    { key: 'users',         label: 'NGƯỜI DÙNG' },
     { key: 'system',        label: 'HỆ THỐNG' },
   ];
 
