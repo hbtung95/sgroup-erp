@@ -564,19 +564,19 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                       <Text style={{ fontSize: 13, fontWeight: '700', color: deptName !== '—' ? cText : cSub }}>
                         {deptName}
                       </Text>
-                      {staff.team?.name && (
-                        <>
-                          <Text style={{ fontSize: 10, color: cSub }}>•</Text>
-                          <View style={{
-                            flexDirection: 'row', alignItems: 'center', gap: 4,
-                            paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
-                            backgroundColor: isDark ? 'rgba(99,102,241,0.1)' : '#eef2ff',
-                          }}>
-                            <UsersRound size={10} color="#6366f1" />
-                            <Text style={{ fontSize: 10, fontWeight: '700', color: '#6366f1' }}>{staff.team.name}</Text>
-                          </View>
-                        </>
-                      )}
+                      <Text style={{ fontSize: 10, color: cSub }}>•</Text>
+                      <View style={{
+                        flexDirection: 'row', alignItems: 'center', gap: 4,
+                        paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
+                        backgroundColor: staff.team?.name
+                          ? (isDark ? 'rgba(99,102,241,0.1)' : '#eef2ff')
+                          : (isDark ? 'rgba(148,163,184,0.08)' : '#f8fafc'),
+                      }}>
+                        <UsersRound size={10} color={staff.team?.name ? '#6366f1' : '#94a3b8'} />
+                        <Text style={{ fontSize: 10, fontWeight: '700', color: staff.team?.name ? '#6366f1' : '#94a3b8' }}>
+                          {staff.team?.name || 'Chưa gán team'}
+                        </Text>
+                      </View>
                       <View style={{
                         paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginLeft: 'auto',
                         backgroundColor: staff.status === 'ACTIVE' ? '#dcfce7' : staff.status === 'PROBATION' ? '#dbeafe' : '#fef3c7',
