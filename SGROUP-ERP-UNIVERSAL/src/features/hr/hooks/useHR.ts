@@ -331,3 +331,14 @@ export function useDashboardActivities() {
     queryFn: hrApi.getDashboardActivities,
   });
 }
+
+// ═══════════════════════════════════════════
+// TRANSFER HISTORY
+// ═══════════════════════════════════════════
+export function useTransferHistory(employeeId?: string) {
+  return useQuery({
+    queryKey: ['hr', 'transfers', employeeId],
+    queryFn: () => hrApi.getTransfers(employeeId),
+    enabled: !!employeeId,
+  });
+}

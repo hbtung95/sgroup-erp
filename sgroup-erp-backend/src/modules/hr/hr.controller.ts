@@ -300,4 +300,12 @@ export class HrController {
   getDashboardActivities() {
     return this.hrService.getDashboardActivities();
   }
+
+  // ═══════════════════════════════════════════
+  // TRANSFER HISTORY
+  // ═══════════════════════════════════════════
+  @Get('transfers')
+  getTransfers(@Query('employeeId') employeeId?: string) {
+    return this.hrService.getTransferHistory(employeeId);
+  }
 }

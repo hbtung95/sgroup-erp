@@ -199,4 +199,10 @@ export const hrApi = {
     const res = await apiClient.get('/hr/dashboard/activities');
     return res.data;
   },
+
+  // Transfer History
+  getTransfers: async (employeeId?: string) => {
+    const res = await apiClient.get('/hr/transfers', { params: employeeId ? { employeeId } : {} });
+    return res.data;
+  },
 };

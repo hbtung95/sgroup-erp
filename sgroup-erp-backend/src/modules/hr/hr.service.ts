@@ -236,10 +236,67 @@ export class HrService {
     if (data.dateOfBirth && typeof data.dateOfBirth === 'string') data.dateOfBirth = new Date(data.dateOfBirth);
     if (data.leaveDate && typeof data.leaveDate === 'string') data.leaveDate = new Date(data.leaveDate);
 
-    return this.prisma.hrEmployee.update({
+    // Fetch current employee for transfer comparison
+    const current = await this.prisma.hrEmployee.findUnique({
+      where: { id },
+      select: { departmentId: true, teamId: true },
+    });
+
+    if (!current) throw new NotFoundException('Employee not found');
+
+    const deptChanged = data.departmentId !== undefined && data.departmentId !== current.departmentId;
+    const teamChanged = data.teamId !== undefined && data.teamId !== current.teamId;
+
+    // Perform the update
+    const updated = await this.prisma.hrEmployee.update({
       where: { id },
       data,
-      include: { department: true, position: true },
+      include: { department: true, position: true, team: true },
+    });
+
+    // Auto-log transfer history if dept or team changed
+    if (deptChanged || teamChanged) {
+      const transferType = deptChanged && teamChanged ? 'BOTH' : deptChanged ? 'DEPARTMENT' : 'TEAM';
+
+      await this.prisma.hrTransferHistory.create({
+        data: {
+          employeeId: id,
+          transferType,
+          fromDepartmentId: deptChanged ? current.departmentId : null,
+          toDepartmentId: deptChanged ? data.departmentId : null,
+          fromTeamId: teamChanged ? current.teamId : null,
+          toTeamId: teamChanged ? data.teamId : null,
+          effectiveDate: new Date(),
+        },
+      });
+
+      this.logger.log(
+        `Transfer logged: ${updated.employeeCode} — ${transferType} ` +
+        `(dept: ${current.departmentId} → ${data.departmentId}, team: ${current.teamId} → ${data.teamId})`,
+      );
+    }
+
+    return updated;
+  }
+
+  // ═══════════════════════════════════════════
+  // TRANSFER HISTORY
+  // ═══════════════════════════════════════════
+  async getTransferHistory(employeeId?: string) {
+    const where: any = {};
+    if (employeeId) where.employeeId = employeeId;
+
+    return this.prisma.hrTransferHistory.findMany({
+      where,
+      include: {
+        employee: { select: { id: true, fullName: true, employeeCode: true } },
+        fromDepartment: { select: { id: true, name: true } },
+        toDepartment: { select: { id: true, name: true } },
+        fromTeam: { select: { id: true, name: true } },
+        toTeam: { select: { id: true, name: true } },
+      },
+      orderBy: { effectiveDate: 'desc' },
+      take: 50,
     });
   }
 

@@ -6,13 +6,13 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, Platform, TextInput, ActivityIndicator, Modal, Alert } from 'react-native';
 import {
-  UserCog, Plus, Users, Target, Search, Filter, Mail, Hash, Phone, Building, Star, X, Pencil, UsersRound,
+  UserCog, Plus, Users, Target, Search, Filter, Mail, Hash, Phone, Building, Star, X, Pencil, UsersRound, ArrowRightLeft, History,
 } from 'lucide-react-native';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard } from '../../../shared/ui/components';
 import type { HRRole } from '../HRSidebar';
-import { useEmployees, useHRDashboard, useCreateEmployee, useUpdateEmployee, useDepartments, usePositions, useTeams } from '../hooks/useHR';
+import { useEmployees, useHRDashboard, useCreateEmployee, useUpdateEmployee, useDepartments, usePositions, useTeams, useTransferHistory } from '../hooks/useHR';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
@@ -91,6 +91,10 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
     const list = Array.isArray(rawTeams) ? rawTeams : (rawTeams as any)?.data ?? [];
     return list;
   }, [rawTeams]);
+
+  // Transfer history for the employee being edited
+  const { data: rawTransfers } = useTransferHistory(editId || undefined);
+  const transfers = useMemo(() => Array.isArray(rawTransfers) ? rawTransfers : [], [rawTransfers]);
 
   // Reset teamId when department changes
   const handleDeptChange = useCallback((deptId: string) => {
@@ -313,6 +317,52 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                         }}>
                           <Text style={{ fontSize: 12, fontWeight: '700', color: form.status === s.value ? s.color : cText }}>{s.label}</Text>
                         </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
+                {/* Transfer History — only in edit mode */}
+                {modalMode === 'edit' && transfers.length > 0 && (
+                  <View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <History size={14} color="#6366f1" />
+                      <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, textTransform: 'uppercase', letterSpacing: 0.5 }}>Lịch sử luân chuyển ({transfers.length})</Text>
+                    </View>
+                    <View style={{
+                      borderRadius: 14, overflow: 'hidden',
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc',
+                      borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
+                    }}>
+                      {transfers.map((t: any, idx: number) => (
+                        <View key={t.id} style={{
+                          flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12,
+                          borderBottomWidth: idx < transfers.length - 1 ? 1 : 0,
+                          borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : '#f1f5f9',
+                        }}>
+                          <View style={{
+                            width: 28, height: 28, borderRadius: 8,
+                            backgroundColor: t.transferType === 'DEPARTMENT' ? 'rgba(236,72,153,0.1)' : t.transferType === 'TEAM' ? 'rgba(99,102,241,0.1)' : 'rgba(245,158,11,0.1)',
+                            alignItems: 'center', justifyContent: 'center',
+                          }}>
+                            <ArrowRightLeft size={12} color={t.transferType === 'DEPARTMENT' ? '#ec4899' : t.transferType === 'TEAM' ? '#6366f1' : '#f59e0b'} />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            {(t.transferType === 'DEPARTMENT' || t.transferType === 'BOTH') && (
+                              <Text style={{ fontSize: 11, fontWeight: '700', color: cText }}>
+                                {t.fromDepartment?.name || '—'} → {t.toDepartment?.name || '—'}
+                              </Text>
+                            )}
+                            {(t.transferType === 'TEAM' || t.transferType === 'BOTH') && (
+                              <Text style={{ fontSize: 11, fontWeight: '600', color: '#6366f1' }}>
+                                Team: {t.fromTeam?.name || '—'} → {t.toTeam?.name || '—'}
+                              </Text>
+                            )}
+                            <Text style={{ fontSize: 10, fontWeight: '600', color: cSub, marginTop: 2 }}>
+                              {new Date(t.effectiveDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </Text>
+                          </View>
+                        </View>
                       ))}
                     </View>
                   </View>
