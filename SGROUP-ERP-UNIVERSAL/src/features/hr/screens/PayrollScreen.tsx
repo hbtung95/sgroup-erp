@@ -27,8 +27,10 @@ export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
   // Fetch real payroll from API
   const { data: rawPayroll, isLoading } = usePayroll({ year: String(currentYear), month: String(currentMonth) });
 
+  const safePayroll = Array.isArray(rawPayroll) ? rawPayroll : (rawPayroll as any)?.data ?? [];
+
   // Transform API data for table
-  const payrollData = (rawPayroll || []).map((r: any) => ({
+  const payrollData = safePayroll.map((r: any) => ({
     id: r.id,
     code: r.employee?.employeeCode || '',
     name: r.employee?.fullName || '',

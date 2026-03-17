@@ -35,8 +35,10 @@ export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
   // Fetch real attendance from API
   const { data: rawAttendance, isLoading } = useAttendance({ date: todayStr });
 
+  const safeAttendance = Array.isArray(rawAttendance) ? rawAttendance : (rawAttendance as any)?.data ?? [];
+
   // Transform API data for table display
-  const attendanceData = (rawAttendance || []).map((a: any) => {
+  const attendanceData = safeAttendance.map((a: any) => {
     const fmtTime = (d: string | null) => d ? new Date(d).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—';
     const statusMap: Record<string, string> = { PRESENT: 'ON_TIME', LATE: 'LATE', ABSENT: 'ABSENT', HALF_DAY: 'LATE', DAY_OFF: 'ABSENT' };
     return {

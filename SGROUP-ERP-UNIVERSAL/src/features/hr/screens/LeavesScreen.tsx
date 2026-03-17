@@ -34,8 +34,10 @@ export function LeavesScreen() {
   const { data: rawLeaves, isLoading } = useLeaves();
   const fmtDate = (d: string) => new Date(d).toLocaleDateString('vi-VN');
 
+  const safeLeaves = Array.isArray(rawLeaves) ? rawLeaves : (rawLeaves as any)?.data ?? [];
+
   // Transform for table display
-  const leavesData = (rawLeaves || []).map((l: any) => ({
+  const leavesData = safeLeaves.map((l: any) => ({
     id: l.id,
     code: l.employee?.employeeCode || '',
     name: l.employee?.fullName || '',

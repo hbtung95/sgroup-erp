@@ -29,7 +29,10 @@ export function TrainingScreen({ userRole }: { userRole?: HRRole }) {
   const { data: rawCourses, isLoading: loadingCourses } = useCourses();
   const { data: rawTrainees, isLoading: loadingTrainees } = useTrainees();
 
-  const allCourses = (rawCourses || []).map((c: any) => ({
+  const safeCourses = Array.isArray(rawCourses) ? rawCourses : (rawCourses as any)?.data ?? [];
+  const safeTrainees = Array.isArray(rawTrainees) ? rawTrainees : (rawTrainees as any)?.data ?? [];
+
+  const allCourses = safeCourses.map((c: any) => ({
     id: c.id,
     title: c.title,
     category: c.category || '',
@@ -39,7 +42,7 @@ export function TrainingScreen({ userRole }: { userRole?: HRRole }) {
     status: c.status,
   }));
 
-  const allTrainees = (rawTrainees || []).map((t: any) => ({
+  const allTrainees = safeTrainees.map((t: any) => ({
     id: t.id,
     code: t.employeeCode || '',
     name: t.name,

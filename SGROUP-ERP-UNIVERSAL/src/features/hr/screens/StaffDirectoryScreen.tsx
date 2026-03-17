@@ -12,7 +12,7 @@ import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard } from '../../../shared/ui/components';
 import type { HRRole } from '../HRSidebar';
-import { useEmployees, useHRDashboard, useCreateEmployee } from '../hooks/useHR';
+import { useEmployees, useHRDashboard, useCreateEmployee, useDepartments, usePositions } from '../hooks/useHR';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 
@@ -48,7 +48,7 @@ function nameToColor(name: string) {
   return colors[Math.abs(hash) % colors.length];
 }
 
-const EMPTY_FORM = { fullName: '', employeeCode: '', email: '', phone: '', status: 'ACTIVE' };
+const EMPTY_FORM = { fullName: '', email: '', phone: '', departmentId: '', positionId: '', status: 'ACTIVE' };
 
 export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
   const { theme, isDark } = useAppTheme();
@@ -72,6 +72,10 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
     status: activeFilter !== 'all' ? activeFilter : undefined,
   });
   const createEmployee = useCreateEmployee();
+  const { data: rawDepts } = useDepartments();
+  const { data: rawPositions } = usePositions();
+  const deptOptions = Array.isArray(rawDepts) ? rawDepts : (rawDepts as any)?.data ?? [];
+  const posOptions = Array.isArray(rawPositions) ? rawPositions : (rawPositions as any)?.data ?? [];
 
   const rawList = employeesData?.data ?? employeesData;
   const employees = Array.isArray(rawList) ? rawList : [];
@@ -89,16 +93,19 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
   ];
 
   const handleSubmit = async () => {
-    if (!form.fullName.trim() || !form.employeeCode.trim()) {
+    if (!form.fullName.trim()) {
       if (Platform.OS === 'web') {
-        window.alert('Vui lòng nhập họ tên và mã nhân viên');
+        window.alert('Vui lòng nhập họ tên nhân viên');
       } else {
-        Alert.alert('Lỗi', 'Vui lòng nhập họ tên và mã nhân viên');
+        Alert.alert('Lỗi', 'Vui lòng nhập họ tên nhân viên');
       }
       return;
     }
     try {
-      await createEmployee.mutateAsync(form);
+      const payload: any = { fullName: form.fullName, email: form.email || undefined, phone: form.phone || undefined };
+      if (form.departmentId) payload.departmentId = form.departmentId;
+      if (form.positionId) payload.positionId = form.positionId;
+      await createEmployee.mutateAsync(payload);
       setForm(EMPTY_FORM);
       setShowForm(false);
     } catch (e: any) {
@@ -152,8 +159,34 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                 <TextInput value={form.fullName} onChangeText={v => setForm(f => ({ ...f, fullName: v }))} placeholder="Nguyễn Văn A" placeholderTextColor={cSub} style={inputStyle} />
               </View>
               <View>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Mã nhân viên *</Text>
-                <TextInput value={form.employeeCode} onChangeText={v => setForm(f => ({ ...f, employeeCode: v }))} placeholder="EMP-001" placeholderTextColor={cSub} style={inputStyle} />
+                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Phòng ban</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                  {deptOptions.map((d: any) => (
+                    <Pressable key={d.id} onPress={() => setForm(f => ({ ...f, departmentId: f.departmentId === d.id ? '' : d.id }))} style={{
+                      paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10,
+                      backgroundColor: form.departmentId === d.id ? '#ec4899' : (isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'),
+                      borderWidth: 1, borderColor: form.departmentId === d.id ? '#ec4899' : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
+                    }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: form.departmentId === d.id ? '#fff' : cText }}>{d.name}</Text>
+                    </Pressable>
+                  ))}
+                  {deptOptions.length === 0 && <Text style={{ color: cSub, fontSize: 12 }}>Chưa có phòng ban</Text>}
+                </ScrollView>
+              </View>
+              <View>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Chức vụ</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                  {posOptions.map((p: any) => (
+                    <Pressable key={p.id} onPress={() => setForm(f => ({ ...f, positionId: f.positionId === p.id ? '' : p.id }))} style={{
+                      paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10,
+                      backgroundColor: form.positionId === p.id ? '#8b5cf6' : (isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'),
+                      borderWidth: 1, borderColor: form.positionId === p.id ? '#8b5cf6' : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
+                    }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: form.positionId === p.id ? '#fff' : cText }}>{p.name}</Text>
+                    </Pressable>
+                  ))}
+                  {posOptions.length === 0 && <Text style={{ color: cSub, fontSize: 12 }}>Chưa có chức vụ</Text>}
+                </ScrollView>
               </View>
               <View>
                 <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</Text>

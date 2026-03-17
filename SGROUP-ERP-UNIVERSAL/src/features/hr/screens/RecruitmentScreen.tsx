@@ -30,7 +30,10 @@ export function RecruitmentScreen({ userRole }: { userRole?: HRRole }) {
   const { data: rawJobs, isLoading: loadingJobs } = useJobs();
   const { data: rawCandidates, isLoading: loadingCandidates } = useCandidates();
 
-  const allJobs = (rawJobs || []).map((j: any) => ({
+  const safeJobs = Array.isArray(rawJobs) ? rawJobs : (rawJobs as any)?.data ?? [];
+  const safeCandidates = Array.isArray(rawCandidates) ? rawCandidates : (rawCandidates as any)?.data ?? [];
+
+  const allJobs = safeJobs.map((j: any) => ({
     id: j.id,
     title: j.title,
     dept: j.department || '',
@@ -40,7 +43,7 @@ export function RecruitmentScreen({ userRole }: { userRole?: HRRole }) {
     status: j.status,
   }));
 
-  const allCandidates = (rawCandidates || []).map((c: any) => ({
+  const allCandidates = safeCandidates.map((c: any) => ({
     id: c.id,
     name: c.name,
     job: c.job?.title || '',

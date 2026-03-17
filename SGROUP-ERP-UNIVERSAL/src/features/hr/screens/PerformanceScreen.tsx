@@ -40,8 +40,9 @@ export function PerformanceScreen({ userRole }: { userRole?: HRRole }) {
 
   const currentQuarter = `Q${Math.ceil((new Date().getMonth() + 1) / 3)}-${currentYear}`;
   const { data: rawPerformance, isLoading } = usePerformance({ period: currentQuarter });
+  const safePerformance = Array.isArray(rawPerformance) ? rawPerformance : (rawPerformance as any)?.data ?? [];
 
-  const perfData = (rawPerformance || []).map((p: any) => {
+  const perfData = safePerformance.map((p: any) => {
     const score = p.overallScore || 0;
     const statusMap: Record<string, string> = { DRAFT: 'NOT_STARTED', SUBMITTED: 'IN_PROGRESS', ACKNOWLEDGED: 'COMPLETED' };
     return {
