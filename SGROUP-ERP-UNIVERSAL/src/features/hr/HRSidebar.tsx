@@ -8,7 +8,7 @@ import { useAuthStore } from '../auth/store/authStore';
 import {
   LayoutDashboard, Users, UserCog, CalendarCheck, FileText,
   ChevronLeft, ChevronRight, LogOut, Wallet, BookOpen,
-  GraduationCap, TrendingUp, UserCircle, Plus, Briefcase
+  GraduationCap, TrendingUp, UserCircle, Plus, Briefcase, Building
 } from 'lucide-react-native';
 import { SGThemeToggle } from '../../shared/ui/components/SGThemeToggle';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -49,6 +49,7 @@ const SIDEBAR_ITEMS: HRSidebarItem[] = [
   { key: 'HR_TRAINING',      label: 'Đào tạo & Phát triển', icon: GraduationCap,   section: 'performance_training', minRole: ALL_ROLES },
 
   // ADMIN / POLICY
+  { key: 'HR_ORG_CONFIG',   label: 'Phòng ban & Chức vụ',  icon: Building,        section: 'admin',      minRole: ['hr_manager', 'hr_director', 'admin', 'ceo'] },
   { key: 'HR_POLICIES',      label: 'Chính sách HR',        icon: BookOpen,        section: 'admin',      minRole: ALL_ROLES },
 ];
 

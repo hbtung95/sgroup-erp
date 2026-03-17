@@ -29,6 +29,22 @@ export function useCreateDepartment() {
   });
 }
 
+export function useUpdateDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => hrApi.updateDepartment(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr'] }),
+  });
+}
+
+export function useDeleteDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => hrApi.deleteDepartment(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr'] }),
+  });
+}
+
 // ═══════════════════════════════════════════
 // POSITIONS
 // ═══════════════════════════════════════════
@@ -36,6 +52,22 @@ export function usePositions() {
   return useQuery({
     queryKey: ['hr', 'positions'],
     queryFn: hrApi.getPositions,
+  });
+}
+
+export function useCreatePosition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => hrApi.createPosition(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr'] }),
+  });
+}
+
+export function useUpdatePosition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => hrApi.updatePosition(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['hr'] }),
   });
 }
 

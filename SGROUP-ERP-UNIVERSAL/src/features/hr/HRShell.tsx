@@ -23,6 +23,7 @@ import { TrainingScreen } from './screens/TrainingScreen';
 import { LeavesScreen } from './screens/LeavesScreen';
 import { BenefitsScreen } from './screens/BenefitsScreen';
 import { PoliciesScreen } from './screens/PoliciesScreen';
+import { OrgConfigScreen } from './screens/OrgConfigScreen';
 
 const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
   HR_DASHBOARD: HRDashboard,
@@ -36,13 +37,14 @@ const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
   HR_RECRUITMENT: RecruitmentScreen,
   HR_TRAINING: TrainingScreen,
   HR_POLICIES: PoliciesScreen,
+  HR_ORG_CONFIG: OrgConfigScreen,
   // Other keys will use the placeholder for now
 };
 
 export function HRShell() {
   const validKeys = useMemo(() => [
     'HR_DASHBOARD', 'HR_DIRECTORY', 'HR_PROFILE', 'HR_TIMEKEEPING', 'HR_LEAVES',
-    'HR_PAYROLL', 'HR_BENEFITS', 'HR_RECRUITMENT', 'HR_PERFORMANCE', 'HR_TRAINING', 'HR_POLICIES'
+    'HR_PAYROLL', 'HR_BENEFITS', 'HR_RECRUITMENT', 'HR_PERFORMANCE', 'HR_TRAINING', 'HR_POLICIES', 'HR_ORG_CONFIG'
   ], []);
   
   const { activeKey, navigate } = useHRRoute(validKeys);
