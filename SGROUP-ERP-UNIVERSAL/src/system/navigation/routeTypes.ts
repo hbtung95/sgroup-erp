@@ -10,6 +10,7 @@ export type RootStackParamList = {
   HRModule: undefined;
   FinanceModule: undefined;
   LegalModule: undefined;
+  AdminModule: undefined;
   EmployeeProfile: undefined;
   AccessDenied: undefined;
 };

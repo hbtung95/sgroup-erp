@@ -49,7 +49,6 @@ const SIDEBAR_ITEMS: HRSidebarItem[] = [
   { key: 'HR_TRAINING',      label: 'Đào tạo & Phát triển', icon: GraduationCap,   section: 'performance_training', minRole: ALL_ROLES },
 
   // ADMIN / POLICY
-  { key: 'HR_ORG_CONFIG',   label: 'Phòng ban & Chức vụ',  icon: Building,        section: 'admin',      minRole: ['hr_manager', 'hr_director', 'admin', 'ceo'] },
   { key: 'HR_POLICIES',      label: 'Chính sách HR',        icon: BookOpen,        section: 'admin',      minRole: ALL_ROLES },
 ];
 

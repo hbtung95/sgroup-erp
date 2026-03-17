@@ -390,6 +390,27 @@ const MODULE_SEEDS: ModuleSeed[] = [
       settings: { tasks: ['Clause library versioning', 'Workflow sign-off matrix', 'Template HĐMB standard', 'Retention policy ho so'], outputs: ['v5.0', '6 level', '14 template', '7 nam'], values: { first: '38', second: '9', third: '76' } },
     },
   },
+  {
+    moduleId: 'admin',
+    moduleName: 'Quan Tri',
+    moduleSubtitle: 'Cau hinh to chuc, phan quyen va he thong',
+    accentColor: '#6366F1',
+    icon: Settings,
+    kpis: [
+      { label: 'Phong ban', value: '0', tone: 'brand', icon: Building },
+      { label: 'Chuc vu', value: '0', tone: 'info', icon: Briefcase },
+      { label: 'User active', value: '0', tone: 'success', icon: Users },
+      { label: 'Config rules', value: '0', tone: 'warning', icon: Settings },
+    ],
+    owners: ['System Admin', 'IT Ops', 'HR Admin', 'Security'],
+    flows: {
+      overview: { tasks: ['Cau hinh phong ban moi', 'Cap nhat chuc vu', 'Review quyen he thong', 'Kiem tra bao mat'], outputs: ['5 PB', '12 CV', '24 role', 'OK'], values: { first: '5', second: '12', third: '24' } },
+      operations: { tasks: ['Tao team moi', 'Gan quyen user', 'Cap nhat policy', 'Dong bo he thong'], outputs: ['3 team', '8 user', '4 policy', 'synced'], values: { first: '8', second: '95%', third: '4' } },
+      approval: { tasks: ['Duyet tao phong ban', 'Duyet role moi', 'Duyet thay doi config', 'Phe duyet truy cap'], outputs: ['2 PB', '1 role', '3 config', '5 user'], values: { first: '6', second: '2', third: '4.5h' } },
+      reporting: { tasks: ['Audit log', 'User activity', 'System health', 'Permission matrix'], outputs: ['1,245 log', '287 user', '99.9%', '24 role'], values: { first: '99.9%', second: '287', third: '1,245' } },
+      settings: { tasks: ['RBAC matrix update', 'System backup policy', 'Password policy', 'Session timeout'], outputs: ['v2.0', 'daily', '90 ngay', '30 phut'], values: { first: '24', second: '6', third: '48' } },
+    },
+  },
 ];
 
 export const MODULE_WORKSPACE_CONFIGS: Partial<Record<ErpModuleId, ModuleWorkspaceConfig>> = MODULE_SEEDS.reduce(

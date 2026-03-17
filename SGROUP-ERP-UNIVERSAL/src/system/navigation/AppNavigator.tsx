@@ -39,6 +39,9 @@ const FinanceScreen = React.lazy(() =>
 const LegalScreen = React.lazy(() =>
   import('../../features/legal/screens/LegalScreen').then(m => ({ default: m.LegalScreen }))
 );
+const AdminShell = React.lazy(() =>
+  import('../../features/admin/AdminShell').then(m => ({ default: m.AdminShell }))
+);
 const EmployeeProfileScreen = React.lazy(() =>
   import('../../features/hr/screens/EmployeeProfileScreen').then(m => ({ default: m.EmployeeProfileScreen }))
 );
@@ -75,6 +78,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       ProjectModule: 'project',
       FinanceModule: 'finance',
       LegalModule: 'legal',
+      AdminModule: 'admin',
       EmployeeProfile: 'employee/:id',
       AccessDenied: 'access-denied',
     },
@@ -107,6 +111,7 @@ export function AppNavigator() {
               <Stack.Screen name="ProjectModule" component={ProjectScreen} />
               <Stack.Screen name="FinanceModule" component={FinanceScreen} />
               <Stack.Screen name="LegalModule" component={LegalScreen} />
+              <Stack.Screen name="AdminModule" component={AdminShell} />
               <Stack.Screen name="EmployeeProfile" component={EmployeeProfileScreen} />
               <Stack.Screen name="AccessDenied" component={AccessDeniedScreen} />
             </>

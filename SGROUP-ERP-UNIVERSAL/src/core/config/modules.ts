@@ -7,7 +7,8 @@ export type ErpModuleId =
   | "project"
   | "hr"
   | "finance"
-  | "legal";
+  | "legal"
+  | "admin";
 
 export type UserRole = "admin" | "hr" | "employee";
 
@@ -72,6 +73,12 @@ export const ERP_MODULES: ErpModuleDefinition[] = [
     name: "Pháp lý & Hồ sơ",
     description: "Pháp lý dự án, Hợp đồng",
     routeName: "LegalModule",
+  },
+  {
+    id: "admin",
+    name: "Quản trị Hệ thống",
+    description: "Cấu hình tổ chức, Phân quyền",
+    routeName: "AdminModule",
   },
 ];
 
