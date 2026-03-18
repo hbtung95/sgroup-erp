@@ -8,6 +8,7 @@ export type TableColumn = {
   title: string;
   flex?: number;
   width?: number;
+  minWidth?: number;
   align?: 'left' | 'center' | 'right';
   render?: (value: any, row: any, index: number) => React.ReactNode;
 };
@@ -68,7 +69,7 @@ export function SGTable({
       </Text>
     );
     return (
-      <View key={col.key} style={[styles.cell, col.width ? { width: col.width, flexShrink: 0 } : { flex: col.flex || 1 }]}>
+      <View key={col.key} style={[styles.cell, col.width ? { width: col.width, flexShrink: 0 } : { flex: col.flex || 1 }, col.minWidth ? { minWidth: col.minWidth } : {}]}>
         {content}
       </View>
     );
@@ -76,8 +77,8 @@ export function SGTable({
 
   return (
     <View style={[styles.wrap, { borderColor: c.border, backgroundColor: c.bgTertiary }, style]}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={{ minWidth: (Platform.OS === 'web' ? '100%' : 720) as any }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ minWidth: '100%' }}>
+        <View style={{ flex: 1, minWidth: (Platform.OS === 'web' ? '100%' : 720) as any }}>
           {/* Header - Sticky Header on Web via backdropFilter */}
           <View style={[
             styles.headerRow, 
@@ -95,7 +96,7 @@ export function SGTable({
             }
           ]}>
             {columns.map(col => (
-              <View key={col.key} style={[styles.cell, col.width ? { width: col.width, flexShrink: 0 } : { flex: col.flex || 1 }]}>
+              <View key={col.key} style={[styles.cell, col.width ? { width: col.width, flexShrink: 0 } : { flex: col.flex || 1 }, col.minWidth ? { minWidth: col.minWidth } : {}]}>
                 <Text style={[typography.label, { color: c.textSecondary, textAlign: col.align || 'left', fontSize: 12 }]}>
                   {col.title}
                 </Text>

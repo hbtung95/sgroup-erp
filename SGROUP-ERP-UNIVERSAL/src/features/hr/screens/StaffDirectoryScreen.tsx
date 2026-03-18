@@ -198,30 +198,30 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
   };
 
   const LIST_COLUMNS: any = [
-    { key: 'name', title: 'HỌ TÊN', flex: 2, render: (_: any, staff: any) => (
+    { key: 'name', title: 'HỌ TÊN', flex: 2.5, minWidth: 280, render: (_: any, staff: any) => (
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, paddingRight: 10 }}>
         <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: nameToColor(staff.fullName || '') + '20', alignItems: 'center', justifyContent: 'center' }}>
            <Text style={{ fontSize: 12, fontWeight: '800', color: nameToColor(staff.fullName || '') }}>{getInitials(staff.fullName || '')}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 14, fontWeight: '800', color: cText }} numberOfLines={1}>{staff.fullName}</Text>
-          <Text style={{ fontSize: 11, color: cSub, marginTop: 2 }} numberOfLines={1}>{staff.employeeCode}</Text>
+          <Text style={{ fontSize: 14, fontWeight: '800', color: cText }} numberOfLines={2}>{staff.fullName}</Text>
+          <Text style={{ fontSize: 11, color: cSub, marginTop: 2 }}>{staff.employeeCode}</Text>
         </View>
       </View>
     ) },
-    { key: 'role', title: 'CHỨC VỤ / PHÒNG BAN', flex: 2, render: (_: any, staff: any) => (
+    { key: 'role', title: 'CHỨC VỤ / PHÒNG BAN', flex: 2, minWidth: 200, render: (_: any, staff: any) => (
       <View style={{ flex: 1, paddingRight: 10 }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: cText }} numberOfLines={1}>{staff.position?.name || 'Nhân viên'}</Text>
-        <Text style={{ fontSize: 12, color: cSub, marginTop: 2 }} numberOfLines={1}>{staff.department?.name || '—'}</Text>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: cText }} numberOfLines={2}>{staff.position?.name || 'Nhân viên'}</Text>
+        <Text style={{ fontSize: 12, color: cSub, marginTop: 2 }}>{staff.department?.name || '—'}</Text>
       </View>
     ) },
-    { key: 'contact', title: 'LIÊN HỆ', flex: 2, render: (_: any, staff: any) => (
+    { key: 'contact', title: 'LIÊN HỆ', flex: 2, minWidth: 260, render: (_: any, staff: any) => (
       <View style={{ flex: 1, paddingRight: 10 }}>
-        <Text style={{ fontSize: 13, color: cText }} numberOfLines={1}>{staff.email || '—'}</Text>
-        <Text style={{ fontSize: 12, color: cSub, marginTop: 2 }} numberOfLines={1}>{staff.phone || '—'}</Text>
+        <Text style={{ fontSize: 13, color: cText }} numberOfLines={2}>{staff.email || '—'}</Text>
+        <Text style={{ fontSize: 12, color: cSub, marginTop: 2 }}>{staff.phone || '—'}</Text>
       </View>
     ) },
-    { key: 'status', title: 'TRẠNG THÁI', flex: 1, align: 'center', render: (_: any, staff: any) => {
+    { key: 'status', title: 'TRẠNG THÁI', flex: 1, minWidth: 120, align: 'center', render: (_: any, staff: any) => {
       const color = staff.status === 'ACTIVE' ? '#16a34a' : staff.status === 'PROBATION' ? '#2563eb' : '#d97706';
       const bg = staff.status === 'ACTIVE' ? 'rgba(34,197,94,0.15)' : staff.status === 'PROBATION' ? 'rgba(59,130,246,0.15)' : 'rgba(245,158,11,0.15)';
       const label = staff.status === 'ACTIVE' ? 'ĐANG LÀM' : staff.status === 'PROBATION' ? 'THỬ VIỆC' : staff.status === 'ON_LEAVE' ? 'ĐANG NGHỈ' : staff.status;
@@ -231,7 +231,7 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
         </View>
       );
     } },
-    { key: 'action', title: '', flex: 0.5, align: 'center', render: (_: any, staff: any) => canEdit ? (
+    { key: 'action', title: '', flex: 0.5, minWidth: 60, align: 'center', render: (_: any, staff: any) => canEdit ? (
       <TouchableOpacity onPress={() => openEdit(staff)} style={{ padding: 8 }}>
         <Pencil size={16} color={cSub} />
       </TouchableOpacity>
