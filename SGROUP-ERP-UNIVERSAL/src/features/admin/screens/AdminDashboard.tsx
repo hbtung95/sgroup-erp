@@ -35,6 +35,18 @@ export function AdminDashboard() {
   const { data: stats, isLoading } = useAdminStats();
   const { data: health } = useAdminHealth();
 
+  // ⚠️ All hooks MUST be called before any early return
+  const statCards = useMemo(() => [
+    { label: 'NGƯỜI DÙNG', value: stats?.totalUsers ?? 0, icon: Users, color: colors.accent, desc: 'Tài khoản hệ thống' },
+    { label: 'ĐANG HOẠT ĐỘNG', value: stats?.activeUsers ?? 0, icon: UserCheck, color: colors.success, desc: 'Users active' },
+    { label: 'ĐÃ VÔ HIỆU HÓA', value: stats?.inactiveUsers ?? 0, icon: UserX, color: colors.danger, desc: 'Users deactivated' },
+    { label: 'TÀI KHOẢN BỊ KHÓA', value: stats?.lockedUsers ?? 0, icon: Lock, color: '#f59e0b', desc: 'Đang bị lock' },
+    { label: 'PHÒNG BAN', value: stats?.totalDepartments ?? 0, icon: Building, color: '#ec4899', desc: 'Đang hoạt động' },
+    { label: 'TEAMS', value: stats?.totalTeams ?? 0, icon: UsersRound, color: colors.info, desc: 'Thuộc các phòng ban' },
+    { label: 'NHÂN VIÊN', value: stats?.totalEmployees ?? 0, icon: UserPlus, color: colors.warning, desc: 'Hồ sơ HR' },
+    { label: 'AUDIT 24H', value: stats?.recentAuditCount ?? 0, icon: FileText, color: '#14b8a6', desc: 'Hoạt động mới' },
+  ], [stats, colors]);
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -56,21 +68,10 @@ export function AdminDashboard() {
     );
   }
 
-  const statCards = useMemo(() => [
-    { label: 'NGƯỜI DÙNG', value: stats?.totalUsers ?? 0, icon: Users, color: colors.accent, desc: 'Tài khoản hệ thống' },
-    { label: 'ĐANG HOẠT ĐỘNG', value: stats?.activeUsers ?? 0, icon: UserCheck, color: colors.success, desc: 'Users active' },
-    { label: 'ĐÃ VÔ HIỆU HÓA', value: stats?.inactiveUsers ?? 0, icon: UserX, color: colors.danger, desc: 'Users deactivated' },
-    { label: 'TÀI KHOẢN BỊ KHÓA', value: stats?.lockedUsers ?? 0, icon: Lock, color: '#f59e0b', desc: 'Đang bị lock' },
-    { label: 'PHÒNG BAN', value: stats?.totalDepartments ?? 0, icon: Building, color: '#ec4899', desc: 'Đang hoạt động' },
-    { label: 'TEAMS', value: stats?.totalTeams ?? 0, icon: UsersRound, color: colors.info, desc: 'Thuộc các phòng ban' },
-    { label: 'NHÂN VIÊN', value: stats?.totalEmployees ?? 0, icon: UserPlus, color: colors.warning, desc: 'Hồ sơ HR' },
-    { label: 'AUDIT 24H', value: stats?.recentAuditCount ?? 0, icon: FileText, color: '#14b8a6', desc: 'Hoạt động mới' },
-  ], [stats, colors]);
-
   const recentUsers = stats?.recentUsers ?? [];
   const deptDist = stats?.deptDistribution ?? [];
   const roleDist = stats?.roleDistribution ?? [];
-  const activityTrend = stats?.activityTrend ?? [];
+  const activityTrend: ActivityTrendItem[] = stats?.activityTrend ?? [];
 
   const roleLabel = (role: string) => getRoleStyle(role);
 
