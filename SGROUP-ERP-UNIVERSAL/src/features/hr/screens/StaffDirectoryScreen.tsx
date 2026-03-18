@@ -6,7 +6,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, Platform, TextInput, ActivityIndicator, Modal, Alert } from 'react-native';
 import {
-  UserCog, Plus, Users, Target, Search, Filter, Mail, Hash, Phone, Building, Star, X, Pencil, UsersRound, ArrowRightLeft, History,
+  UserCog, Plus, Users, Target, Search, Filter, Mail, Hash, Phone, Building, Star, X, Pencil, UsersRound, ArrowRightLeft, History, Laptop, CheckCircle, Clock, Check
 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
@@ -545,6 +545,63 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
               {searchText ? 'Không tìm thấy kết quả phù hợp' : 'Danh sách nhân sự trống. Hãy thêm nhân viên mới.'}
             </Text>
           </SGCard>
+        ) : !isLoading && !error && activeFilter === 'PROBATION' ? (
+          /* ═══ ONBOARDING JOURNEY MAP ═══ */
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 24, paddingVertical: 10 }}>
+             {[
+               { id: 'S1', title: 'Ngày 1: Setup', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', icon: Laptop,
+                 items: employees.slice(0, Math.max(1, Math.floor(employees.length / 4))) },
+               { id: 'S2', title: 'Tuần 1: Hội nhập', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', icon: UsersRound,
+                 items: employees.slice(Math.max(1, Math.floor(employees.length / 4)), Math.max(2, Math.floor(employees.length / 2))) },
+               { id: 'S3', title: 'Tháng 1-2: Đánh giá', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Star,
+                 items: employees.slice(Math.max(2, Math.floor(employees.length / 2)), employees.length - 1) },
+               { id: 'S4', title: 'Hoàn tất chờ ký HĐ', color: '#10b981', bg: 'rgba(16,185,129,0.1)', icon: CheckCircle,
+                 items: employees.slice(employees.length - 1) },
+             ].map((stage, sIdx) => (
+               <View key={stage.id} style={{ width: 340, backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc', borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#e2e8f0', padding: 16 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                     <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: stage.bg, alignItems: 'center', justifyContent: 'center' }}>
+                       <stage.icon size={18} color={stage.color} />
+                     </View>
+                     <View>
+                        <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{stage.title}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: stage.color }}>{stage.items.length} nhân sự</Text>
+                     </View>
+                  </View>
+                  <View style={{ gap: 12 }}>
+                     {stage.items.length === 0 ? (
+                       <View style={{ padding: 20, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', borderWidth: 1, borderColor: cSub + '40', borderRadius: 16 }}>
+                          <Text style={{ fontSize: 12, color: cSub }}>Trống</Text>
+                       </View>
+                     ) : stage.items.map((emp: any, eIdx: number) => {
+                       const avatarColor = nameToColor(emp.fullName || '');
+                       return (
+                         <AnimatedPressable entering={FadeInDown.delay(300 + sIdx * 50 + eIdx * 40).duration(400)} key={emp.id} onPress={() => canEdit && openEdit(emp)} style={{ padding: 16, borderRadius: 16, backgroundColor: isDark ? 'rgba(30,41,59,0.8)' : '#fff', shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.04, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', ...(Platform.OS === 'web' ? { cursor: 'grab' as any } : {}) }}>
+                            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+                              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: avatarColor + '20', alignItems: 'center', justifyContent: 'center' }}>
+                                <Text style={{ fontSize: 13, fontWeight: '900', color: avatarColor }}>{getInitials(emp.fullName || '')}</Text>
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{emp.fullName}</Text>
+                                <Text style={{ fontSize: 12, fontWeight: '600', color: cSub, marginTop: 2 }}>{emp.position?.name || 'Thực tập sinh'} • {emp.department?.name || 'HR'}</Text>
+                              </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', paddingTop: 12 }}>
+                               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                  <Clock size={14} color={cSub} />
+                                  <Text style={{ fontSize: 11, fontWeight: '600', color: cSub }}>Tính từ {new Date().toLocaleDateString('vi-VN')}</Text>
+                               </View>
+                               <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: stage.color + '20', alignItems: 'center', justifyContent: 'center' }}>
+                                 <Check size={12} color={stage.color} />
+                               </View>
+                            </View>
+                         </AnimatedPressable>
+                       )
+                     })}
+                  </View>
+               </View>
+             ))}
+          </ScrollView>
         ) : !isLoading && !error && (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
             {employees.map((staff: any, idx: number) => {

@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Clock, CheckCircle, AlertCircle, Calendar, Users, XCircle, Search, LayoutGrid, List, CalendarDays, ArrowRight } from 'lucide-react-native';
+import { Clock, CheckCircle, AlertCircle, Calendar, Users, XCircle, Search, LayoutGrid, List, CalendarDays, ArrowRight, Grid, Eye } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
@@ -26,6 +26,7 @@ const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }>
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
 export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
+  const [mainTab, setMainTab] = useState<'attendance' | 'schedule'>('attendance');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const { theme, isDark } = useAppTheme();
   const cText = theme.colors.textPrimary;
@@ -61,6 +62,21 @@ export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
   const presentCount = attendanceData.filter((a: any) => a.status === 'ON_TIME').length;
   const lateCount = attendanceData.filter((a: any) => a.status === 'LATE').length;
   const absentCount = attendanceData.filter((a: any) => a.status === 'ABSENT').length;
+
+  const MOCK_SCHEDULE = [
+    { name: 'Nguyễn Văn A', role: 'Nhân viên kinh doanh', shifts: [ { day: 0, type: 'S1' }, { day: 1, type: 'S1' }, { day: 2, type: 'S2' }, { day: 3, type: 'S1' }, { day: 4, type: 'S3' } ] },
+    { name: 'Trần Thị B', role: 'Trưởng phòng Marketing', shifts: [ { day: 0, type: 'S2' }, { day: 1, type: 'S2' }, { day: 3, type: 'S1' }, { day: 4, type: 'S1' }, { day: 5, type: 'S1' } ] },
+    { name: 'Lê C', role: 'IT Support', shifts: [ { day: 1, type: 'S3' }, { day: 2, type: 'S3' }, { day: 4, type: 'S2' }, { day: 5, type: 'S2' }, { day: 6, type: 'S1' } ] },
+    { name: 'Phạm D', role: 'Kế toán', shifts: [ { day: 0, type: 'S1' }, { day: 1, type: 'S1' }, { day: 2, type: 'S1' }, { day: 3, type: 'S1' }, { day: 4, type: 'S1' } ] },
+    { name: 'Đoàn E', role: 'Dự án', shifts: [ { day: 0, type: 'S3' }, { day: 2, type: 'S2' }, { day: 3, type: 'S2' }, { day: 5, type: 'S1' }, { day: 6, type: 'S2' } ] },
+  ];
+  const WEEK_DAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
+  
+  const SHIFTS = {
+    'S1': { label: 'Sáng', bg: isDark ? 'rgba(59,130,246,0.2)' : '#eff6ff', color: '#3b82f6', border: 'rgba(59,130,246,0.4)' },
+    'S2': { label: 'Chiều', bg: isDark ? 'rgba(245,158,11,0.2)' : '#fef3c7', color: '#d97706', border: 'rgba(245,158,11,0.4)' },
+    'S3': { label: 'Tối', bg: isDark ? 'rgba(139,92,246,0.2)' : '#f3e8ff', color: '#8b5cf6', border: 'rgba(139,92,246,0.4)' }
+  };
 
   const COLUMNS: any = [
     { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
@@ -106,8 +122,20 @@ export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Stats Summary */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
+        {/* Main Tabs Segmented Control */}
+        <Animated.View entering={FadeInDown.delay(50).duration(400)} style={{ flexDirection: 'row', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', padding: 6, borderRadius: 16, alignSelf: 'flex-start', marginTop: 8 }}>
+          <TouchableOpacity onPress={() => setMainTab('attendance')} style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: mainTab === 'attendance' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowOpacity: mainTab === 'attendance' ? 0.05 : 0, elevation: mainTab === 'attendance' ? 2 : 0, shadowColor: '#000', shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: mainTab === 'attendance' ? (isDark ? '#fff' : cText) : cSub }}>Điểm danh hôm nay</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setMainTab('schedule')} style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: mainTab === 'schedule' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowOpacity: mainTab === 'schedule' ? 0.05 : 0, elevation: mainTab === 'schedule' ? 2 : 0, shadowColor: '#000', shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: mainTab === 'schedule' ? (isDark ? '#fff' : cText) : cSub }}>Xếp ca (Gantt Chart)</Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {mainTab === 'attendance' ? (
+          <>
+            {/* Stats Summary */}
+            <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
           {[
             { label: 'TỔNG ĐIỂM DANH', val: attendanceData.length, icon: Users, color: '#3b82f6', gradient: ['#3b82f6', '#2563eb'], shadow: '#3b82f6' },
             { label: 'ĐÚNG GIỜ', val: presentCount, icon: CheckCircle, color: '#22c55e', gradient: ['#10b981', '#059669'], shadow: '#10b981' },
@@ -311,6 +339,75 @@ export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
               );
             })}
           </View>
+        )}
+          </>
+        ) : (
+          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flex: 1, marginTop: 12 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <View>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: cText, letterSpacing: -0.5 }}>Điều phối ca làm việc</Text>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: cSub, marginTop: 4 }}>Tuần này (Dựa trên hệ thống gợi ý AI)</Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 16 }}>
+                {Object.entries(SHIFTS).map(([k, v]) => (
+                  <View key={k} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: v.bg, borderWidth: 1, borderColor: v.border }} />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: cSub }}>Ca {v.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View style={{ 
+              backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
+              borderRadius: 24, borderWidth: 1, borderColor, 
+              overflow: 'hidden', paddingBottom: 16,
+              ...(Platform.OS === 'web' ? { 
+                backdropFilter: 'blur(32px)', 
+                WebkitBackdropFilter: 'blur(32px)',
+                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 12px 32px rgba(0,0,0,0.04)' 
+              } : {}),
+            }}>
+              {/* Header Row */}
+              <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: borderColor, backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
+                <View style={{ width: 220, padding: 16, justifyContent: 'center', borderRightWidth: 1, borderRightColor: borderColor }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, textTransform: 'uppercase', letterSpacing: 0.5 }}>Nhân viên</Text>
+                </View>
+                {WEEK_DAYS.map((day, dIdx) => (
+                  <View key={dIdx} style={{ flex: 1, padding: 16, alignItems: 'center', borderRightWidth: dIdx < 6 ? 1 : 0, borderRightColor: borderColor }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: dIdx > 4 ? '#ef4444' : cText }}>{day}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Data Rows */}
+              {MOCK_SCHEDULE.map((emp, idx) => (
+                <View key={idx} style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: borderColor, minHeight: 70 }}>
+                  <View style={{ width: 220, padding: 16, justifyContent: 'center', borderRightWidth: 1, borderRightColor: borderColor, backgroundColor: isDark ? 'rgba(255,255,255,0.01)' : '#ffffff' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: cText }}>{emp.name}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '500', color: cSub, marginTop: 4 }}>{emp.role}</Text>
+                  </View>
+                  {WEEK_DAYS.map((_, dIdx) => {
+                    const shift = emp.shifts.find(s => s.day === dIdx);
+                    return (
+                      <View key={dIdx} style={{ flex: 1, padding: 8, borderRightWidth: dIdx < 6 ? 1 : 0, borderRightColor: borderColor }}>
+                        {shift && (
+                          <Animated.View entering={FadeInDown.delay(100 + idx * 50 + dIdx * 20).springify()} style={{ 
+                            flex: 1, backgroundColor: (SHIFTS as any)[shift.type].bg, 
+                            borderWidth: 1, borderColor: (SHIFTS as any)[shift.type].border,
+                            borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+                            shadowColor: (SHIFTS as any)[shift.type].color, shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2
+                          }}>
+                            <Text style={{ fontSize: 13, fontWeight: '800', color: (SHIFTS as any)[shift.type].color }}>{(SHIFTS as any)[shift.type].label}</Text>
+                          </Animated.View>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              ))}
+            </View>
+          </Animated.View>
         )}
 
       </ScrollView>

@@ -4,7 +4,7 @@
  */
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Wallet, DollarSign, ArrowUpRight, ArrowDownRight, Search, FileText, CheckCircle, Clock, Eye, EyeOff, LayoutGrid, List } from 'lucide-react-native';
+import { Wallet, DollarSign, ArrowUpRight, ArrowDownRight, Search, FileText, CheckCircle, Clock, Eye, EyeOff, LayoutGrid, List, BarChart3, TrendingUp, AlertCircle } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
@@ -16,6 +16,15 @@ import { usePayroll } from '../hooks/useHR';
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 const currentMonth = new Date().getMonth() + 1;
 const currentYear = new Date().getFullYear();
+
+const MOCK_HISTORY = [
+  { month: 'T10', budget: 100, actual: 85 },
+  { month: 'T11', budget: 100, actual: 94 },
+  { month: 'T12', budget: 120, actual: 118 },
+  { month: 'T01', budget: 110, actual: 98 },
+  { month: 'T02', budget: 110, actual: 105 },
+  { month: 'T03', budget: 110, actual: 108, forecast: true },
+];
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -165,6 +174,87 @@ export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
               </View>
             </LinearGradient>
           ))}
+        </Animated.View>
+
+        {/* Payroll Analytics Dashboard */}
+        <Animated.View entering={FadeInDown.delay(150).duration(400)} style={{
+          backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
+          borderRadius: 28, padding: 32,
+          borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+          ...(Platform.OS === 'web' ? { 
+            backdropFilter: 'blur(32px)', 
+            WebkitBackdropFilter: 'blur(32px)',
+            boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 12px 32px rgba(0,0,0,0.04)' 
+          } : {}),
+        }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <LinearGradient
+                colors={isDark ? ['rgba(139,92,246,0.2)', 'rgba(99,102,241,0.05)'] : ['#f5f3ff', '#e0e7ff']}
+                style={{ padding: 14, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(139,92,246,0.1)' }}
+              >
+                <BarChart3 size={24} color="#8b5cf6" />
+              </LinearGradient>
+              <View>
+                <Text style={{ fontSize: 20, fontWeight: '800', color: cText, letterSpacing: -0.5 }}>Phân tích Ngân sách & Dự báo</Text>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: '#94a3b8', marginTop: 4 }}>Xu hướng quỹ lương 6 tháng gần nhất</Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 20 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#cbd5e1' }} />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: cSub }}>Ngân sách Mức trần</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <LinearGradient colors={['#8b5cf6', '#6366f1']} style={{ width: 14, height: 14, borderRadius: 4 }} />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: cSub }}>Thực chi</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <LinearGradient colors={['#f59e0b', '#d97706']} style={{ width: 14, height: 14, borderRadius: 4 }} />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: cSub }}>Dự báo (AI)</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Chart Area */}
+          <View style={{ height: 260, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', paddingTop: 20, paddingHorizontal: 10 }}>
+            {MOCK_HISTORY.map((item, idx) => {
+              const maxBudget = 130; // Chart Y-axis max
+              const budgetH = (item.budget / maxBudget) * 100 + '%';
+              const actualH = (item.actual / maxBudget) * 100 + '%';
+              
+              return (
+                <View key={idx} style={{ alignItems: 'center', flex: 1, gap: 16 }}>
+                  {item.forecast && (
+                    <Animated.View entering={FadeInDown.delay(800)} style={{ position: 'absolute', top: -30, backgroundColor: 'rgba(245,158,11,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: '#f59e0b' }}>AI FORECAST</Text>
+                    </Animated.View>
+                  )}
+                  <View style={{ width: '100%', height: '100%', justifyContent: 'flex-end', alignItems: 'center' }}>
+                    {/* Budget Bar */}
+                    <View style={{ 
+                      position: 'absolute', bottom: 0, width: 48, height: budgetH as any, 
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', 
+                      borderRadius: 12, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+                      borderStyle: item.forecast ? 'dashed' : 'solid'
+                    }} />
+                    
+                    {/* Actual Bar */}
+                    <AnimatedLinearGradient 
+                      entering={FadeInDown.delay(300 + idx * 100).springify()} 
+                      colors={item.forecast ? ['#f59e0b', '#d97706'] : ['#8b5cf6', '#6366f1']}
+                      style={{ 
+                        position: 'absolute', bottom: 0, width: 48, height: actualH as any, 
+                        borderRadius: 12, opacity: isPrivate ? 0.4 : 1,
+                        shadowColor: item.forecast ? '#f59e0b' : '#8b5cf6', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }
+                      }} 
+                    />
+                  </View>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: item.forecast ? '#f59e0b' : cSub }}>{item.month}</Text>
+                </View>
+              );
+            })}
+          </View>
         </Animated.View>
 
         {/* Filters */}
