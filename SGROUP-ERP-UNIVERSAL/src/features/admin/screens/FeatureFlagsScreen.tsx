@@ -46,9 +46,10 @@ export function FeatureFlagsScreen() {
   const deleteFlag = useDeleteFeatureFlag();
   const seedFlags = useSeedFeatureFlags();
 
-  // Group flags by module
+  // Group flags by module — handle both array and { data: [...] } API shapes
+  const flagsList: any[] = Array.isArray(flags) ? flags : Array.isArray((flags as any)?.data) ? (flags as any).data : [];
   const groupedFlags: Record<string, any[]> = {};
-  (flags || []).forEach((f: any) => {
+  flagsList.forEach((f: any) => {
     const mod = f.module || 'general';
     if (!groupedFlags[mod]) groupedFlags[mod] = [];
     groupedFlags[mod].push(f);
@@ -140,7 +141,7 @@ export function FeatureFlagsScreen() {
               <SGSkeleton key={i} width="100%" height={72} borderRadius={16} />
             ))}
           </View>
-        ) : (flags || []).length === 0 ? (
+        ) : flagsList.length === 0 ? (
           <SGSection>
             <SGEmptyState
               icon={<Flag size={48} color={colors.textTertiary} strokeWidth={1} />}
