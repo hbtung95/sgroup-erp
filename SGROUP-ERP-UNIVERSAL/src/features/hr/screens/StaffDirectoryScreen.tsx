@@ -4,14 +4,14 @@
  * Now connected to real database via HR API
  */
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Platform, TextInput, ActivityIndicator, Modal, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform, TextInput, ActivityIndicator, Modal, Alert, TouchableOpacity } from 'react-native';
 import {
-  UserCog, Plus, Users, Target, Search, Filter, Mail, Hash, Phone, Building, Star, X, Pencil, UsersRound, ArrowRightLeft, History, Laptop, CheckCircle, Clock, Check
+  UserCog, Plus, Users, Target, Search, Filter, Mail, Hash, Phone, Building, Star, X, Pencil, UsersRound, ArrowRightLeft, History, Laptop, CheckCircle, Clock, Check, LayoutGrid, List
 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
-import { SGCard } from '../../../shared/ui/components';
+import { SGCard, SGTable } from '../../../shared/ui/components';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { HRRole } from '../HRSidebar';
 import { useEmployees, useHRDashboard, useCreateEmployee, useUpdateEmployee, useDepartments, usePositions, useTeams, useTransferHistory } from '../hooks/useHR';
@@ -68,6 +68,7 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
 
   const [searchText, setSearchText] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Modal state: 'create' | 'edit' | null
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
@@ -195,6 +196,47 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
     color: cText,
     ...(Platform.OS === 'web' ? { outlineStyle: 'none' as any } : {}),
   };
+
+  const LIST_COLUMNS: any = [
+    { key: 'name', title: 'HỌ TÊN', flex: 1.5, render: (_: any, staff: any) => (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: nameToColor(staff.fullName || '') + '20', alignItems: 'center', justifyContent: 'center' }}>
+           <Text style={{ fontSize: 12, fontWeight: '800', color: nameToColor(staff.fullName || '') }}>{getInitials(staff.fullName || '')}</Text>
+        </View>
+        <View>
+          <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{staff.fullName}</Text>
+          <Text style={{ fontSize: 11, color: cSub, marginTop: 2 }}>{staff.employeeCode}</Text>
+        </View>
+      </View>
+    ) },
+    { key: 'role', title: 'CHỨC VỤ / PHÒNG BAN', flex: 1.5, render: (_: any, staff: any) => (
+      <View>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: cText }}>{staff.position?.name || 'Nhân viên'}</Text>
+        <Text style={{ fontSize: 12, color: cSub, marginTop: 2 }}>{staff.department?.name || '—'}</Text>
+      </View>
+    ) },
+    { key: 'contact', title: 'LIÊN HỆ', flex: 1.5, render: (_: any, staff: any) => (
+      <View>
+        <Text style={{ fontSize: 13, color: cText }}>{staff.email || '—'}</Text>
+        <Text style={{ fontSize: 12, color: cSub, marginTop: 2 }}>{staff.phone || '—'}</Text>
+      </View>
+    ) },
+    { key: 'status', title: 'TRẠNG THÁI', flex: 1, align: 'center', render: (_: any, staff: any) => {
+      const color = staff.status === 'ACTIVE' ? '#16a34a' : staff.status === 'PROBATION' ? '#2563eb' : '#d97706';
+      const bg = staff.status === 'ACTIVE' ? 'rgba(34,197,94,0.15)' : staff.status === 'PROBATION' ? 'rgba(59,130,246,0.15)' : 'rgba(245,158,11,0.15)';
+      const label = staff.status === 'ACTIVE' ? 'ĐANG LÀM' : staff.status === 'PROBATION' ? 'THỬ VIỆC' : staff.status === 'ON_LEAVE' ? 'ĐANG NGHỈ' : staff.status;
+      return (
+        <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: bg, alignSelf: 'center' }}>
+          <Text style={{ fontSize: 10, fontWeight: '800', color: color }}>{label}</Text>
+        </View>
+      );
+    } },
+    { key: 'action', title: '', flex: 0.5, align: 'center', render: (_: any, staff: any) => canEdit ? (
+      <TouchableOpacity onPress={() => openEdit(staff)} style={{ padding: 8 }}>
+        <Pencil size={16} color={cSub} />
+      </TouchableOpacity>
+    ) : null }
+  ];
 
   return (
     <View style={{ flex: 1, backgroundColor: cBg }}>
@@ -474,6 +516,17 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
         {/* ── Search & Filter ── */}
         <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flexDirection: 'row', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <View style={{
+            flexDirection: 'row', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
+            borderRadius: 16, padding: 4, height: 44,
+          }}>
+            <TouchableOpacity onPress={() => setViewMode('grid')} style={{ paddingHorizontal: 16, justifyContent: 'center', borderRadius: 12, backgroundColor: viewMode === 'grid' ? (isDark ? '#ec4899' : '#fff') : 'transparent', shadowOpacity: viewMode === 'grid' ? 0.05 : 0, elevation: viewMode === 'grid' ? 2 : 0 }}>
+              <LayoutGrid size={18} color={viewMode === 'grid' ? (isDark ? '#fff' : cText) : cSub} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setViewMode('list')} style={{ paddingHorizontal: 16, justifyContent: 'center', borderRadius: 12, backgroundColor: viewMode === 'list' ? (isDark ? '#ec4899' : '#fff') : 'transparent', shadowOpacity: viewMode === 'list' ? 0.05 : 0, elevation: viewMode === 'list' ? 2 : 0 }}>
+              <List size={18} color={viewMode === 'list' ? (isDark ? '#fff' : cText) : cSub} />
+            </TouchableOpacity>
+          </View>
+          <View style={{
             flex: 1, minWidth: 240, flexDirection: 'row', alignItems: 'center', gap: 10,
             backgroundColor: cardBg,
             borderWidth: 1, borderColor,
@@ -602,7 +655,23 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
                </View>
              ))}
           </ScrollView>
-        ) : !isLoading && !error && (
+        ) : !isLoading && !error && viewMode === 'list' ? (
+          <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{
+            backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
+            borderRadius: 24, overflow: 'hidden', marginTop: 16,
+            borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+            ...(Platform.OS === 'web' ? { 
+              backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)',
+              boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 12px 32px rgba(0,0,0,0.04)' 
+            } : {}),
+          }}>
+            <SGTable 
+              columns={LIST_COLUMNS} 
+              data={employees} 
+              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
+            />
+          </Animated.View>
+        ) : !isLoading && !error && viewMode === 'grid' && (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
             {employees.map((staff: any, idx: number) => {
               const posLevel = staff.position?.level || 'Staff';

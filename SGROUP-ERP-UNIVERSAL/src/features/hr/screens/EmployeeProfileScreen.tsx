@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, User, Mail, Phone, MapPin, Briefcase, Calendar, ShieldCheck, Award, FileLock2, PenTool, Download, Lock } from 'lucide-react-native';
+import {ArrowLeft, User, Mail, Phone, MapPin, Briefcase, Calendar, ShieldCheck, Award, FileLock2, PenTool, Download, Lock, TrendingUp, CheckCircle, Clock, BookOpen, Star} from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
-import { sgds, typography } from '../../../shared/theme/theme';
+import { sgds, typography, radius } from '../../../shared/theme/theme';
 import { useResponsive } from '../../../shared/hooks/useResponsive';
 import { useAuthStore } from '../../auth/store/authStore';
-import { SGPageContainer, SGPageHeader, SGSection, SGTag, SGStatCard, SGDataGrid } from '../../../shared/ui';
+import { SGPageContainer, SGSection, SGTag, SGDataGrid, SGAuroraBackground, SGPillSelector, SGGradientStatCard, SGKpiCard, SGProgressBar, SGTimeline } from '../../../shared/ui';
 
 export function EmployeeProfileScreen() {
   const navigation = useNavigation<any>();
@@ -15,59 +15,73 @@ export function EmployeeProfileScreen() {
   const { isMobile } = useResponsive();
   const user = useAuthStore((s) => s.user);
 
-  const primaryColor = '#DB2777'; // HR Accent Color
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const primaryColor = colors.brand; // Use SGDS brand token instead of hardcoded HR color
+  
+  const TABS = [
+    { id: 'overview', label: 'Tổng quan' },
+    { id: 'skills', label: 'Kỹ năng & Hiệu suất' },
+    { id: 'timeline', label: 'Hành trình' },
+  ];
 
   return (
-    <View style={[styles.root, { backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }]}>
+    <View style={[styles.root, { backgroundColor: colors.bg }]}>
       <Animated.View
-        entering={FadeInDown.duration(400)}
-        style={[
-          styles.topBar,
-          {
-            borderBottomColor: colors.border,
-            backgroundColor: isDark ? 'rgba(12,18,29,0.86)' : 'rgba(255,255,255,0.88)',
-          },
-          Platform.OS === 'web' ? ({ ...sgds.glass } as any) : null,
-        ]}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[
-            styles.backButton,
-            { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' },
-            Platform.OS === 'web' ? (sgds.cursor as any) : null,
-          ]}
-        >
-          <ArrowLeft size={16} color={colors.text} />
-        </TouchableOpacity>
-
-        <View style={styles.topBarTitleWrap}>
-          <Text style={[typography.h4, { color: colors.text }]}>Hồ Sơ Nhân Sự</Text>
-          <Text style={[typography.caption, { color: colors.textTertiary }]}>Thông tin chi tiết và hiệu suất làm việc</Text>
-        </View>
+         entering={FadeInDown.duration(400)}
+         style={[
+           styles.topBar,
+           {
+             borderBottomColor: colors.border,
+             backgroundColor: isDark ? 'rgba(12,18,29,0.86)' : 'rgba(255,255,255,0.88)',
+           },
+           Platform.OS === 'web' ? ({ ...sgds.glass } as any) : null,
+         ]}
+       >
+         <TouchableOpacity
+           onPress={() => navigation.goBack()}
+           style={[
+             styles.backButton,
+             { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' },
+             Platform.OS === 'web' ? (sgds.cursor as any) : null,
+           ]}
+         >
+           <ArrowLeft size={16} color={colors.text} />
+         </TouchableOpacity>
+ 
+         <View style={styles.topBarTitleWrap}>
+           <Text style={[typography.h4, { color: colors.text }]}>Hồ Sơ Nhân Sự</Text>
+           <Text style={[typography.caption, { color: colors.textTertiary }]}>Thông tin chi tiết và hiệu suất làm việc</Text>
+         </View>
       </Animated.View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Animated Aurora Cover Background */}
+        <SGAuroraBackground style={{ height: 180, position: 'absolute', top: 0, left: 0, right: 0 }} />
+
         <SGPageContainer padding={isMobile ? 16 : 24} maxWidth={1000}>
           <View style={{ gap: isMobile ? 16 : 24 }}>
+            {/* Header Card */}
             <Animated.View
               entering={FadeInDown.delay(100).duration(400)}
               style={[
                 styles.profileHeaderCard,
+                sgds.sectionBase(theme),
                 {
-                  backgroundColor: isDark ? 'rgba(28, 36, 49, 0.6)' : '#FFFFFF',
-                  borderColor: colors.borderLight,
+                  marginTop: 60, // Push down to overlap aurora cover
+                  shadowColor: isDark ? 'rgba(14, 165, 233, 0.12)' : 'rgba(0,0,0,0.05)', // shadowGlow or subtle shadow
+                  elevation: 8,
                 },
               ]}
             >
-              <View style={[styles.avatarContainer, { backgroundColor: `${primaryColor}20` }]}>
-                <User size={48} color={primaryColor} />
+              <View style={[styles.avatarContainer, { backgroundColor: `${primaryColor}20`, borderColor: colors.brand, borderWidth: 2 }]}>
+                <User size={54} color={primaryColor} />
               </View>
               <View style={styles.profileInfo}>
-                <Text style={[typography.h2, { color: colors.text, marginBottom: 4 }]}>
+                <Text style={[typography.h1, { color: colors.text, marginBottom: 4 }]}>
                   {user?.name || 'Nguyễn Văn A'}
                 </Text>
-                <Text style={[typography.body, { color: primaryColor, fontWeight: '600', marginBottom: 12 }]}>
+                <Text style={[typography.bodyBold, { color: primaryColor, marginBottom: 16 }]}>
                   {user?.role || 'Chuyên Viên Nhân Sự (HR)'}
                 </Text>
 
@@ -79,86 +93,192 @@ export function EmployeeProfileScreen() {
               </View>
             </Animated.View>
 
-            <View style={[styles.contentRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
-              <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flex: 1, gap: 16 }}>
-                <SGSection title="Thông tin liên hệ" titleIcon={<User size={18} color={primaryColor} />} titleColor={primaryColor}>
-                  <View style={styles.detailList}>
-                    <DetailItem icon={Mail} label="Email" value={user?.email || 'nguyenvana@sgroup.vn'} colors={colors} />
-                    <DetailItem icon={Phone} label="Điện thoại" value="+84 987 654 321" colors={colors} />
-                    <DetailItem icon={MapPin} label="Địa chỉ" value="Tòa nhà S-Group, Quận 1, TP.HCM" colors={colors} />
-                  </View>
-                </SGSection>
+            {/* Tab Selector */}
+            <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+              <SGPillSelector
+                options={TABS}
+                value={activeTab}
+                onChange={setActiveTab}
+                style={{ alignSelf: 'flex-start' }}
+              />
+            </Animated.View>
 
-                <SGSection title="Thông tin công việc" titleIcon={<Briefcase size={18} color={primaryColor} />} titleColor={primaryColor}>
-                  <View style={styles.detailList}>
-                    <DetailItem icon={Briefcase} label="Phòng ban" value="Phòng Nhân Sự (HR)" colors={colors} />
-                    <DetailItem icon={Calendar} label="Ngày gia nhập" value="15/03/2023" colors={colors} />
-                    <DetailItem icon={ShieldCheck} label="Mã nhân viên" value="SG-HR-0042" colors={colors} />
-                  </View>
-                </SGSection>
-              </Animated.View>
+            {/* Tab 1: Overview */}
+            {activeTab === 'overview' && (
+              <View style={[styles.contentRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
+                <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
+                  <SGSection title="Thông tin liên hệ" titleIcon={<User size={18} color={primaryColor} />} titleColor={primaryColor}>
+                    <View style={styles.detailList}>
+                      <DetailItem icon={Mail} label="Email" value={user?.email || 'nguyenvana@sgroup.vn'} colors={colors} />
+                      <DetailItem icon={Phone} label="Điện thoại" value="+84 987 654 321" colors={colors} />
+                      <DetailItem icon={MapPin} label="Địa chỉ" value="Tòa nhà S-Group, Quận 1, TP.HCM" colors={colors} />
+                    </View>
+                  </SGSection>
 
-              <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ flex: 1, gap: 16 }}>
-                <SGSection title="Tổng quan hiệu suất" titleIcon={<Award size={18} color={colors.warning} />} titleColor={colors.warning}>
-                  <SGDataGrid gap={12} minItemWidth={140}>
-                    <SGStatCard label="Nhiệm vụ hoàn thành" value="142" unit="task" trend={12} icon={<Briefcase size={16} color={colors.success} />} iconColor={colors.success} />
-                    <SGStatCard label="Đánh giá KPI" value="95%" trend={5} icon={<Award size={16} color={colors.warning} />} iconColor={colors.warning} />
-                    <SGStatCard label="Ngày phép còn lại" value="11" unit="ngày" icon={<Calendar size={16} color={colors.info} />} iconColor={colors.info} />
-                    <SGStatCard label="Giờ đào tạo" value="48" unit="giờ" gradient icon={<User size={16} color={primaryColor} />} iconColor={primaryColor} />
-                  </SGDataGrid>
-                </SGSection>
-                
-                {/* ═══ Self-Service (ESS) Widgets ═══ */}
-                <Animated.View entering={FadeInDown.delay(400).duration(400)} style={{ marginTop: 16 }}>
+                  <SGSection title="Thông tin công việc" titleIcon={<Briefcase size={18} color={primaryColor} />} titleColor={primaryColor}>
+                    <View style={styles.detailList}>
+                      <DetailItem icon={Briefcase} label="Phòng ban" value="Phòng Nhân Sự (HR)" colors={colors} />
+                      <DetailItem icon={Calendar} label="Ngày gia nhập" value="15/03/2023" colors={colors} />
+                      <DetailItem icon={ShieldCheck} label="Mã nhân viên" value="SG-HR-0042" colors={colors} />
+                    </View>
+                  </SGSection>
+                </Animated.View>
+
+                <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
+                  <SGSection title="Tổng quan nhanh" titleIcon={<TrendingUp size={18} color={colors.success} />} titleColor={colors.success}>
+                    <SGDataGrid gap={12} minItemWidth={140}>
+                      <SGGradientStatCard 
+                        label="KPI Hiện Tại" 
+                        value="95%" 
+                        trend={5} 
+                        icon={<Award size={16} color="#fff" />} 
+                        gradient={['#0ea5e9', '#06b6d4']} 
+                      />
+                      <SGGradientStatCard 
+                        label="Nhiệm vụ Hoàn thành" 
+                        value="142" 
+                        icon={<CheckCircle size={16} color="#fff" />} 
+                        gradient={['#F59E0B', '#FBBF24']} 
+                      />
+                    </SGDataGrid>
+                  </SGSection>
+                  
+                  {/* Self-Service (ESS) Widgets */}
                   <SGSection title="Tài liệu & Chứng từ (ESS)" titleIcon={<FileLock2 size={18} color="#ec4899" />} titleColor="#ec4899">
                     <View style={{ gap: 16 }}>
-                      
                       {/* Secure Payslip */}
-                      <TouchableOpacity style={{ 
-                        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', 
-                        padding: 16, borderRadius: 16, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', 
-                        borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' 
-                      }}>
+                      <TouchableOpacity style={[
+                        styles.essCard,
+                        {
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                          borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'
+                        },
+                        Platform.OS === 'web' ? { ...sgds.transition.fast, ...(sgds.cursor as any) } : {}
+                      ]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                          <View style={[styles.essIconWrapper, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
                             <FileLock2 size={20} color="#10b981" />
                           </View>
                           <View>
-                            <Text style={{ fontSize: 14, fontWeight: '800', color: colors.text }}>Phiếu lương Tháng 02/2026</Text>
+                            <Text style={[typography.h4, { color: colors.text }]}>Phiếu lương Tháng 02/2026</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
                               <Lock size={12} color={colors.textSecondary} />
-                              <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary }}>Yêu cầu mật khẩu để mở</Text>
+                              <Text style={[typography.caption, { color: colors.textSecondary }]}>Yêu cầu mật khẩu để mở</Text>
                             </View>
                           </View>
                         </View>
-                        <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0', alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={[styles.essActionIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0' }]}>
                           <Download size={16} color={colors.textSecondary} />
                         </View>
                       </TouchableOpacity>
 
                       {/* E-Signature Pending */}
-                      <TouchableOpacity style={{ 
-                        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', 
-                        padding: 16, borderRadius: 16, backgroundColor: 'rgba(59,130,246,0.05)', 
-                        borderWidth: 1, borderColor: 'rgba(59,130,246,0.2)' 
-                      }}>
+                      <TouchableOpacity style={[
+                        styles.essCard,
+                        {
+                          backgroundColor: 'rgba(59,130,246,0.05)',
+                          borderColor: 'rgba(59,130,246,0.2)'
+                        },
+                        Platform.OS === 'web' ? { ...sgds.transition.fast, ...(sgds.cursor as any) } : {}
+                      ]}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#3b82f6', alignItems: 'center', justifyContent: 'center', shadowColor: '#3b82f6', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }}>
+                          <View style={[styles.essIconWrapper, { backgroundColor: '#3b82f6', shadowColor: '#3b82f6', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }]}>
                             <PenTool size={20} color="#fff" />
                           </View>
                           <View>
-                            <Text style={{ fontSize: 14, fontWeight: '800', color: '#3b82f6' }}>Phụ lục HĐLĐ 2026</Text>
-                            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginTop: 4 }}>Cần chữ ký số (e-Signature) của bạn</Text>
+                            <Text style={[typography.h4, { color: '#3b82f6' }]}>Phụ lục HĐLĐ 2026</Text>
+                            <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 4 }]}>Cần chữ ký số (e-Signature) của bạn</Text>
                           </View>
                         </View>
-                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#3b82f6' }}>KÝ NGAY</Text>
+                        <Text style={[typography.smallBold, { color: '#3b82f6' }]}>KÝ NGAY</Text>
                       </TouchableOpacity>
-
                     </View>
                   </SGSection>
                 </Animated.View>
+              </View>
+            )}
+
+            {/* Tab 2: Skills & Performance */}
+            {activeTab === 'skills' && (
+               <View style={[styles.contentRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
+                  <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
+                    <SGSection title="Chỉ số KPIs cốt lõi" titleIcon={<Star size={18} color={colors.warning} />} titleColor={colors.warning}>
+                        <View style={{ gap: 16 }}>
+                           <SGKpiCard title="Chăm sóc nhân viên" current={85} target={100} unit="%" status="good" trend={12} icon={<User size={20} color={colors.success} />} />
+                           <SGKpiCard title="Tuyển dụng" current={7} target={10} unit="NV" status="warning" trend={-2} icon={<Award size={20} color={colors.warning} />} />
+                           <SGKpiCard title="Đào tạo hội nhập" current={4} target={4} unit="Khóa" status="good" trend={0} icon={<BookOpen size={20} color={colors.brand} />} />
+                        </View>
+                    </SGSection>
+                  </Animated.View>
+                  <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
+                     <SGSection title="Kỹ năng chuyên môn" titleIcon={<Award size={18} color={primaryColor} />} titleColor={primaryColor}>
+                        <View style={{ gap: 20 }}>
+                           <View>
+                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                                 <Text style={[typography.bodyBold, { color: colors.text }]}>Luật Lao Động</Text>
+                                 <Text style={[typography.body, { color: colors.textSecondary }]}>90%</Text>
+                              </View>
+                              <SGProgressBar progress={90} color={colors.success} height={8} />
+                           </View>
+                           <View>
+                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                                 <Text style={[typography.bodyBold, { color: colors.text }]}>Đánh giá Năng lực</Text>
+                                 <Text style={[typography.body, { color: colors.textSecondary }]}>75%</Text>
+                              </View>
+                              <SGProgressBar progress={75} color={colors.brand} height={8} />
+                           </View>
+                           <View>
+                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                                 <Text style={[typography.bodyBold, { color: colors.text }]}>Data Analytics HR</Text>
+                                 <Text style={[typography.body, { color: colors.textSecondary }]}>50%</Text>
+                              </View>
+                              <SGProgressBar progress={50} color={colors.warning} height={8} />
+                           </View>
+                        </View>
+                     </SGSection>
+                  </Animated.View>
+               </View>
+            )}
+
+            {/* Tab 3: Timeline */}
+            {activeTab === 'timeline' && (
+              <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+                <SGSection title="Hành trình phát triển" titleIcon={<Clock size={18} color={colors.textSecondary} />}>
+                  <SGTimeline 
+                    items={[
+                      {
+                        title: 'Đánh giá xuất sắc (Q1/2026)',
+                        description: 'Đạt danh hiệu nhân viên xuất sắc quý 1.',
+                        date: '15/03/2026',
+                        status: 'completed',
+                        icon: <Star size={14} color="#F59E0B" />
+                      },
+                      {
+                        title: 'Thăng tiến',
+                        description: 'Chuyên viên Nhân sự (HR)',
+                        date: '01/01/2025',
+                        status: 'completed',
+                        icon: <TrendingUp size={14} color="#10B981" />
+                      },
+                      {
+                        title: 'Hoàn thành thử việc',
+                        description: 'Chính thức gia nhập S-Group',
+                        date: '15/05/2023',
+                        status: 'completed'
+                      },
+                      {
+                        title: 'Gia nhập S-Group',
+                        description: 'Vị trí Thực tập sinh Nhân sự',
+                        date: '15/03/2023',
+                        status: 'completed',
+                        icon: <CheckCircle size={14} color="#3B82F6" />
+                      }
+                    ]} 
+                  />
+                </SGSection>
               </Animated.View>
-            </View>
+            )}
+            
           </View>
         </SGPageContainer>
       </ScrollView>
@@ -168,7 +288,7 @@ export function EmployeeProfileScreen() {
 
 const DetailItem = ({ icon: Icon, label, value, colors }: any) => (
   <View style={styles.detailItem}>
-    <View style={[styles.detailIcon, { backgroundColor: colors.backgroundAlt }]}>
+    <View style={[styles.detailIcon, { backgroundColor: colors.bgCard }]}>
       <Icon size={16} color={colors.textSecondary} />
     </View>
     <View style={{ flex: 1 }}>
@@ -187,6 +307,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     gap: 12,
+    zIndex: 10,
   },
   backButton: {
     width: 34,
@@ -200,20 +321,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 24,
-    borderRadius: 16,
-    borderWidth: 1,
     gap: 24,
-    // Add shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 2,
+    zIndex: 2,
   },
   avatarContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 108,
+    height: 108,
+    borderRadius: 54,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -226,7 +340,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   contentRow: {
-    gap: 16,
+    gap: 24,
   },
   detailList: {
     gap: 16,
@@ -244,4 +358,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  essCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+  },
+  essIconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  essActionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
 });
