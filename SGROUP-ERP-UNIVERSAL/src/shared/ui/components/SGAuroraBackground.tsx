@@ -39,7 +39,7 @@ export const SGAuroraBackground = () => {
         { translateY },
         { scale },
         { rotate: `${rotate}deg` },
-      ],
+      ] as any,
     };
   });
 
@@ -53,7 +53,7 @@ export const SGAuroraBackground = () => {
         { translateX },
         { translateY },
         { scale },
-      ],
+      ] as any,
     };
   });
 

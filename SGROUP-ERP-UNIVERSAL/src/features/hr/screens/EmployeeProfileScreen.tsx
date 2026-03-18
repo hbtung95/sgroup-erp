@@ -20,9 +20,9 @@ export function EmployeeProfileScreen() {
   const primaryColor = colors.brand; // Use SGDS brand token instead of hardcoded HR color
   
   const TABS = [
-    { id: 'overview', label: 'Tổng quan' },
-    { id: 'skills', label: 'Kỹ năng & Hiệu suất' },
-    { id: 'timeline', label: 'Hành trình' },
+    { key: 'overview', label: 'Tổng quan' },
+    { key: 'skills', label: 'Kỹ năng & Hiệu suất' },
+    { key: 'timeline', label: 'Hành trình' },
   ];
 
   return (
@@ -57,7 +57,9 @@ export function EmployeeProfileScreen() {
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Animated Aurora Cover Background */}
-        <SGAuroraBackground style={{ height: 180, position: 'absolute', top: 0, left: 0, right: 0 }} />
+        <View style={{ height: 180, position: 'absolute', top: 0, left: 0, right: 0 }}>
+          <SGAuroraBackground />
+        </View>
 
         <SGPageContainer padding={isMobile ? 16 : 24} maxWidth={1000}>
           <View style={{ gap: isMobile ? 16 : 24 }}>
@@ -93,11 +95,10 @@ export function EmployeeProfileScreen() {
               </View>
             </Animated.View>
 
-            {/* Tab Selector */}
             <Animated.View entering={FadeInDown.delay(150).duration(400)}>
               <SGPillSelector
                 options={TABS}
-                value={activeTab}
+                activeKey={activeTab}
                 onChange={setActiveTab}
                 style={{ alignSelf: 'flex-start' }}
               />
@@ -130,15 +131,15 @@ export function EmployeeProfileScreen() {
                       <SGGradientStatCard 
                         label="KPI Hiện Tại" 
                         value="95%" 
-                        trend={5} 
+                        change={5} 
                         icon={<Award size={16} color="#fff" />} 
-                        gradient={['#0ea5e9', '#06b6d4']} 
+                        color="#0ea5e9"
                       />
                       <SGGradientStatCard 
                         label="Nhiệm vụ Hoàn thành" 
                         value="142" 
                         icon={<CheckCircle size={16} color="#fff" />} 
-                        gradient={['#F59E0B', '#FBBF24']} 
+                        color="#F59E0B"
                       />
                     </SGDataGrid>
                   </SGSection>
@@ -204,9 +205,9 @@ export function EmployeeProfileScreen() {
                   <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
                     <SGSection title="Chỉ số KPIs cốt lõi" titleIcon={<Star size={18} color={colors.warning} />} titleColor={colors.warning}>
                         <View style={{ gap: 16 }}>
-                           <SGKpiCard title="Chăm sóc nhân viên" current={85} target={100} unit="%" status="good" trend={12} icon={<User size={20} color={colors.success} />} />
-                           <SGKpiCard title="Tuyển dụng" current={7} target={10} unit="NV" status="warning" trend={-2} icon={<Award size={20} color={colors.warning} />} />
-                           <SGKpiCard title="Đào tạo hội nhập" current={4} target={4} unit="Khóa" status="good" trend={0} icon={<BookOpen size={20} color={colors.brand} />} />
+                           <SGKpiCard title="Chăm sóc nhân viên" value="85%" trend={12} />
+                           <SGKpiCard title="Tuyển dụng" value="7" trend={-2} />
+                           <SGKpiCard title="Đào tạo hội nhập" value="4" trend={0} />
                         </View>
                     </SGSection>
                   </Animated.View>
@@ -218,21 +219,21 @@ export function EmployeeProfileScreen() {
                                  <Text style={[typography.bodyBold, { color: colors.text }]}>Luật Lao Động</Text>
                                  <Text style={[typography.body, { color: colors.textSecondary }]}>90%</Text>
                               </View>
-                              <SGProgressBar progress={90} color={colors.success} height={8} />
+                              <SGProgressBar progress={90} color={colors.success} size="md" />
                            </View>
                            <View>
                               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                                  <Text style={[typography.bodyBold, { color: colors.text }]}>Đánh giá Năng lực</Text>
                                  <Text style={[typography.body, { color: colors.textSecondary }]}>75%</Text>
                               </View>
-                              <SGProgressBar progress={75} color={colors.brand} height={8} />
+                              <SGProgressBar progress={75} color={colors.brand} size="md" />
                            </View>
                            <View>
                               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                                  <Text style={[typography.bodyBold, { color: colors.text }]}>Data Analytics HR</Text>
                                  <Text style={[typography.body, { color: colors.textSecondary }]}>50%</Text>
                               </View>
-                              <SGProgressBar progress={50} color={colors.warning} height={8} />
+                              <SGProgressBar progress={50} color={colors.warning} size="md" />
                            </View>
                         </View>
                      </SGSection>
@@ -249,28 +250,24 @@ export function EmployeeProfileScreen() {
                       {
                         title: 'Đánh giá xuất sắc (Q1/2026)',
                         description: 'Đạt danh hiệu nhân viên xuất sắc quý 1.',
-                        date: '15/03/2026',
-                        status: 'completed',
+                        time: '15/03/2026',
                         icon: <Star size={14} color="#F59E0B" />
                       },
                       {
                         title: 'Thăng tiến',
                         description: 'Chuyên viên Nhân sự (HR)',
-                        date: '01/01/2025',
-                        status: 'completed',
+                        time: '01/01/2025',
                         icon: <TrendingUp size={14} color="#10B981" />
                       },
                       {
                         title: 'Hoàn thành thử việc',
                         description: 'Chính thức gia nhập S-Group',
-                        date: '15/05/2023',
-                        status: 'completed'
+                        time: '15/05/2023',
                       },
                       {
                         title: 'Gia nhập S-Group',
                         description: 'Vị trí Thực tập sinh Nhân sự',
-                        date: '15/03/2023',
-                        status: 'completed',
+                        time: '15/03/2023',
                         icon: <CheckCircle size={14} color="#3B82F6" />
                       }
                     ]} 
