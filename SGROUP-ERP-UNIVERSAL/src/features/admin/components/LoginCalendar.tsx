@@ -41,15 +41,17 @@ export function LoginCalendar() {
   ];
 
   // Organize into weeks (columns) with 7 days each (rows)
-  const calendarData = data.data;
+  const calendarData = data.data ?? [];
   const weeks: { date: string; count: number }[][] = [];
   let currentWeek: { date: string; count: number }[] = [];
 
   // Pad the start to align with day of week
-  const firstDate = new Date(calendarData[0]?.date);
-  const startDow = firstDate.getDay(); // 0=Sun
-  for (let i = 0; i < startDow; i++) {
-    currentWeek.push({ date: '', count: -1 }); // empty placeholder
+  if (calendarData.length > 0) {
+    const firstDate = new Date(calendarData[0]?.date);
+    const startDow = firstDate.getDay(); // 0=Sun
+    for (let i = 0; i < startDow; i++) {
+      currentWeek.push({ date: '', count: -1 }); // empty placeholder
+    }
   }
 
   calendarData.forEach((item: any) => {

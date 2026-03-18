@@ -23,8 +23,8 @@ export function UserGrowthChart() {
   if (isLoading) return <SGSkeleton width="100%" height={280} borderRadius={16} />;
   if (!data) return null;
 
-  const chartData = mode === 'daily' ? data.daily.slice(-30) : mode === 'weekly' ? data.weekly : data.monthly;
-  const maxCount = Math.max(...chartData.map((d: any) => d.count), 1);
+  const chartData = mode === 'daily' ? (data.daily ?? []).slice(-30) : mode === 'weekly' ? (data.weekly ?? []) : (data.monthly ?? []);
+  const maxCount = chartData.length > 0 ? Math.max(...chartData.map((d: any) => d.count), 1) : 1;
 
   return (
     <SGSection noPadding>

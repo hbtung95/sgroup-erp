@@ -54,7 +54,7 @@ export function SecurityScoreCard() {
 
         {/* Category Scores */}
         <View style={[styles.details, { borderTopColor: colors.border }]}>
-          {data.details.map((item: any, i: number) => {
+          {(data.details ?? []).map((item: any, i: number) => {
             const color = GRADE_COLORS[item.grade] || GRADE_COLORS.C;
             const IconComp = DETAIL_ICONS[item.key] || Shield;
             return (
