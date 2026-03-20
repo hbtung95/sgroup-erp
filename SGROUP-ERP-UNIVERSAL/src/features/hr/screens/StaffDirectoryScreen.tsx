@@ -209,10 +209,18 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
         </View>
       </View>
     ) },
-    { key: 'role', title: 'CHỨC VỤ / PHÒNG BAN', flex: 2, minWidth: 200, render: (_: any, staff: any) => (
+    { key: 'role', title: 'CHỨC VỤ / PHÒNG BAN / TEAM', flex: 2.2, minWidth: 220, render: (_: any, staff: any) => (
       <View style={{ flex: 1, paddingRight: 10 }}>
         <Text style={{ fontSize: 13, fontWeight: '700', color: cText }} numberOfLines={2}>{staff.position?.name || 'Nhân viên'}</Text>
-        <Text style={{ fontSize: 12, color: cSub, marginTop: 2 }}>{staff.department?.name || '—'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, flexWrap: 'wrap' }}>
+          <Text style={{ fontSize: 12, color: cSub }}>{staff.department?.name || '—'}</Text>
+          {staff.team?.name ? (
+            <>
+              <Text style={{ fontSize: 12, color: cSub, marginHorizontal: 4 }}>•</Text>
+              <Text style={{ fontSize: 12, color: '#6366f1', fontWeight: '600' }}>{staff.team.name}</Text>
+            </>
+          ) : null}
+        </View>
       </View>
     ) },
     { key: 'contact', title: 'LIÊN HỆ', flex: 2, minWidth: 260, render: (_: any, staff: any) => (
