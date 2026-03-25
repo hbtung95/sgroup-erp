@@ -1,0 +1,60 @@
+// ══════════════════════════════════════════════════════════════════
+// AUDIT, SNAPSHOT & SYNC LOGS MODULE
+// ══════════════════════════════════════════════════════════════════
+
+model AuditLog {
+  id             String   @id @default(uuid(7))
+  userId         String?  @map("user_id")
+  userName       String?  @map("user_name")
+  action         String   // POST /admin/users, PATCH /hr/employees/:id, etc.
+  resource       String?  // admin/users, hr/employees, auth/login
+  method         String?  // POST, PATCH, PUT, DELETE
+  requestBody    String?  @map("request_body") @db.Text
+  responseStatus String?  @map("response_status") // SUCCESS, FAILED
+  errorMessage   String?  @map("error_message") @db.Text
+  duration       Int?     // milliseconds
+  ip             String?
+  userAgent      String?  @map("user_agent") // Browser / Device info
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([action])
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model FactPlanSnapshotLog {
+  id          String   @id @default(uuid(7))
+  snapshotId  String
+  planId      String
+  year        Int
+  scenarioKey String
+  ownerEmail  String?
+  json        String?
+  createdAt   DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@index([createdAt(sort: Desc)])
+  @@map("fact_plan_snapshot_logs")
+}
+
+model BizflySyncLog {
+  id            String    @id @default(uuid(7))
+  syncType      String // LEADS, DEALS, PIPELINE
+  syncDirection String    @default("PULL")
+  status        String    @default("PENDING") // PENDING, RUNNING, SUCCESS, FAILED
+  recordsTotal  Int       @default(0)
+  recordsSynced Int       @default(0)
+  recordsFailed Int       @default(0)
+  errorMessage  String?
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  initiatedBy   String?
+  metadata      String?
+
+  @@index([status])
+  @@index([startedAt(sort: Desc)])
+  @@map("bizfly_sync_logs")
+}

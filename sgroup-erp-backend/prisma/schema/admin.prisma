@@ -1,0 +1,76 @@
+// ══════════════════════════════════════════════════════════════════
+// ADMIN MODULE — RBAC, System Settings, Feature Flags
+// ══════════════════════════════════════════════════════════════════
+
+model RolePermission {
+  id         String   @id @default(uuid(7))
+  role       String   // admin, ceo, hr, sales, employee
+  module     String   // admin, hr, sales, finance, project, marketing, planning, reports
+  permission String   @default("none") // full, write, read, none
+  updatedBy  String?  @map("updated_by") // who changed this permission
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([role, module])
+  @@index([role])
+  @@map("role_permissions")
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid(7))
+  key         String   @unique
+  value       String
+  group       String   @default("general") // general, email, security, notification
+  label       String?  // UI display label
+  description String?
+  valueType   String   @default("string") @map("value_type") // string, boolean, number, json
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@map("system_settings")
+}
+
+model FeatureFlag {
+  id          String   @id @default(uuid(7))
+  key         String   @unique       // e.g. "module.hr.enabled", "feature.2fa", "feature.dark_mode"
+  enabled     Boolean  @default(false)
+  description String?
+  module      String?                // which module this flag belongs to
+  updatedBy   String?  @map("updated_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([module])
+  @@map("feature_flags")
+}
+
+model AdminNotification {
+  id        String   @id @default(uuid(7))
+  type      String                // LOGIN_FAIL, SETTING_CHANGE, USER_LOCKED, PASSWORD_EXPIRED, USER_CREATED, SYSTEM
+  title     String
+  message   String
+  severity  String   @default("info") // info, warning, danger, success
+  userId    String?  @map("user_id")   // target admin user (null = broadcast to all)
+  isRead    Boolean  @default(false) @map("is_read")
+  metadata  String?                // JSON extra data
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("admin_notifications")
+}
+
+model Changelog {
+  id          String   @id @default(uuid(7))
+  version     String                // e.g. "1.2.0"
+  title       String
+  description String               // markdown content
+  type        String   @default("feature") // feature, bugfix, improvement, security, breaking
+  author      String?
+  publishedAt DateTime @default(now()) @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([publishedAt])
+  @@map("changelogs")
+}

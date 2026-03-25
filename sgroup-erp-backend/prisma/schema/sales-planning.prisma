@@ -1,0 +1,106 @@
+// ══════════════════════════════════════════════════════════════════
+// SALES PLANNING MODULE (port from GAS Service_SalesPlanning.js)
+// ══════════════════════════════════════════════════════════════════
+
+model SalePlanLatest {
+  id          String   @id @default(uuid(7))
+  year        Int
+  scenarioKey String
+  planId      String
+  updatedAt   DateTime @default(now())
+  updatedBy   String?
+  version     String?
+  rawJson     String?
+  note        String?
+
+  @@unique([year, scenarioKey])
+  @@map("sale_plan_latest")
+}
+
+model SalePlanHeader {
+  id            String   @id @default(uuid(7))
+  planId        String
+  year          Int
+  scenarioKey   String
+  ownerEmail    String?
+  status        String   @default("DRAFT")
+  targetGMV     Decimal  @default(0) @db.Decimal(18, 4)
+  avgDealValue  Decimal  @default(0) @db.Decimal(18, 4)
+  headcount     Int      @default(0)
+  marketingRate Float    @default(0)
+  rateDeal      Float    @default(0)
+  rateBooking   Float    @default(0)
+  rateMeeting   Float    @default(0)
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("sale_plan_headers")
+}
+
+model SalePlanMonth {
+  id          String   @id @default(uuid(7))
+  planId      String
+  year        Int
+  scenarioKey String
+  month       Int
+  weight      Float    @default(0)
+  gmv         Decimal  @default(0) @db.Decimal(18, 4)
+  deals       Int      @default(0)
+  bookings    Int      @default(0)
+  meetings    Int      @default(0)
+  leadsSale   Int      @default(0)
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@unique([planId, year, scenarioKey, month])
+  @@index([planId])
+  @@map("sale_plan_months")
+}
+
+model SalePlanTeam {
+  id          String   @id @default(uuid(7))
+  planId      String
+  year        Int
+  scenarioKey String
+  teamId      String?
+  name        String
+  leaderId    String?
+  leaderName  String?
+  status      String   @default("active")
+  activeFrom  Int      @default(1)
+  activeTo    Int      @default(12)
+  sortOrder   Int      @default(0)
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("sale_plan_teams")
+}
+
+model SalePlanStaff {
+  id            String   @id @default(uuid(7))
+  planId        String
+  year          Int
+  scenarioKey   String
+  staffId       String?
+  hoTen         String
+  role          String   @default("Sales")
+  team          String?
+  status        String   @default("active")
+  activeFrom    Int      @default(1)
+  activeTo      Int      @default(12)
+  leadsCapacity Float    @default(0)
+  rateMeeting   Float    @default(0)
+  rateBooking   Float    @default(0)
+  rateDeal      Float    @default(0)
+  note          String?
+  createdAt     DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("sale_plan_staff")
+}

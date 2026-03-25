@@ -1,0 +1,47 @@
+// ══════════════════════════════════════════════════════════════════
+// AUTH MODULE — User accounts & token management
+// ══════════════════════════════════════════════════════════════════
+
+model User {
+  id                  String     @id @default(uuid(7))
+  email               String     @unique
+  name                String
+  password            String
+  role                String     @default("employee") // admin, hr, employee
+  department          String? // SALES, MARKETING, HR, FINANCE, OPS
+  isActive            Boolean    @default(true) @map("is_active")
+  salesRole           String?    @map("sales_role")
+  teamId              String?    @map("team_id")
+  team                SalesTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  // Login tracking & account lock
+  lastLoginAt         DateTime?  @map("last_login_at")
+  loginCount          Int        @default(0) @map("login_count")
+  failedLoginAttempts Int        @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?  @map("locked_until")
+  passwordChangedAt   DateTime?  @map("password_changed_at")
+  createdAt           DateTime   @default(now()) @map("created_at")
+  updatedAt           DateTime   @updatedAt @map("updated_at")
+
+  refreshTokens     RefreshToken[]
+  notifications     Notification[]
+  salesStaffProfile SalesStaff?
+
+  @@map("users")
+}
+
+// Refresh Token — dùng cho logout thực sự và token revocation
+// Short-lived access token (1h) + long-lived refresh token (30d)
+model RefreshToken {
+  id         String    @id @default(uuid(7))
+  token      String    @unique
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  deviceInfo String?   @map("device_info")
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}

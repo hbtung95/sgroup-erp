@@ -1,0 +1,443 @@
+// ══════════════════════════════════════════════════════════════════
+// HR MODULE — Organization, Employees, Contracts, Attendance, Payroll
+// ══════════════════════════════════════════════════════════════════
+
+// 1. Tổ chức nhân sự
+model HrDepartment {
+  id          String      @id @default(uuid(7))
+  code        String      @unique
+  name        String
+  description String?
+  managerId   String?
+  manager     HrEmployee? @relation("DepartmentManager", fields: [managerId], references: [id], onDelete: SetNull)
+  status      String      @default("ACTIVE")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  employees     HrEmployee[]        @relation("EmployeeDepartment")
+  teams         HrTeam[]
+  salesTeams    SalesTeam[]
+  transfersFrom HrTransferHistory[] @relation("TransferFromDept")
+  transfersTo   HrTransferHistory[] @relation("TransferToDept")
+
+  @@map("hr_departments")
+}
+
+model HrPosition {
+  id          String   @id @default(uuid(7))
+  code        String   @unique
+  name        String
+  level       String? // Staff, Leader, Manager, Director
+  description String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  employees HrEmployee[]
+
+  @@map("hr_positions")
+}
+
+// 1.5 Teams trong phòng ban
+model HrTeam {
+  id           String       @id @default(uuid(7))
+  code         String       @unique
+  name         String
+  departmentId String
+  department   HrDepartment @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  description  String?
+  status       String       @default("ACTIVE")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  employees     HrEmployee[]        @relation("EmployeeTeam")
+  transfersFrom HrTransferHistory[] @relation("TransferFromTeam")
+  transfersTo   HrTransferHistory[] @relation("TransferToTeam")
+
+  @@index([departmentId])
+  @@map("hr_teams")
+}
+
+// 2. Hồ sơ nhân viên trung tâm
+model HrEmployee {
+  id             String        @id @default(uuid(7))
+  userId         String?       @unique // Link to User account if they have app access
+  employeeCode   String        @unique
+  fullName       String
+  englishName    String?       @map("english_name")
+  gender         String? // MALE, FEMALE, OTHER
+  dateOfBirth    DateTime?
+  phone          String?
+  email          String?
+  personalEmail  String?
+  address        String?
+  identityNumber String?       @unique // CMND/CCCD
+  bankName       String?
+  bankAccount    String?
+  departmentId   String?
+  department     HrDepartment? @relation("EmployeeDepartment", fields: [departmentId], references: [id], onDelete: SetNull)
+  positionId     String?
+  position       HrPosition?   @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  managerId      String?
+  manager        HrEmployee?   @relation("EmployeeToManager", fields: [managerId], references: [id])
+  subordinates   HrEmployee[]  @relation("EmployeeToManager")
+  teamId         String?
+  team           HrTeam?       @relation("EmployeeTeam", fields: [teamId], references: [id], onDelete: SetNull)
+  joinDate       DateTime
+  leaveDate      DateTime?
+  status         String        @default("PROBATION") // PROBATION, ACTIVE, ON_LEAVE, TERMINATED
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  contracts          HrContract[]
+  attendances        HrAttendance[]
+  leaveRequests      HrLeaveRequest[]      @relation("LeaveEmployee")
+  approvedLeaves     HrLeaveRequest[]      @relation("LeaveApprover")
+  leaveBalances      HrLeaveBalance[]
+  salaryRecords      HrSalaryRecord[]
+  reviews            HrPerformanceReview[] @relation("ReviewEmployee")
+  reviewsGiven       HrPerformanceReview[] @relation("ReviewReviewer")
+  benefits           HrBenefit[]
+  overtimeRecords    HrOvertimeRecord[]    @relation("OvertimeEmployee")
+  approvedOvertimes  HrOvertimeRecord[]    @relation("OvertimeApprover")
+  salesProfile       SalesStaff?
+  managedDepartments HrDepartment[]        @relation("DepartmentManager")
+  transferHistory    HrTransferHistory[]
+
+  @@index([departmentId])
+  @@index([positionId])
+  @@index([status])
+  @@map("hr_employees")
+}
+
+// 2.5 Lịch sử luân chuyển phòng ban / team
+model HrTransferHistory {
+  id               String        @id @default(uuid(7))
+  employeeId       String
+  employee         HrEmployee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  transferType     String        // DEPARTMENT, TEAM, BOTH
+  fromDepartmentId String?
+  fromDepartment   HrDepartment? @relation("TransferFromDept", fields: [fromDepartmentId], references: [id], onDelete: SetNull)
+  toDepartmentId   String?
+  toDepartment     HrDepartment? @relation("TransferToDept", fields: [toDepartmentId], references: [id], onDelete: SetNull)
+  fromTeamId       String?
+  fromTeam         HrTeam?       @relation("TransferFromTeam", fields: [fromTeamId], references: [id], onDelete: SetNull)
+  toTeamId         String?
+  toTeam           HrTeam?       @relation("TransferToTeam", fields: [toTeamId], references: [id], onDelete: SetNull)
+  reason           String?
+  effectiveDate    DateTime      @default(now())
+  createdAt        DateTime      @default(now())
+
+  @@index([employeeId])
+  @@index([effectiveDate(sort: Desc)])
+  @@map("hr_transfer_history")
+}
+
+// 3. Hợp đồng lao động
+model HrContract {
+  id           String       @id @default(uuid(7))
+  employeeId   String
+  employee     HrEmployee   @relation(fields: [employeeId], references: [id])
+  contractCode String       @unique
+  contractType ContractType
+  startDate    DateTime
+  endDate      DateTime?
+  baseSalary   Decimal      @default(0) @db.Decimal(18, 2) // Lương cơ bản/Vùng
+  grossSalary  Decimal      @default(0) @db.Decimal(18, 2) // Lương thoả thuận
+  status       String       @default("ACTIVE") // DRAFT, ACTIVE, EXPIRED, TERMINATED
+  documentUrl  String? // Link to PDF
+  note         String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([endDate])
+  @@map("hr_contracts")
+}
+
+// 4. Chấm công & Nghỉ phép
+model HrAttendance {
+  id           String           @id @default(uuid(7))
+  employeeId   String
+  employee     HrEmployee       @relation(fields: [employeeId], references: [id])
+  date         DateTime
+  checkInTime  DateTime?
+  checkOutTime DateTime?
+  workingHours Float            @default(0)
+  status       AttendanceStatus @default(PRESENT)
+  locationInfo String? // GPS or IP tracking if needed
+  note         String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([employeeId, date])
+  @@map("hr_attendances")
+}
+
+model HrLeaveRequest {
+  id         String      @id @default(uuid(7))
+  employeeId String
+  employee   HrEmployee  @relation("LeaveEmployee", fields: [employeeId], references: [id])
+  leaveType  LeaveType
+  startDate  DateTime
+  endDate    DateTime
+  totalDays  Float
+  reason     String
+  status     String      @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  approverId String?
+  approver   HrEmployee? @relation("LeaveApprover", fields: [approverId], references: [id], onDelete: SetNull)
+  approvedAt DateTime?
+  note       String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("hr_leave_requests")
+}
+
+// 5. Tiền lương (Bảng lương chuẩn hoá)
+model HrSalaryRecord {
+  id               String     @id @default(uuid(7))
+  employeeId       String
+  employee         HrEmployee @relation(fields: [employeeId], references: [id])
+  period           String // e.g., "2026-03"
+  year             Int
+  month            Int
+  standardWorkDays Float      @default(0) // Ngày công chuẩn
+  actualWorkDays   Float      @default(0) // Ngày đi làm
+  paidLeaveDays    Float      @default(0) // Ngày nghỉ có phép
+  baseSalaryValue  Decimal    @default(0) @db.Decimal(18, 2)
+  totalAllowance   Decimal    @default(0) @db.Decimal(18, 2)
+  totalDeduction   Decimal    @default(0) @db.Decimal(18, 2) // Phạt, trễ giờ...
+  taxBhiT          Decimal    @default(0) @db.Decimal(18, 2) // Thuế, BHXH, BHYT trích trừ
+  commission       Decimal    @default(0) @db.Decimal(18, 2) // Bonus/Hoa hồng tự động map từ module Sales sang
+  netPay           Decimal    @default(0) @db.Decimal(18, 2) // Thực lãnh
+  status           String     @default("DRAFT") // DRAFT, REVIEWING, APPROVED, PAID
+  paidAt           DateTime?
+  note             String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  salaryItems HrSalaryItem[]
+
+  @@unique([employeeId, period])
+  @@index([year, month])
+  @@index([status])
+  @@map("hr_salary_records")
+}
+
+// 5.1 Chi tiết phụ cấp / khoản trừ cho bảng lương
+model HrSalaryItem {
+  id        String         @id @default(uuid(7))
+  salaryId  String
+  salary    HrSalaryRecord @relation(fields: [salaryId], references: [id], onDelete: Cascade)
+  type      String // ALLOWANCE, DEDUCTION, BONUS
+  itemCode  String // MEAL, TRANSPORT, PHONE, LATE_PENALTY...
+  itemName  String
+  amount    Decimal        @default(0) @db.Decimal(18, 2)
+  note      String?
+  createdAt DateTime       @default(now())
+
+  @@index([salaryId])
+  @@map("hr_salary_items")
+}
+
+// 6. Đánh giá hiệu suất
+model HrPerformanceReview {
+  id           String     @id @default(uuid(7))
+  employeeId   String
+  employee     HrEmployee @relation("ReviewEmployee", fields: [employeeId], references: [id])
+  reviewerId   String
+  reviewer     HrEmployee @relation("ReviewReviewer", fields: [reviewerId], references: [id])
+  period       String // e.g., "Q1-2026"
+  overallScore Float      @default(0) // scale 1-5 or 1-100
+  kpiSnapshot  String? // JSON of KPIs attained
+  strengths    String?
+  weaknesses   String?
+  goals        String?
+  status       String     @default("DRAFT") // DRAFT, SUBMITTED, ACKNOWLEDGED
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([employeeId])
+  @@index([reviewerId])
+  @@index([period])
+  @@map("hr_performance_reviews")
+}
+
+// 7. Tuyển dụng
+model HrJobPosting {
+  id          String   @id @default(uuid(7))
+  title       String
+  department  String?
+  type        String   @default("Full-time")
+  location    String?
+  description String?
+  candidates  Int      @default(0)
+  status      String   @default("OPEN") // OPEN, URGENT, CLOSED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  applicants HrCandidate[]
+
+  @@index([status])
+  @@map("hr_job_postings")
+}
+
+model HrCandidate {
+  id        String        @id @default(uuid(7))
+  jobId     String?
+  job       HrJobPosting? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  name      String
+  email     String?
+  phone     String?
+  source    String? // LinkedIn, Facebook, TopCV, Referral
+  stage     String        @default("NEW") // NEW, INTERVIEW, OFFERRED, REJECTED, HIRED
+  rating    String?
+  note      String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([jobId])
+  @@index([stage])
+  @@map("hr_candidates")
+}
+
+// 8. Đào tạo
+model HrCourse {
+  id          String   @id @default(uuid(7))
+  title       String
+  category    String?
+  duration    String?
+  description String?
+  enrolled    Int      @default(0)
+  completed   Int      @default(0)
+  status      String   @default("OPEN") // OPEN, URGENT, CLOSED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  trainees HrTrainee[]
+
+  @@index([status])
+  @@map("hr_courses")
+}
+
+model HrTrainee {
+  id           String    @id @default(uuid(7))
+  courseId      String?
+  course       HrCourse? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  employeeCode String?
+  name         String
+  progress     Int       @default(0) // 0-100
+  score        String?
+  status       String    @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([courseId])
+  @@index([status])
+  @@map("hr_trainees")
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 9. Quản lý Phép năm (Leave Balance)
+// ══════════════════════════════════════════════════════════════════
+model HrLeaveBalance {
+  id              String     @id @default(uuid(7))
+  employeeId      String
+  employee        HrEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  year            Int
+  totalEntitled   Float      @default(12) // Tổng phép năm được hưởng
+  used            Float      @default(0)  // Đã sử dụng
+  pending         Float      @default(0)  // Đang chờ duyệt
+  carriedOver     Float      @default(0)  // Phép năm trước chuyển sang
+  remaining       Float      @default(12) // Còn lại = totalEntitled + carriedOver - used - pending
+  lastCalculated  DateTime   @default(now())
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([employeeId, year])
+  @@index([year])
+  @@map("hr_leave_balances")
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 10. Phúc lợi & Bảo hiểm (Benefits)
+// ══════════════════════════════════════════════════════════════════
+model HrBenefit {
+  id              String     @id @default(uuid(7))
+  employeeId      String
+  employee        HrEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  benefitType     String     // BHXH, BHYT, BHTN, HEALTH_INSURANCE, MEAL, TRANSPORT, PHONE
+  benefitName     String     // "BHXH Bắt buộc", "Gói BH Sức khỏe PVI"
+  provider        String?    // Tên đơn vị cung cấp
+  policyNumber    String?    // Mã số sổ BHXH / Mã hợp đồng BH
+  startDate       DateTime?
+  endDate         DateTime?
+  employeeRate    Float      @default(0)  // % NLĐ đóng (VD: 10.5% cho BHXH)
+  companyRate     Float      @default(0)  // % Công ty đóng (VD: 21.5%)
+  monthlyAmount   Decimal    @default(0) @db.Decimal(18, 2) // Số tiền cố định/tháng
+  status          String     @default("ACTIVE") // ACTIVE, EXPIRED, PENDING, CANCELLED
+  note            String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([employeeId])
+  @@index([benefitType])
+  @@index([status])
+  @@map("hr_benefits")
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 11. Chính sách HR (Policies — dynamic from DB)
+// ══════════════════════════════════════════════════════════════════
+model HrPolicy {
+  id           String   @id @default(uuid(7))
+  title        String
+  category     String   // ATTENDANCE, SALARY, CULTURE, DISCIPLINE, SECURITY
+  icon         String?  // lucide icon name
+  color        String   @default("#3b82f6")
+  items        String   @db.Text // JSON array of policy items
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  effectiveDate DateTime?
+  issuedBy     String?  // "Giám Đốc Nhân Sự"
+  version      String   @default("1.0")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@map("hr_policies")
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 12. Quản lý Tăng ca (Overtime)
+// ══════════════════════════════════════════════════════════════════
+model HrOvertimeRecord {
+  id             String     @id @default(uuid(7))
+  employeeId     String
+  employee       HrEmployee @relation("OvertimeEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  date           DateTime
+  startTime      DateTime
+  endTime        DateTime
+  hours          Float      @default(0)
+  overtimeType   String     @default("WEEKDAY") // WEEKDAY (x1.5), WEEKEND (x2.0), HOLIDAY (x3.0)
+  multiplier     Float      @default(1.5)
+  reason         String?
+  status         String     @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  approverId     String?
+  approver       HrEmployee? @relation("OvertimeApprover", fields: [approverId], references: [id], onDelete: SetNull)
+  approvedAt     DateTime?
+  note           String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([employeeId])
+  @@index([date])
+  @@index([status])
+  @@map("hr_overtime_records")
+}

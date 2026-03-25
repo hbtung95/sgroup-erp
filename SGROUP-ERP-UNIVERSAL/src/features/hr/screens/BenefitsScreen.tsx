@@ -13,7 +13,7 @@ import { useEmployees } from '../hooks/useHR';
 
 // Benefits screen now uses employee data from the API
 
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
 
 export function BenefitsScreen() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
@@ -171,16 +171,18 @@ export function BenefitsScreen() {
               const isActive = item.status === 'ACTIVE';
 
               return (
-                <AnimatedLinearGradient
+                <Animated.View
                   entering={FadeInDown.delay(300 + idx * 40).duration(400).springify()}
                   key={item.id || idx}
-                  colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
                   style={{
-                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24, padding: 24,
-                    borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24,
                     shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.04, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4,
                   }}
                 >
+                  <LinearGradient
+                    colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
+                    style={{ flex: 1, padding: 24, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}
+                  >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                     <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', flex: 1 }}>
                       <LinearGradient
@@ -217,7 +219,8 @@ export function BenefitsScreen() {
                       <Text style={{ fontSize: 13, fontWeight: '800', color: '#3b82f6' }}>QUẢN LÝ GÓI</Text>
                     </TouchableOpacity>
                   </View>
-                </AnimatedLinearGradient>
+                  </LinearGradient>
+                </Animated.View>
               );
             })}
           </View>

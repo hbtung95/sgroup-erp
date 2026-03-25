@@ -1,0 +1,73 @@
+// ══════════════════════════════════════════════════════════════════
+// MARKETING PLANNING MODULE (port from GAS Service_MarketingPlanning.js)
+// ══════════════════════════════════════════════════════════════════
+
+model MktPlanHeader {
+  id             String   @id @default(uuid(7))
+  planId         String   @unique
+  year           Int
+  scenarioKey    String
+  ownerEmail     String?
+  status         String   @default("DRAFT")
+  totalBudgetVnd Decimal  @default(0) @db.Decimal(18, 4)
+  currency       String   @default("VND")
+  note           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([year, scenarioKey])
+  @@map("mkt_plan_headers")
+}
+
+model MktPlanChannelBudget {
+  id              String   @id @default(uuid(7))
+  planId          String
+  year            Int
+  scenarioKey     String
+  channelKey      String
+  channelLabel    String?
+  budgetVnd       Decimal  @default(0) @db.Decimal(18, 4)
+  pct             Float    @default(0)
+  kpiLeadTarget   Float?
+  kpiCplTargetVnd Decimal? @db.Decimal(18, 4)
+  note            String?
+  updatedAt       DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey, channelKey])
+  @@map("mkt_plan_channel_budgets")
+}
+
+model MktPlanKpiTarget {
+  id          String   @id @default(uuid(7))
+  planId      String
+  year        Int
+  scenarioKey String
+  kpiKey      String
+  kpiLabel    String?
+  targetValue Float    @default(0)
+  unit        String?
+  note        String?
+  updatedAt   DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("mkt_plan_kpi_targets")
+}
+
+model MktPlanAssumption {
+  id          String   @id @default(uuid(7))
+  planId      String
+  year        Int
+  scenarioKey String
+  key         String
+  label       String?
+  value       Float    @default(0)
+  unit        String?
+  note        String?
+  updatedAt   DateTime @default(now())
+
+  @@index([planId])
+  @@index([year, scenarioKey])
+  @@map("mkt_plan_assumptions")
+}

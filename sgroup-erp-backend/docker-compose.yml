@@ -1,18 +1,110 @@
-version: "3.8"
+# ═══════════════════════════════════════════════════════════════════
+# SGROUP ERP — Full Docker Infrastructure
+# ═══════════════════════════════════════════════════════════════════
+# Usage:
+#   docker compose up -d              # Start all services
+#   docker compose up -d sgroup_erp_db # DB only
+#   docker compose logs -f backend    # View backend logs
+#   docker compose down               # Stop all
+#   docker compose down -v            # Stop + delete volumes (DATA LOSS!)
+# ═══════════════════════════════════════════════════════════════════
 
 services:
+  # ── PostgreSQL 18 (Latest Stable) ──────────────────────────────
   sgroup_erp_db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: sgroup_erp_db
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: sgroup_admin
-      POSTGRES_PASSWORD: sgroup_password!
-      POSTGRES_DB: sgroup_erp
+      POSTGRES_USER: ${POSTGRES_USER:-sgroup_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sgroup_password!}
+      POSTGRES_DB: ${POSTGRES_DB:-sgroup_erp}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
-      - "5433:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - postgres_data_sgroup:/var/lib/postgresql/data
+      - ./scripts/db-init:/docker-entrypoint-initdb.d:ro
+      - db_backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sgroup_admin} -d ${POSTGRES_DB:-sgroup_erp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 256M
+    networks:
+      - sgroup_network
 
+  # ── pgAdmin 4 (Web UI for DB Management) ──────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: sgroup_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@sgroup.vn}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: "True"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      sgroup_erp_db:
+        condition: service_healthy
+    networks:
+      - sgroup_network
+
+  # ── NestJS Backend (Containerized App) ─────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sgroup_erp_backend
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sgroup_admin}:${POSTGRES_PASSWORD:-sgroup_password!}@sgroup_erp_db:5432/${POSTGRES_DB:-sgroup_erp}
+      DIRECT_URL: postgresql://${POSTGRES_USER:-sgroup_admin}:${POSTGRES_PASSWORD:-sgroup_password!}@sgroup_erp_db:5432/${POSTGRES_DB:-sgroup_erp}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8081}
+    depends_on:
+      sgroup_erp_db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    networks:
+      - sgroup_network
+
+# ── Volumes ────────────────────────────────────────────────────────
 volumes:
   postgres_data_sgroup:
+    name: sgroup_erp_pg_data
+  pgadmin_data:
+    name: sgroup_erp_pgadmin
+  db_backups:
+    name: sgroup_erp_backups
+
+# ── Network ────────────────────────────────────────────────────────
+networks:
+  sgroup_network:
+    name: sgroup_erp_network
+    driver: bridge

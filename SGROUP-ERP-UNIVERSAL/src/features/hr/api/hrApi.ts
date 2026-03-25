@@ -175,9 +175,31 @@ export const hrApi = {
     const res = await apiClient.get('/hr/jobs', { params: status ? { status } : {} });
     return res.data;
   },
+  createJob: async (data: any) => {
+    const res = await apiClient.post('/hr/jobs', data);
+    return res.data;
+  },
+  updateJob: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/hr/jobs/${id}`, data);
+    return res.data;
+  },
+  deleteJob: async (id: string) => {
+    await apiClient.delete(`/hr/jobs/${id}`);
+  },
   getCandidates: async (params?: { jobId?: string; stage?: string }) => {
     const res = await apiClient.get('/hr/candidates', { params });
     return res.data;
+  },
+  createCandidate: async (data: any) => {
+    const res = await apiClient.post('/hr/candidates', data);
+    return res.data;
+  },
+  updateCandidate: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/hr/candidates/${id}`, data);
+    return res.data;
+  },
+  deleteCandidate: async (id: string) => {
+    await apiClient.delete(`/hr/candidates/${id}`);
   },
 
   // Training
@@ -185,9 +207,31 @@ export const hrApi = {
     const res = await apiClient.get('/hr/courses', { params: status ? { status } : {} });
     return res.data;
   },
+  createCourse: async (data: any) => {
+    const res = await apiClient.post('/hr/courses', data);
+    return res.data;
+  },
+  updateCourse: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/hr/courses/${id}`, data);
+    return res.data;
+  },
+  deleteCourse: async (id: string) => {
+    await apiClient.delete(`/hr/courses/${id}`);
+  },
   getTrainees: async (params?: { courseId?: string; status?: string }) => {
     const res = await apiClient.get('/hr/trainees', { params });
     return res.data;
+  },
+  createTrainee: async (data: any) => {
+    const res = await apiClient.post('/hr/trainees', data);
+    return res.data;
+  },
+  updateTrainee: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/hr/trainees/${id}`, data);
+    return res.data;
+  },
+  deleteTrainee: async (id: string) => {
+    await apiClient.delete(`/hr/trainees/${id}`);
   },
 
   // Dashboard Extras
@@ -203,6 +247,76 @@ export const hrApi = {
   // Transfer History
   getTransfers: async (employeeId?: string) => {
     const res = await apiClient.get('/hr/transfers', { params: employeeId ? { employeeId } : {} });
+    return res.data;
+  },
+
+  // Leave Balance
+  getLeaveBalances: async (year?: number) => {
+    const res = await apiClient.get('/hr/leave-balance', { params: year ? { year } : {} });
+    return res.data;
+  },
+  getLeaveBalance: async (employeeId: string, year?: number) => {
+    const res = await apiClient.get(`/hr/leave-balance/${employeeId}`, { params: year ? { year } : {} });
+    return res.data;
+  },
+  recalculateLeaveBalance: async (employeeId: string, year: number) => {
+    const res = await apiClient.post('/hr/leave-balance/recalculate', { employeeId, year });
+    return res.data;
+  },
+
+  // Benefits
+  getBenefits: async (params?: { employeeId?: string; benefitType?: string; status?: string }) => {
+    const res = await apiClient.get('/hr/benefits', { params });
+    return res.data;
+  },
+  createBenefit: async (data: any) => {
+    const res = await apiClient.post('/hr/benefits', data);
+    return res.data;
+  },
+  updateBenefit: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/hr/benefits/${id}`, data);
+    return res.data;
+  },
+  deleteBenefit: async (id: string) => {
+    await apiClient.delete(`/hr/benefits/${id}`);
+  },
+
+  // Policies
+  getPolicies: async (category?: string) => {
+    const res = await apiClient.get('/hr/policies', { params: category ? { category } : {} });
+    return res.data;
+  },
+  createPolicy: async (data: any) => {
+    const res = await apiClient.post('/hr/policies', data);
+    return res.data;
+  },
+  updatePolicy: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/hr/policies/${id}`, data);
+    return res.data;
+  },
+  deletePolicy: async (id: string) => {
+    await apiClient.delete(`/hr/policies/${id}`);
+  },
+
+  // Overtime
+  getOvertime: async (params?: { employeeId?: string; status?: string; month?: string; year?: string }) => {
+    const res = await apiClient.get('/hr/overtime', { params });
+    return res.data;
+  },
+  createOvertime: async (data: any) => {
+    const res = await apiClient.post('/hr/overtime', data);
+    return res.data;
+  },
+  updateOvertime: async (id: string, data: any) => {
+    const res = await apiClient.patch(`/hr/overtime/${id}`, data);
+    return res.data;
+  },
+  approveOvertime: async (id: string, approverId: string) => {
+    const res = await apiClient.post(`/hr/overtime/${id}/approve`, { approverId });
+    return res.data;
+  },
+  rejectOvertime: async (id: string, approverId: string, note?: string) => {
+    const res = await apiClient.post(`/hr/overtime/${id}/reject`, { approverId, note });
     return res.data;
   },
 };

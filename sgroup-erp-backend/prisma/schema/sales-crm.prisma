@@ -1,0 +1,151 @@
+// ══════════════════════════════════════════════════════════════════
+// SALES CRM MODULE — Customer, Activity, Appointment, Property
+// ══════════════════════════════════════════════════════════════════
+
+model Customer {
+  id              String      @id @default(uuid(7))
+  fullName        String
+  phone           String?
+  email           String?
+  source          LeadSource?
+  projectInterest String?
+  budget          String?
+  status          String      @default("NEW") // NEW, CONTACTED, INTERESTED, MEETING, NEGOTIATION, WON, LOST
+  assignedTo      String? // staffId
+  assignedName    String?
+  isVip           Boolean     @default(false)
+  lastContactAt   DateTime?
+  // Expanded CRM fields
+  companyName     String? // Tên công ty (B2B)
+  birthday        DateTime? // Marketing automation
+  address         String? // Địa chỉ liên hệ
+  tags            String? // JSON array of tags
+  utmSource       String? // UTM tracking
+  utmMedium       String?
+  utmCampaign     String?
+  note            String?
+  year            Int
+  month           Int
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime? // Soft delete — null = còn active
+
+  legalDocs           LegalTransactionDoc[]
+  appointments        Appointment[]
+  financeTransactions FinanceTransaction[]
+  debtRecords         DebtRecord[]
+
+  @@index([year, month])
+  @@index([status])
+  @@index([assignedTo])
+  @@index([source])
+  @@index([createdAt(sort: Desc)])
+  @@index([deletedAt])
+  @@map("customers")
+}
+
+// ── Daily Activity Log ──────────────────────────────────────────
+
+model SalesActivity {
+  id           String     @id @default(uuid(7))
+  date         DateTime   @default(now())
+  staffId      String
+  staff        SalesStaff @relation(fields: [staffId], references: [id])
+  staffName    String?
+  teamId       String?
+  team         SalesTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  teamName     String?
+  postsCount   Int        @default(0)
+  callsCount   Int        @default(0)
+  newLeads     Int        @default(0)
+  meetingsMade Int        @default(0)
+  note         String?
+  year         Int
+  month        Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([year, month])
+  @@index([staffId])
+  @@index([teamId])
+  @@index([date(sort: Desc)])
+  @@map("sales_activities")
+}
+
+// ── Appointments / Calendar ─────────────────────────────────────
+
+model Appointment {
+  id            String            @id @default(uuid(7))
+  staffId       String
+  staff         SalesStaff        @relation(fields: [staffId], references: [id])
+  staffName     String?
+  customerId    String?
+  customer      Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName  String?
+  customerPhone String?
+  projectId     String?
+  project       DimProject?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectName   String?
+  type          AppointmentType   @default(MEETING)
+  scheduledAt   DateTime
+  duration      Int               @default(60) // minutes
+  location      String?
+  status        AppointmentStatus @default(SCHEDULED)
+  outcome       String?
+  note          String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([staffId])
+  @@index([customerId])
+  @@index([projectId])
+  @@index([scheduledAt(sort: Desc)])
+  @@index([status])
+  @@map("appointments")
+}
+
+// ── Property Products (Inventory per-unit) ──────────────────────
+
+model PropertyProduct {
+  id            String             @id @default(uuid(7))
+  projectId     String
+  project       DimProject         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectName   String?
+  code          String             @unique
+  block         String?
+  floor         Int                @default(0)
+  area          Float              @default(0)
+  price         Decimal            @default(0) @db.Decimal(18, 4) // Tỷ VND
+  direction     String?
+  bedrooms      Int                @default(0)
+  status        PropertyUnitStatus @default(AVAILABLE)
+  bookedBy      String?
+  lockedUntil   DateTime?
+  customerPhone String?
+  note          String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  deletedAt     DateTime?
+
+  statusLogs ProductStatusLog[]
+
+  @@index([projectId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("property_products")
+}
+
+model ProductStatusLog {
+  id        String          @id @default(uuid(7))
+  productId String
+  product   PropertyProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  oldStatus String
+  newStatus String
+  changedBy String?
+  reason    String?
+  createdAt DateTime        @default(now())
+
+  @@index([productId])
+  @@index([createdAt(sort: Desc)])
+  @@map("product_status_logs")
+}

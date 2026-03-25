@@ -1,0 +1,92 @@
+// ══════════════════════════════════════════════════════════════════
+// MARKETING OPS MODULE — Campaigns, Leads, Content, Channel Performance
+// ══════════════════════════════════════════════════════════════════
+
+model MktCampaign {
+  id          String   @id @default(uuid(7))
+  name        String
+  channel     String   @default("FACEBOOK") // FACEBOOK, GOOGLE, ZALO, TIKTOK, EMAIL, SMS, OFFLINE
+  budget      Decimal  @default(0) @db.Decimal(18, 2)
+  spend       Decimal  @default(0) @db.Decimal(18, 2)
+  leads       Int      @default(0)
+  conversions Int      @default(0)
+  status      String   @default("DRAFT") // DRAFT, RUNNING, PAUSED, COMPLETED, CANCELLED
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mktLeads MktLead[]
+
+  @@index([status])
+  @@index([channel])
+  @@index([startDate, endDate])
+  @@map("mkt_campaigns")
+}
+
+model MktLead {
+  id           String       @id @default(uuid(7))
+  name         String
+  email        String?
+  phone        String?
+  source       String       @default("WEBSITE") // WEBSITE, FACEBOOK, GOOGLE, ZALO, REFERRAL, EVENT, OTHER
+  status       String       @default("NEW") // NEW, CONTACTED, QUALIFIED, PROPOSAL, WON, LOST
+  assignedTo   String?
+  assignedName String?
+  campaignId   String?
+  campaign     MktCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  note         String?
+  score        Int          @default(0) // Lead score 0-100
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([status])
+  @@index([source])
+  @@index([campaignId])
+  @@index([assignedTo])
+  @@index([createdAt(sort: Desc)])
+  @@map("mkt_leads")
+}
+
+model MktContent {
+  id            String   @id @default(uuid(7))
+  title         String
+  contentType   String   @default("POST") // POST, VIDEO, REEL, STORY, BLOG, EMAIL
+  channel       String   @default("FACEBOOK") // FACEBOOK, INSTAGRAM, TIKTOK, YOUTUBE, BLOG, EMAIL
+  scheduledDate DateTime?
+  publishedDate DateTime?
+  status        String   @default("DRAFT") // DRAFT, SCHEDULED, PUBLISHED, ARCHIVED
+  author        String?
+  description   String?
+  engagement    Int      @default(0) // Total interactions
+  reach         Int      @default(0) // Total reach
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([channel])
+  @@index([scheduledDate])
+  @@map("mkt_contents")
+}
+
+model MktChannelPerformance {
+  id          String   @id @default(uuid(7))
+  channelKey  String // FACEBOOK, GOOGLE, ZALO, TIKTOK, etc.
+  period      String // "2026-03" format
+  year        Int
+  month       Int
+  leads       Int      @default(0)
+  spend       Decimal  @default(0) @db.Decimal(18, 2)
+  roas        Float    @default(0)
+  cpl         Decimal  @default(0) @db.Decimal(18, 2) // Cost per lead
+  conversions Int      @default(0)
+  revenue     Decimal  @default(0) @db.Decimal(18, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([channelKey, period])
+  @@index([year, month])
+  @@map("mkt_channel_performances")
+}

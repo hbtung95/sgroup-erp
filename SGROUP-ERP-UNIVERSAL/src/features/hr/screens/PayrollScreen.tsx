@@ -26,7 +26,7 @@ const MOCK_HISTORY = [
   { month: 'T03', budget: 110, actual: 108, forecast: true },
 ];
 
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
 
 export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
   const { theme, isDark } = useAppTheme();
@@ -240,15 +240,19 @@ export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
                     }} />
                     
                     {/* Actual Bar */}
-                    <AnimatedLinearGradient 
+                    <Animated.View 
                       entering={FadeInDown.delay(300 + idx * 100).springify()} 
-                      colors={item.forecast ? ['#f59e0b', '#d97706'] : ['#8b5cf6', '#6366f1']}
                       style={{ 
                         position: 'absolute', bottom: 0, width: 48, height: actualH as any, 
                         borderRadius: 12, opacity: isPrivate ? 0.4 : 1,
                         shadowColor: item.forecast ? '#f59e0b' : '#8b5cf6', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }
                       }} 
-                    />
+                    >
+                      <LinearGradient
+                        colors={item.forecast ? ['#f59e0b', '#d97706'] : ['#8b5cf6', '#6366f1']}
+                        style={[StyleSheet.absoluteFill, { borderRadius: 12 }]}
+                      />
+                    </Animated.View>
                   </View>
                   <Text style={{ fontSize: 14, fontWeight: '800', color: item.forecast ? '#f59e0b' : cSub }}>{item.month}</Text>
                 </View>
@@ -321,16 +325,18 @@ export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
             {payrollData.map((item: any, idx: number) => {
               const isPaid = item.status === 'PAID';
               return (
-                <AnimatedLinearGradient
+                <Animated.View
                   entering={FadeInDown.delay(300 + idx * 40).duration(400).springify()}
                   key={item.id || idx}
-                  colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
                   style={{
-                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24, padding: 24,
-                    borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24,
                     shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.04, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4,
                   }}
                 >
+                  <LinearGradient
+                    colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
+                    style={{ flex: 1, padding: 24, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}
+                  >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                     <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
                       <LinearGradient
@@ -370,7 +376,8 @@ export function PayrollScreen({ userRole }: { userRole?: HRRole }) {
                     <Text style={{ fontSize: 14, fontWeight: '800', color: cSub, textTransform: 'uppercase', letterSpacing: 0.5 }}>Thực lãnh</Text>
                     <Text style={{ fontSize: 24, fontWeight: '900', color: '#3b82f6', fontVariant: ['tabular-nums'], letterSpacing: -0.5 }}>{mask(item.total)} ₫</Text>
                   </View>
-                </AnimatedLinearGradient>
+                  </LinearGradient>
+                </Animated.View>
               );
             })}
           </View>

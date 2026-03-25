@@ -1,0 +1,359 @@
+// ══════════════════════════════════════════════════════════════════
+// SALES MODULE — Core: Projects, Teams, Staff, Deals, Bookings, Deposits
+// ══════════════════════════════════════════════════════════════════
+
+model DimProject {
+  id          String    @id @default(uuid(7))
+  projectCode String    @unique
+  name        String
+  developer   String?
+  location    String?
+  type        String? // "Chung cư", "Biệt thự", "Shophouse"
+  feeRate     Float     @default(0) // Phí MG mặc định (%)
+  avgPrice    Decimal   @default(0) @db.Decimal(18, 4) // Giá bán TB (Tỷ)
+  totalUnits  Int       @default(0)
+  soldUnits   Int       @default(0)
+  status      String    @default("ACTIVE") // ACTIVE, PAUSED, CLOSED
+  startDate   DateTime?
+  endDate     DateTime?
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  deals               FactDeal[]
+  legalDocs           LegalProjectDoc[]
+  products            PropertyProduct[]
+  financeTransactions FinanceTransaction[]
+  debtRecords         DebtRecord[]
+  bookings            SalesBooking[]
+  deposits            SalesDeposit[]
+  appointments        Appointment[]
+
+  @@index([status])
+  @@index([deletedAt])
+  @@map("dim_projects")
+}
+
+model SalesTeam {
+  id           String        @id @default(uuid(7))
+  code         String        @unique
+  name         String
+  leaderId     String?
+  leaderName   String?
+  departmentId String?
+  department   HrDepartment? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  region       String?
+  status       String        @default("ACTIVE")
+  sortOrder    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  members       SalesStaff[]
+  deals         FactDeal[]
+  dailyStats    FactSalesDaily[]
+  targets       SalesTargetMonthly[]
+  activities    SalesActivity[]
+  bookings      SalesBooking[]
+  deposits      SalesDeposit[]
+  commissions   CommissionRecord[]
+  users         User[]
+  transfersFrom SalesTeamTransfer[]  @relation("TransferFrom")
+  transfersTo   SalesTeamTransfer[]  @relation("TransferTo")
+
+  @@index([deletedAt])
+  @@map("sales_teams")
+}
+
+model SalesStaff {
+  id             String      @id @default(uuid(7))
+  userId         String?     @unique
+  user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  hrEmployeeId   String?     @unique
+  hrEmployee     HrEmployee? @relation(fields: [hrEmployeeId], references: [id])
+  employeeCode   String?     @unique
+  fullName       String
+  phone          String?
+  email          String?
+  teamId         String?
+  team           SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  role           String      @default("sales") // sales, senior_sales, team_lead
+  status         String      @default("ACTIVE")
+  joinDate       DateTime?
+  leaveDate      DateTime?
+  leadsCapacity  Float       @default(30)
+  personalTarget Decimal     @default(0) @db.Decimal(18, 4) // Target GMV tháng (Tỷ)
+  note           String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  deletedAt      DateTime?
+
+  deals               FactDeal[]
+  dailyStats          FactSalesDaily[]
+  activities          SalesActivity[]
+  targets             SalesTargetMonthly[]
+  bookings            SalesBooking[]
+  deposits            SalesDeposit[]
+  appointments        Appointment[]
+  commissions         CommissionRecord[]
+  financeTransactions FinanceTransaction[]
+  debtRecords         DebtRecord[]
+  teamTransfers       SalesTeamTransfer[]
+
+  @@index([deletedAt])
+  @@map("sales_staff")
+}
+
+model FactDeal {
+  id            String      @id @default(uuid(7))
+  dealCode      String?     @unique
+  bizflyCrmId   String?
+  projectId     String?
+  project       DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectName   String? // denorm: snapshot tại thời điểm tạo deal
+  staffId       String?
+  staff         SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  staffName     String? // denorm: snapshot
+  teamId        String?
+  team          SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  teamName      String? // denorm: snapshot
+  customerName  String?
+  customerPhone String?
+  productCode   String?
+  productType   String?
+  dealValue     Decimal     @default(0) @db.Decimal(18, 4) // Tỷ
+  feeRate       Float       @default(0) // %
+  commission    Decimal     @default(0) @db.Decimal(18, 4) // Tỷ
+  stage         DealStage   @default(LEAD)
+  dealDate      DateTime?
+  bookingDate   DateTime?
+  contractDate  DateTime?
+  source        LeadSource?
+  note          String?
+  year          Int
+  month         Int
+  status        String      @default("ACTIVE")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deletedAt     DateTime? // Soft delete
+
+  legalDocs           LegalTransactionDoc[]
+  commissions         CommissionRecord[]
+  financeTransactions FinanceTransaction[]
+  debtRecords         DebtRecord[]
+
+  @@index([year, month])
+  @@index([projectId])
+  @@index([teamId])
+  @@index([staffId])
+  @@index([stage])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([deletedAt])
+  @@map("fact_deals")
+}
+
+model SalesBooking {
+  id               String      @id @default(uuid(7))
+  projectId        String?
+  project          DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectName      String
+  customerName     String
+  customerPhone    String
+  bookingAmount    Decimal     @default(0) @db.Decimal(18, 4)
+  bookingCount     Int         @default(1)
+  staffId          String?
+  staff            SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  staffName        String?
+  teamId           String?
+  team             SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  teamName         String?
+  status           String      @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELED
+  bookingDate      DateTime    @default(now())
+  note             String?
+  createdByUserId  String?
+  createdByName    String?
+  reviewedByUserId String?
+  reviewedByName   String?
+  reviewedAt       DateTime?
+  year             Int
+  month            Int
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  deletedAt        DateTime?
+
+  @@index([year, month])
+  @@index([projectId])
+  @@index([staffId])
+  @@index([teamId])
+  @@index([status])
+  @@index([bookingDate(sort: Desc)])
+  @@index([deletedAt])
+  @@map("sales_bookings")
+}
+
+model SalesDeposit {
+  id               String      @id @default(uuid(7))
+  projectId        String?
+  project          DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectName      String
+  unitCode         String
+  customerName     String
+  customerPhone    String
+  depositAmount    Decimal     @default(0) @db.Decimal(18, 4)
+  staffId          String?
+  staff            SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  staffName        String?
+  teamId           String?
+  team             SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  teamName         String?
+  paymentMethod    String?
+  receiptNo        String?
+  notes            String?
+  status           String      @default("PENDING") // PENDING, CONFIRMED, CANCELLED, REFUNDED
+  depositDate      DateTime    @default(now())
+  createdByUserId  String?
+  createdByName    String?
+  reviewedByUserId String?
+  reviewedByName   String?
+  reviewedAt       DateTime?
+  year             Int
+  month            Int
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  deletedAt        DateTime?
+
+  @@index([year, month])
+  @@index([projectId])
+  @@index([staffId])
+  @@index([teamId])
+  @@index([status])
+  @@index([depositDate(sort: Desc)])
+  @@index([deletedAt])
+  @@map("sales_deposits")
+}
+
+model FactSalesDaily {
+  id             String      @id @default(uuid(7))
+  date           DateTime
+  year           Int
+  month          Int
+  week           Int
+  teamId         String?
+  team           SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  staffId        String?
+  staff          SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  newLeads       Int         @default(0)
+  meetings       Int         @default(0)
+  bookings       Int         @default(0)
+  deposits       Int         @default(0)
+  contracts      Int         @default(0)
+  completedDeals Int         @default(0)
+  cancelledDeals Int         @default(0)
+  gmv            Decimal     @default(0) @db.Decimal(18, 4)
+  revenue        Decimal     @default(0) @db.Decimal(18, 4)
+  source         String      @default("MANUAL") // MANUAL, BIZFLY_SYNC
+  syncedAt       DateTime?
+  createdAt      DateTime    @default(now())
+
+  @@unique([date, teamId, staffId])
+  @@map("fact_sales_daily")
+}
+
+model FactPipelineSnapshot {
+  id                 String   @id @default(uuid(7))
+  snapshotDate       DateTime
+  year               Int
+  month              Int
+  teamId             String?
+  leadCount          Int      @default(0)
+  contactedCount     Int      @default(0)
+  meetingCount       Int      @default(0)
+  bookingCount       Int      @default(0)
+  depositCount       Int      @default(0)
+  contractCount      Int      @default(0)
+  completedCount     Int      @default(0)
+  totalPipelineValue Decimal  @default(0) @db.Decimal(18, 4)
+  source             String   @default("MANUAL")
+  createdAt          DateTime @default(now())
+
+  @@unique([snapshotDate, teamId])
+  @@map("fact_pipeline_snapshots")
+}
+
+// ── Commission & Target ─────────────────────────────────────────
+
+model CommissionRecord {
+  id               String     @id @default(uuid(7))
+  dealId           String
+  deal             FactDeal   @relation(fields: [dealId], references: [id])
+  staffId          String
+  staff            SalesStaff @relation(fields: [staffId], references: [id])
+  staffName        String?
+  teamId           String?
+  team             SalesTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  role             String // SALES, MANAGER, DIRECTOR
+  dealValue        Decimal    @default(0) @db.Decimal(18, 4)
+  commissionRate   Float      @default(0)
+  commissionAmount Decimal    @default(0) @db.Decimal(18, 4)
+  status           String     @default("PENDING") // PENDING, APPROVED, PAID
+  period           String? // "2026-03"
+  approvedBy       String?
+  approvedAt       DateTime?
+  paidAt           DateTime?
+  year             Int
+  month            Int
+  note             String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([dealId])
+  @@index([staffId])
+  @@index([teamId])
+  @@index([year, month])
+  @@index([status])
+  @@map("commission_records")
+}
+
+model SalesTargetMonthly {
+  id             String      @id @default(uuid(7))
+  year           Int
+  month          Int
+  teamId         String?
+  team           SalesTeam?  @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  staffId        String?
+  staff          SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  targetGMV      Decimal     @default(0) @db.Decimal(18, 4)
+  targetDeals    Int         @default(0)
+  targetLeads    Int         @default(0)
+  targetMeetings Int         @default(0)
+  targetBookings Int         @default(0)
+  scenarioKey    String      @default("base")
+  note           String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([year, month, teamId, staffId, scenarioKey])
+  @@map("sales_target_monthly")
+}
+
+// ── Team Transfer History ───────────────────────────────────────
+
+model SalesTeamTransfer {
+  id           String     @id @default(uuid(7))
+  staffId      String
+  staff        SalesStaff @relation(fields: [staffId], references: [id])
+  fromTeamId   String?
+  fromTeam     SalesTeam? @relation("TransferFrom", fields: [fromTeamId], references: [id], onDelete: SetNull)
+  toTeamId     String
+  toTeam       SalesTeam  @relation("TransferTo", fields: [toTeamId], references: [id])
+  transferDate DateTime   @default(now())
+  reason       String?
+  approvedBy   String?
+  createdAt    DateTime   @default(now())
+
+  @@index([staffId])
+  @@index([transferDate(sort: Desc)])
+  @@map("sales_team_transfers")
+}

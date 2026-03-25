@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { sgds } from '../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../shared/ui/components';
-import { useLeaves } from '../hooks/useHR';
+import { useLeaves, useLeaveBalance } from '../hooks/useHR';
 
 // Leave type display map
 const LEAVE_TYPE_LABELS: Record<string, string> = {
@@ -25,7 +25,7 @@ const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }>
   REJECTED: { bg: '#fee2e2', text: '#dc2626', label: 'TỪ CHỐI' },
 };
 
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
+
 
 export function LeavesScreen() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
@@ -42,9 +42,14 @@ export function LeavesScreen() {
 
   const safeLeaves = Array.isArray(rawLeaves) ? rawLeaves : (rawLeaves as any)?.data ?? [];
 
+  const currentYear = new Date().getFullYear();
+  const { data: rawLeaveBalance, isLoading: loadingBalance } = useLeaveBalance(selectedLeave?.employeeId || '', currentYear);
+  const leaveBalance = (rawLeaveBalance as any)?.data ?? rawLeaveBalance;
+
   // Transform for table display
   const leavesData = safeLeaves.map((l: any) => ({
     id: l.id,
+    employeeId: l.employeeId,
     code: l.employee?.employeeCode || '',
     name: l.employee?.fullName || '',
     dept: '',
@@ -128,9 +133,19 @@ export function LeavesScreen() {
                     <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Thời gian</Text>
                     <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{selectedLeave.from} - {selectedLeave.to}</Text>
                   </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
                     <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Tổng cộng</Text>
                     <Text style={{ fontSize: 14, fontWeight: '900', color: '#f59e0b' }}>{selectedLeave.days} ngày</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: cText }}>Quỹ phép năm còn lại ({currentYear})</Text>
+                    {loadingBalance ? (
+                      <ActivityIndicator size="small" color="#3b82f6" />
+                    ) : (
+                      <Text style={{ fontSize: 15, fontWeight: '900', color: (leaveBalance?.remaining || 0) >= selectedLeave.days ? '#10b981' : '#ef4444' }}>
+                        {leaveBalance?.remaining ?? '?'} ngày
+                      </Text>
+                    )}
                   </View>
                 </View>
 
@@ -279,16 +294,18 @@ export function LeavesScreen() {
             {leavesData.map((item: any, idx: number) => {
               const s = STATUS_CONFIG[item.status] || STATUS_CONFIG.PENDING;
               return (
-                <AnimatedLinearGradient
+                <Animated.View
                   entering={FadeInDown.delay(300 + idx * 40).duration(400).springify()}
                   key={item.id || idx}
-                  colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
                   style={{
-                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24, padding: 24,
-                    borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24,
                     shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.04, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4,
                   }}
                 >
+                  <LinearGradient
+                    colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
+                    style={{ flex: 1, padding: 24, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}
+                  >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                     <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', flex: 1 }}>
                       <LinearGradient
@@ -329,7 +346,8 @@ export function LeavesScreen() {
                       <Text style={{ fontSize: 13, fontWeight: '800', color: '#3b82f6' }}>XEM & DUYỆT</Text>
                     </TouchableOpacity>
                   </View>
-                </AnimatedLinearGradient>
+                  </LinearGradient>
+                </Animated.View>
               );
             })}
           </View>

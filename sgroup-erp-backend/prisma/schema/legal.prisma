@@ -1,0 +1,96 @@
+// ══════════════════════════════════════════════════════════════════
+// LEGAL & DOCUMENT MODULE
+// ══════════════════════════════════════════════════════════════════
+
+model LegalProjectDoc {
+  id          String     @id @default(uuid(7))
+  projectId   String
+  project     DimProject @relation(fields: [projectId], references: [id])
+  name        String // e.g., "Quyết định 1/500", "Giấy phép xây dựng"
+  docType     String     @default("GENERAL") // GENERAL, LICENSE, DECISION, CERTIFICATE
+  fileUrl     String?
+  issuedDate  DateTime?
+  expiredDate DateTime?
+  status      String     @default("VALID") // VALID, EXPIRED, REVOKED, PENDING
+  note        String?
+  createdBy   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([expiredDate])
+  @@map("legal_project_docs")
+}
+
+model ProjectPolicy {
+  id          String   @id @default(uuid(7))
+  projectId   String?
+  name        String
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String   @default("DRAFT") // ACTIVE, DRAFT, EXPIRED
+  rules       String?  // JSON array of rule strings
+  color       String   @default("#10b981")
+  description String?
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([projectId])
+  @@map("project_policies")
+}
+
+model ProjectAssignment {
+  id         String   @id @default(uuid(7))
+  projectId  String?
+  userId     String?
+  name       String   // User display name
+  email      String?
+  role       String   @default("Sales Rep") // Project Manager, Sales Director, Sales Manager, etc.
+  status     String   @default("ACTIVE") // ACTIVE, INACTIVE
+  assignedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@map("project_assignments")
+}
+
+model LegalTransactionDoc {
+  id         String    @id @default(uuid(7))
+  dealId     String
+  deal       FactDeal  @relation(fields: [dealId], references: [id])
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  name       String // e.g., "Hợp đồng cọc mã 001", "CMND Nguyễn Văn A"
+  docType    String    @default("CONTRACT") // CONTRACT, KYC, RECEIPT, ANNEX
+  fileUrl    String?
+  signedDate DateTime?
+  status     String    @default("DRAFT") // DRAFT, PENDING_SIGN, SIGNED, CANCELLED
+  note       String?
+  createdBy  String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([dealId])
+  @@index([customerId])
+  @@index([status])
+  @@map("legal_transaction_docs")
+}
+
+model LegalTemplate {
+  id          String   @id @default(uuid(7))
+  name        String
+  description String?
+  docType     String   @default("CONTRACT") // CONTRACT, FORM, RECEIPT
+  fileUrl     String
+  version     String   @default("1.0")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("legal_templates")
+}

@@ -1,0 +1,99 @@
+// ══════════════════════════════════════════════════════════════════
+// EXEC PLANNING MODULE (port from GAS Service_ExecPlanning.js)
+// ══════════════════════════════════════════════════════════════════
+
+model PlanScenarioLog {
+  id            String    @id @default(uuid(7))
+  planId        String    @map("plan_id")
+  moduleKey     String    @default("EXEC") @map("module_key")
+  scenario      String
+  year          Int
+  createdAt     DateTime  @default(now()) @map("created_at")
+  createdBy     String    @map("created_by")
+  schemaVersion String    @default("1") @map("schema_version")
+  deletedAt     DateTime? @map("deleted_at")
+  rawJson       Json?     @map("raw_json")
+  note          String?
+
+  @@index([planId])
+  @@index([year, scenario])
+  @@index([createdAt(sort: Desc)])
+  @@map("plan_scenario_logs")
+}
+
+model PlanBundleLog {
+  id            String    @id @default(uuid(7))
+  planId        String    @map("plan_id")
+  moduleKey     String    @default("EXEC") @map("module_key")
+  scenario      String
+  year          Int
+  tabKey        String    @map("tab_key")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  createdBy     String    @map("created_by")
+  schemaVersion String    @default("1") @map("schema_version")
+  deletedAt     DateTime? @map("deleted_at")
+  rawJson       Json?     @map("raw_json")
+  note          String?
+
+  @@index([planId])
+  @@index([year, scenario, tabKey])
+  @@index([createdAt(sort: Desc)])
+  @@map("plan_bundle_logs")
+}
+
+model ExecPlanLatest {
+  id             String   @id @default(uuid(7))
+  year           Int
+  scenarioKey    String   @map("scenario_key")
+  tabKey         String   @map("tab_key")
+  latestPlanId   String?  @map("latest_plan_id")
+  latestBundleId String?  @map("latest_bundle_id")
+  updatedAt      DateTime @default(now()) @map("updated_at")
+  updatedBy      String?  @map("updated_by")
+  schemaVersion  String   @default("1") @map("schema_version")
+  rawJson        Json?    @map("raw_json")
+  note           String?
+
+  @@unique([year, scenarioKey, tabKey])
+  @@map("exec_plan_latest")
+}
+
+model ExecKpiLatest {
+  id           String   @id @default(uuid(7))
+  year         Int
+  scenarioKey  String
+  tabKey       String
+  kpiKey       String
+  value        Float    @default(0)
+  unit         String?
+  sourcePlanId String?
+  calcVersion  String?
+  updatedAt    DateTime @default(now())
+  updatedBy    String?
+  note         String?
+
+  @@unique([year, scenarioKey, tabKey, kpiKey])
+  @@map("exec_kpi_latest")
+}
+
+model ExecKpiLog {
+  id           String   @id @default(uuid(7))
+  snapshotId   String
+  year         Int
+  scenarioKey  String
+  tabKey       String
+  kpiKey       String
+  value        Float    @default(0)
+  unit         String?
+  sourcePlanId String?
+  calcVersion  String?
+  createdAt    DateTime @default(now())
+  createdBy    String?
+  rawJson      String?
+  note         String?
+
+  @@index([snapshotId])
+  @@index([year, scenarioKey])
+  @@index([createdAt(sort: Desc)])
+  @@map("exec_kpi_logs")
+}

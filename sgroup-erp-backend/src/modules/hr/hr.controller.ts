@@ -255,6 +255,17 @@ export class HrController {
     return this.hrService.createJob(data);
   }
 
+  @Patch('jobs/:id')
+  updateJob(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.updateJob(id, data);
+  }
+
+  @Delete('jobs/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteJob(@Param('id') id: string) {
+    return this.hrService.deleteJob(id);
+  }
+
   @Get('candidates')
   getCandidates(@Query('jobId') jobId?: string, @Query('stage') stage?: string) {
     return this.hrService.findAllCandidates({ jobId, stage });
@@ -263,6 +274,17 @@ export class HrController {
   @Post('candidates')
   createCandidate(@Body() data: any) {
     return this.hrService.createCandidate(data);
+  }
+
+  @Patch('candidates/:id')
+  updateCandidate(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.updateCandidate(id, data);
+  }
+
+  @Delete('candidates/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteCandidate(@Param('id') id: string) {
+    return this.hrService.deleteCandidate(id);
   }
 
   // ═══════════════════════════════════════════
@@ -278,6 +300,17 @@ export class HrController {
     return this.hrService.createCourse(data);
   }
 
+  @Patch('courses/:id')
+  updateCourse(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.updateCourse(id, data);
+  }
+
+  @Delete('courses/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteCourse(@Param('id') id: string) {
+    return this.hrService.deleteCourse(id);
+  }
+
   @Get('trainees')
   getTrainees(@Query('courseId') courseId?: string, @Query('status') status?: string) {
     return this.hrService.findAllTrainees({ courseId, status });
@@ -286,6 +319,17 @@ export class HrController {
   @Post('trainees')
   createTrainee(@Body() data: any) {
     return this.hrService.createTrainee(data);
+  }
+
+  @Patch('trainees/:id')
+  updateTrainee(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.updateTrainee(id, data);
+  }
+
+  @Delete('trainees/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteTrainee(@Param('id') id: string) {
+    return this.hrService.deleteTrainee(id);
   }
 
   // ═══════════════════════════════════════════
@@ -307,5 +351,108 @@ export class HrController {
   @Get('transfers')
   getTransfers(@Query('employeeId') employeeId?: string) {
     return this.hrService.getTransferHistory(employeeId);
+  }
+
+  // ═══════════════════════════════════════════
+  // LEAVE BALANCE
+  // ═══════════════════════════════════════════
+  @Get('leave-balance')
+  getAllLeaveBalances(@Query('year') year?: string) {
+    return this.hrService.getAllLeaveBalances(year ? parseInt(year) : undefined);
+  }
+
+  @Get('leave-balance/:employeeId')
+  getLeaveBalance(@Param('employeeId') employeeId: string, @Query('year') year?: string) {
+    return this.hrService.getLeaveBalance(employeeId, year ? parseInt(year) : undefined);
+  }
+
+  @Post('leave-balance/recalculate')
+  recalculateLeaveBalance(@Body() data: { employeeId: string; year: number }) {
+    return this.hrService.recalculateLeaveBalance(data.employeeId, data.year);
+  }
+
+  // ═══════════════════════════════════════════
+  // BENEFITS
+  // ═══════════════════════════════════════════
+  @Get('benefits')
+  getBenefits(
+    @Query('employeeId') employeeId?: string,
+    @Query('benefitType') benefitType?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.hrService.findAllBenefits({ employeeId, benefitType, status });
+  }
+
+  @Post('benefits')
+  createBenefit(@Body() data: any) {
+    return this.hrService.createBenefit(data);
+  }
+
+  @Patch('benefits/:id')
+  updateBenefit(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.updateBenefit(id, data);
+  }
+
+  @Delete('benefits/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteBenefit(@Param('id') id: string) {
+    return this.hrService.deleteBenefit(id);
+  }
+
+  // ═══════════════════════════════════════════
+  // POLICIES
+  // ═══════════════════════════════════════════
+  @Get('policies')
+  getPolicies(@Query('category') category?: string) {
+    return this.hrService.findAllPolicies({ category, isActive: true });
+  }
+
+  @Post('policies')
+  createPolicy(@Body() data: any) {
+    return this.hrService.createPolicy(data);
+  }
+
+  @Patch('policies/:id')
+  updatePolicy(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.updatePolicy(id, data);
+  }
+
+  @Delete('policies/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deletePolicy(@Param('id') id: string) {
+    return this.hrService.deletePolicy(id);
+  }
+
+  // ═══════════════════════════════════════════
+  // OVERTIME
+  // ═══════════════════════════════════════════
+  @Get('overtime')
+  getOvertime(
+    @Query('employeeId') employeeId?: string,
+    @Query('status') status?: string,
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+  ) {
+    return this.hrService.findAllOvertime({ employeeId, status, month, year });
+  }
+
+  @Post('overtime')
+  createOvertime(@Body() data: any) {
+    return this.hrService.createOvertime(data);
+  }
+
+  @Patch('overtime/:id')
+  updateOvertime(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.updateOvertime(id, data);
+  }
+
+  @Post('overtime/:id/approve')
+  approveOvertime(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.approveOvertime(id, data.approverId);
+  }
+
+  @Post('overtime/:id/reject')
+  rejectOvertime(@Param('id') id: string, @Body() data: any) {
+    return this.hrService.rejectOvertime(id, data.approverId, data.note);
   }
 }

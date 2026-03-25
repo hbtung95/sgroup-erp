@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY prisma ./prisma/
 # Install all dependencies including dev dependencies for building
 RUN npm ci
 
-# Generate Prisma Client
+# Generate Prisma Client (multi-file schema from prisma/schema/)
 RUN npx prisma generate
 
 # Copy the rest of the application
@@ -20,7 +20,7 @@ RUN rm -rf dist tsconfig.build.tsbuildinfo && npm run build
 
 # ---
 
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ COPY package*.json ./
 # Install only production dependencies
 RUN npm ci --omit=dev
 
-# Copy Prisma schema and generate client in production
+# Copy Prisma schema directory (multi-file) and generate client in production
 COPY --from=builder /app/prisma ./prisma
 RUN npx prisma generate
 
@@ -44,5 +44,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
   CMD wget -qO- http://localhost:3000/api || exit 1
 
-# Start the application
-CMD ["node", "dist/main"]
+# Run migrations then start the application
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]

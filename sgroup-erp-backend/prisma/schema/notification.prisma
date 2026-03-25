@@ -1,0 +1,38 @@
+// ══════════════════════════════════════════════════════════════════
+// NOTIFICATION & FILE ATTACHMENT MODULE
+// ══════════════════════════════════════════════════════════════════
+
+model Notification {
+  id         String    @id @default(uuid(7))
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  body       String
+  type       String    @default("INFO") // INFO, WARNING, APPROVAL, DEADLINE
+  entityType String? // "DEAL", "LEAVE_REQUEST", "TRANSACTION"
+  entityId   String?
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@map("notifications")
+}
+
+model FileAttachment {
+  id         String   @id @default(uuid(7))
+  fileName   String
+  fileUrl    String
+  fileSize   Int? // bytes
+  mimeType   String?
+  entityType String // "LEGAL_DOC", "CONTRACT", "TRANSACTION", "HR_CONTRACT"
+  entityId   String
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt(sort: Desc)])
+  @@map("file_attachments")
+}

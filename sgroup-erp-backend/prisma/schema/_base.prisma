@@ -1,0 +1,91 @@
+// ══════════════════════════════════════════════════════════════════
+// SGROUP ERP — Base Configuration & Shared Enums
+// ══════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Direct connection for migrations (bypasses pooler)
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SHARED ENUMS
+// ══════════════════════════════════════════════════════════════════
+
+enum DealStage {
+  LEAD
+  MEETING
+  BOOKING
+  DEPOSIT
+  CONTRACT
+  COMPLETED
+  CANCELLED
+}
+
+enum LeadSource {
+  FACEBOOK_ADS
+  GOOGLE_ADS
+  HOTLINE
+  REFERRAL
+  WALK_IN
+  WEBSITE
+  SELF_GEN
+  MARKETING
+}
+
+enum PropertyUnitStatus {
+  AVAILABLE
+  BOOKED
+  LOCKED
+  PENDING_DEPOSIT
+  DEPOSIT
+  SOLD
+  COMPLETED
+}
+
+enum DebtType {
+  RECEIVABLE_CUSTOMER
+  RECEIVABLE_DEVELOPER
+  PAYABLE_STAFF
+}
+
+enum ContractType {
+  PROBATION
+  DEFINITE
+  INDEFINITE
+  FREELANCE
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  UNPAID
+  MATERNITY
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  HALF_DAY
+  DAY_OFF
+}
+
+enum AppointmentType {
+  MEETING
+  SITE_VISIT
+  FOLLOW_UP
+  SIGNING
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}

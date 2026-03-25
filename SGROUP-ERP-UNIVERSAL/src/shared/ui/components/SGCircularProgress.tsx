@@ -27,7 +27,7 @@ export function SGCircularProgress({ progress, size = 80, strokeWidth = 8, color
         <Svg width={size} height={size}>
           <Circle cx={size / 2} cy={size / 2} r={r} stroke={c.bgTertiary} strokeWidth={strokeWidth} fill="none" />
           <Circle cx={size / 2} cy={size / 2} r={r} stroke={active} strokeWidth={strokeWidth} fill="none"
-            strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+            strokeDasharray={`${circ} ${circ}`} strokeDashoffset={offset} strokeLinecap="round"
             transform={`rotate(-90 ${size / 2} ${size / 2})`} />
         </Svg>
         <View style={styles.center}>

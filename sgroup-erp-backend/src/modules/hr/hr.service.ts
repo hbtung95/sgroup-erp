@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 
+
 @Injectable()
 export class HrService {
   private readonly logger = new Logger(HrService.name);
@@ -191,10 +192,13 @@ export class HrService {
   }
 
   async createEmployee(data: any) {
-    // Generate Employee Code
-    const count = await this.prisma.hrEmployee.count();
-    const seq = (count + 1).toString().padStart(4, '0');
-    const employeeCode = `NV${seq}`;
+    // Generate Employee Code — race-condition safe: find latest code, increment
+    const latest = await this.prisma.hrEmployee.findFirst({
+      orderBy: { employeeCode: 'desc' },
+      select: { employeeCode: true },
+    });
+    const lastNum = latest?.employeeCode ? parseInt(latest.employeeCode.replace('NV', '')) || 0 : 0;
+    const employeeCode = `NV${(lastNum + 1).toString().padStart(4, '0')}`;
 
     // Parse dates
     if (data.joinDate && typeof data.joinDate === 'string') {
@@ -543,6 +547,14 @@ export class HrService {
       const baseSalary = activeContract ? Number(activeContract.baseSalary) : 0;
       const commission = commissionMap.get(emp.id) || 0;
 
+      // Calculate standard allowances (meal = 50k/day * 22 workdays)
+      const mealAllowance = 50000 * 22;
+      const totalAllowance = mealAllowance;
+      const totalDeduction = 0;
+      // BHXH trích trừ NLĐ: 10.5% lương cơ bản
+      const taxBhiT = baseSalary * 0.105;
+      const netPay = baseSalary + totalAllowance + commission - totalDeduction - taxBhiT;
+
       const record = await this.prisma.hrSalaryRecord.create({
         data: {
           employeeId: emp.id,
@@ -550,9 +562,19 @@ export class HrService {
           year,
           month,
           baseSalaryValue: baseSalary,
-          commission: commission,
-          netPay: baseSalary + commission,
+          totalAllowance,
+          totalDeduction,
+          taxBhiT,
+          commission,
+          netPay: Math.max(0, netPay),
+          standardWorkDays: 22,
           status: 'DRAFT',
+          salaryItems: {
+            create: [
+              { type: 'ALLOWANCE', itemCode: 'MEAL', itemName: 'Phụ cấp ăn trưa', amount: mealAllowance },
+              { type: 'DEDUCTION', itemCode: 'BHXH_NLD', itemName: 'BHXH/BHYT/BHTN (NLĐ 10.5%)', amount: taxBhiT },
+            ],
+          },
         },
       });
       salaryRecords.push(record);
@@ -678,6 +700,19 @@ export class HrService {
     return this.prisma.hrJobPosting.create({ data });
   }
 
+  async updateJob(id: string, data: any) {
+    return this.prisma.hrJobPosting.update({
+      where: { id }, data,
+      include: { _count: { select: { applicants: true } } },
+    });
+  }
+
+  async deleteJob(id: string) {
+    // Also delete associated candidates
+    await this.prisma.hrCandidate.deleteMany({ where: { jobId: id } });
+    return this.prisma.hrJobPosting.delete({ where: { id } });
+  }
+
   async findAllCandidates(opts?: { jobId?: string; stage?: string }) {
     const where: any = {};
     if (opts?.jobId) where.jobId = opts.jobId;
@@ -690,7 +725,35 @@ export class HrService {
   }
 
   async createCandidate(data: any) {
-    return this.prisma.hrCandidate.create({ data });
+    // Auto-increment candidate count on job
+    if (data.jobId) {
+      await this.prisma.hrJobPosting.update({
+        where: { id: data.jobId },
+        data: { candidates: { increment: 1 } },
+      });
+    }
+    return this.prisma.hrCandidate.create({
+      data,
+      include: { job: { select: { id: true, title: true } } },
+    });
+  }
+
+  async updateCandidate(id: string, data: any) {
+    return this.prisma.hrCandidate.update({
+      where: { id }, data,
+      include: { job: { select: { id: true, title: true } } },
+    });
+  }
+
+  async deleteCandidate(id: string) {
+    const candidate = await this.prisma.hrCandidate.findUnique({ where: { id } });
+    if (candidate?.jobId) {
+      await this.prisma.hrJobPosting.update({
+        where: { id: candidate.jobId },
+        data: { candidates: { decrement: 1 } },
+      });
+    }
+    return this.prisma.hrCandidate.delete({ where: { id } });
   }
 
   // ═══════════════════════════════════════════
@@ -710,6 +773,18 @@ export class HrService {
     return this.prisma.hrCourse.create({ data });
   }
 
+  async updateCourse(id: string, data: any) {
+    return this.prisma.hrCourse.update({
+      where: { id }, data,
+      include: { _count: { select: { trainees: true } } },
+    });
+  }
+
+  async deleteCourse(id: string) {
+    await this.prisma.hrTrainee.deleteMany({ where: { courseId: id } });
+    return this.prisma.hrCourse.delete({ where: { id } });
+  }
+
   async findAllTrainees(opts?: { courseId?: string; status?: string }) {
     const where: any = {};
     if (opts?.courseId) where.courseId = opts.courseId;
@@ -722,7 +797,34 @@ export class HrService {
   }
 
   async createTrainee(data: any) {
-    return this.prisma.hrTrainee.create({ data });
+    if (data.courseId) {
+      await this.prisma.hrCourse.update({
+        where: { id: data.courseId },
+        data: { enrolled: { increment: 1 } },
+      });
+    }
+    return this.prisma.hrTrainee.create({
+      data,
+      include: { course: { select: { id: true, title: true } } },
+    });
+  }
+
+  async updateTrainee(id: string, data: any) {
+    return this.prisma.hrTrainee.update({
+      where: { id }, data,
+      include: { course: { select: { id: true, title: true } } },
+    });
+  }
+
+  async deleteTrainee(id: string) {
+    const trainee = await this.prisma.hrTrainee.findUnique({ where: { id } });
+    if (trainee?.courseId) {
+      await this.prisma.hrCourse.update({
+        where: { id: trainee.courseId },
+        data: { enrolled: { decrement: 1 } },
+      });
+    }
+    return this.prisma.hrTrainee.delete({ where: { id } });
   }
 
   // ═══════════════════════════════════════════
@@ -774,5 +876,182 @@ export class HrService {
       activities.push({ id: c.id, title: `Cập nhật hợp đồng`, detail: `${c.employee.fullName} — ${c.contractCode}`, time: new Date(c.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }), tone: '#3b82f6' });
     }
     return activities.sort((a, b) => a.time.localeCompare(b.time)).slice(0, 5);
+  }
+
+  // ═══════════════════════════════════════════
+  // LEAVE BALANCE
+  // ═══════════════════════════════════════════
+  async getLeaveBalance(employeeId: string, year?: number) {
+    const currentYear = year || new Date().getFullYear();
+    let balance = await this.prisma.hrLeaveBalance.findUnique({
+      where: { employeeId_year: { employeeId, year: currentYear } },
+      include: { employee: { select: { id: true, fullName: true, employeeCode: true } } },
+    });
+    if (!balance) {
+      balance = await this.prisma.hrLeaveBalance.create({
+        data: { employeeId, year: currentYear, totalEntitled: 12, remaining: 12 },
+        include: { employee: { select: { id: true, fullName: true, employeeCode: true } } },
+      });
+    }
+    return balance;
+  }
+
+  async getAllLeaveBalances(year?: number) {
+    const currentYear = year || new Date().getFullYear();
+    return this.prisma.hrLeaveBalance.findMany({
+      where: { year: currentYear },
+      include: { employee: { select: { id: true, fullName: true, employeeCode: true, department: { select: { name: true } } } } },
+      orderBy: { employee: { fullName: 'asc' } },
+    });
+  }
+
+  async recalculateLeaveBalance(employeeId: string, year: number) {
+    const approved = await this.prisma.hrLeaveRequest.aggregate({
+      where: { employeeId, status: 'APPROVED', startDate: { gte: new Date(year, 0, 1), lt: new Date(year + 1, 0, 1) } },
+      _sum: { totalDays: true },
+    });
+    const pending = await this.prisma.hrLeaveRequest.aggregate({
+      where: { employeeId, status: 'PENDING', startDate: { gte: new Date(year, 0, 1), lt: new Date(year + 1, 0, 1) } },
+      _sum: { totalDays: true },
+    });
+    const used = approved._sum.totalDays || 0;
+    const pendingDays = pending._sum.totalDays || 0;
+
+    return this.prisma.hrLeaveBalance.upsert({
+      where: { employeeId_year: { employeeId, year } },
+      create: { employeeId, year, totalEntitled: 12, used, pending: pendingDays, remaining: 12 - used - pendingDays },
+      update: { used, pending: pendingDays, remaining: { set: 0 }, lastCalculated: new Date() },
+    }).then(async (b) => {
+      const remaining = b.totalEntitled + b.carriedOver - used - pendingDays;
+      return this.prisma.hrLeaveBalance.update({
+        where: { id: b.id },
+        data: { remaining: Math.max(0, remaining) },
+      });
+    });
+  }
+
+  // ═══════════════════════════════════════════
+  // BENEFITS (BHXH/BHYT/BH Sức khỏe)
+  // ═══════════════════════════════════════════
+  async findAllBenefits(opts?: { employeeId?: string; benefitType?: string; status?: string }) {
+    const where: Prisma.HrBenefitWhereInput = {};
+    if (opts?.employeeId) where.employeeId = opts.employeeId;
+    if (opts?.benefitType) where.benefitType = opts.benefitType;
+    if (opts?.status) where.status = opts.status;
+    return this.prisma.hrBenefit.findMany({
+      where,
+      include: { employee: { select: { id: true, fullName: true, employeeCode: true, department: { select: { name: true } } } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createBenefit(data: any) {
+    if (data.startDate && typeof data.startDate === 'string') data.startDate = new Date(data.startDate);
+    if (data.endDate && typeof data.endDate === 'string') data.endDate = new Date(data.endDate);
+    return this.prisma.hrBenefit.create({
+      data,
+      include: { employee: { select: { id: true, fullName: true, employeeCode: true } } },
+    });
+  }
+
+  async updateBenefit(id: string, data: any) {
+    if (data.startDate && typeof data.startDate === 'string') data.startDate = new Date(data.startDate);
+    if (data.endDate && typeof data.endDate === 'string') data.endDate = new Date(data.endDate);
+    return this.prisma.hrBenefit.update({ where: { id }, data });
+  }
+
+  async deleteBenefit(id: string) {
+    return this.prisma.hrBenefit.delete({ where: { id } });
+  }
+
+  // ═══════════════════════════════════════════
+  // HR POLICIES
+  // ═══════════════════════════════════════════
+  async findAllPolicies(opts?: { category?: string; isActive?: boolean }) {
+    const where: Prisma.HrPolicyWhereInput = {};
+    if (opts?.category) where.category = opts.category;
+    if (opts?.isActive !== undefined) where.isActive = opts.isActive;
+    return this.prisma.hrPolicy.findMany({
+      where,
+      orderBy: { sortOrder: 'asc' },
+    });
+  }
+
+  async createPolicy(data: any) {
+    if (data.effectiveDate && typeof data.effectiveDate === 'string') data.effectiveDate = new Date(data.effectiveDate);
+    // Ensure items is a JSON string
+    if (Array.isArray(data.items)) data.items = JSON.stringify(data.items);
+    return this.prisma.hrPolicy.create({ data });
+  }
+
+  async updatePolicy(id: string, data: any) {
+    if (data.effectiveDate && typeof data.effectiveDate === 'string') data.effectiveDate = new Date(data.effectiveDate);
+    if (Array.isArray(data.items)) data.items = JSON.stringify(data.items);
+    return this.prisma.hrPolicy.update({ where: { id }, data });
+  }
+
+  async deletePolicy(id: string) {
+    return this.prisma.hrPolicy.delete({ where: { id } });
+  }
+
+  // ═══════════════════════════════════════════
+  // OVERTIME
+  // ═══════════════════════════════════════════
+  async findAllOvertime(opts?: { employeeId?: string; status?: string; month?: string; year?: string }) {
+    const where: Prisma.HrOvertimeRecordWhereInput = {};
+    if (opts?.employeeId) where.employeeId = opts.employeeId;
+    if (opts?.status) where.status = opts.status;
+    if (opts?.year && opts?.month) {
+      const y = parseInt(opts.year);
+      const m = parseInt(opts.month);
+      where.date = { gte: new Date(y, m - 1, 1), lt: new Date(y, m, 1) };
+    }
+    return this.prisma.hrOvertimeRecord.findMany({
+      where,
+      include: {
+        employee: { select: { id: true, fullName: true, employeeCode: true } },
+        approver: { select: { id: true, fullName: true } },
+      },
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  async createOvertime(data: any) {
+    if (data.date && typeof data.date === 'string') data.date = new Date(data.date);
+    if (data.startTime && typeof data.startTime === 'string') data.startTime = new Date(data.startTime);
+    if (data.endTime && typeof data.endTime === 'string') data.endTime = new Date(data.endTime);
+    // Auto-calculate hours
+    if (data.startTime && data.endTime) {
+      const diffMs = new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
+      data.hours = Math.round((diffMs / 3600000) * 100) / 100;
+    }
+    // Set multiplier based on type
+    const multipliers: Record<string, number> = { WEEKDAY: 1.5, WEEKEND: 2.0, HOLIDAY: 3.0 };
+    if (data.overtimeType) data.multiplier = multipliers[data.overtimeType] || 1.5;
+    return this.prisma.hrOvertimeRecord.create({
+      data,
+      include: { employee: { select: { id: true, fullName: true, employeeCode: true } } },
+    });
+  }
+
+  async updateOvertime(id: string, data: any) {
+    if (data.date && typeof data.date === 'string') data.date = new Date(data.date);
+    if (data.startTime && typeof data.startTime === 'string') data.startTime = new Date(data.startTime);
+    if (data.endTime && typeof data.endTime === 'string') data.endTime = new Date(data.endTime);
+    return this.prisma.hrOvertimeRecord.update({ where: { id }, data });
+  }
+
+  async approveOvertime(id: string, approverId: string) {
+    return this.prisma.hrOvertimeRecord.update({
+      where: { id },
+      data: { status: 'APPROVED', approverId, approvedAt: new Date() },
+    });
+  }
+
+  async rejectOvertime(id: string, approverId: string, note?: string) {
+    return this.prisma.hrOvertimeRecord.update({
+      where: { id },
+      data: { status: 'REJECTED', approverId, approvedAt: new Date(), note },
+    });
   }
 }

@@ -1,0 +1,155 @@
+// ══════════════════════════════════════════════════════════════════
+// FINANCE & ACCOUNTING MODULE
+// ══════════════════════════════════════════════════════════════════
+
+model FinanceAccount {
+  id             String   @id @default(uuid(7))
+  accountCode    String   @unique
+  accountName    String
+  accountType    String   @default("BANK") // CASH, BANK, EPAY
+  bankName       String?
+  bankNumber     String?
+  initialBalance Decimal  @default(0) @db.Decimal(18, 2)
+  currentBalance Decimal  @default(0) @db.Decimal(18, 2)
+  currency       String   @default("VND")
+  status         String   @default("ACTIVE") // ACTIVE, INACTIVE
+  note           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  transactions FinanceTransaction[]
+
+  @@map("finance_accounts")
+}
+
+model FinanceCategory {
+  id           String   @id @default(uuid(7))
+  categoryCode String   @unique
+  categoryName String
+  type         String // INCOME, EXPENSE
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transactions FinanceTransaction[]
+  budgets      FinanceBudget[]
+
+  @@map("finance_categories")
+}
+
+model FinanceTransaction {
+  id              String  @id @default(uuid(7))
+  transactionCode String  @unique // PT..., PC...
+  type            String // INCOME (Thu), EXPENSE (Chi)
+  amount          Decimal @default(0) @db.Decimal(18, 2)
+  currency        String  @default("VND")
+
+  accountId String
+  account   FinanceAccount @relation(fields: [accountId], references: [id])
+
+  categoryId String
+  category   FinanceCategory @relation(fields: [categoryId], references: [id])
+
+  // Liên kết (Relations) với các module khác
+  dealId     String?
+  deal       FactDeal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  projectId  String?
+  project    DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  customerId String?
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  staffId    String?
+  staff      SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+
+  // Thông tin đối tượng Thanh toán / Thu tiền
+  payerName    String?
+  receiverName String?
+
+  paymentMethod String   @default("BANK_TRANSFER") // CASH, BANK_TRANSFER
+  paymentDate   DateTime
+
+  status String @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, CANCELLED
+
+  approvedBy String?
+  approvedAt DateTime?
+
+  documentUrl String? // Link ảnh uỷ nhiệm chi, phiếu thu...
+  note        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  debtRecords DebtRecord[]
+
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([dealId])
+  @@index([projectId])
+  @@index([customerId])
+  @@index([staffId])
+  @@index([paymentDate(sort: Desc)])
+  @@index([status])
+  @@index([type])
+  @@map("finance_transactions")
+}
+
+model DebtRecord {
+  id       String   @id @default(uuid(7))
+  debtCode String   @unique
+  debtType DebtType
+
+  // Đối tượng Công nợ
+  customerId String?
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  projectId  String?
+  project    DimProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  staffId    String?
+  staff      SalesStaff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  dealId     String?
+  deal       FactDeal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  totalAmount     Decimal @default(0) @db.Decimal(18, 2)
+  paidAmount      Decimal @default(0) @db.Decimal(18, 2)
+  remainingAmount Decimal @default(0) @db.Decimal(18, 2)
+
+  dueDate DateTime?
+  status  String    @default("UNPAID") // UNPAID, PARTIAL, PAID, OVERDUE, CANCELLED
+
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Link với các lần thanh toán (Phiếu thu / Phiếu chi)
+  transactionId String?
+  transaction   FinanceTransaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([projectId])
+  @@index([staffId])
+  @@index([dealId])
+  @@index([transactionId])
+  @@index([debtType])
+  @@index([status])
+  @@index([dueDate])
+  @@map("debt_records")
+}
+
+// ── Budget Tracking ─────────────────────────────────────────────
+
+model FinanceBudget {
+  id           String          @id @default(uuid(7))
+  year         Int
+  month        Int
+  categoryId   String
+  category     FinanceCategory @relation(fields: [categoryId], references: [id])
+  budgetAmount Decimal         @default(0) @db.Decimal(18, 2)
+  actualAmount Decimal         @default(0) @db.Decimal(18, 2)
+  variance     Decimal         @default(0) @db.Decimal(18, 2)
+  note         String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([year, month, categoryId])
+  @@map("finance_budgets")
+}
