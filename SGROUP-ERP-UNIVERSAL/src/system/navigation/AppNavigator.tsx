@@ -16,10 +16,10 @@ const BDHShell = React.lazy(() =>
   import('../../features/bdh/BDHShell').then(m => ({ default: m.BDHShell }))
 );
 const SalesScreen = React.lazy(() =>
-  import('../../features/sales/screens/SalesScreen').then(m => ({ default: m.SalesScreen }))
+  import('../../features/sales/presentation/screens/SalesScreen').then(m => ({ default: m.SalesScreen }))
 );
 const MarketingScreen = React.lazy(() =>
-  import('../../features/marketing/screens/MarketingScreen').then(m => ({ default: m.MarketingScreen }))
+  import('../../features/marketing/presentation/screens/MarketingScreen').then(m => ({ default: m.MarketingScreen }))
 );
 const HRShell = React.lazy(() =>
   import('../../features/hr/HRShell').then(m => ({ default: m.HRShell }))
@@ -31,10 +31,10 @@ const SHomesScreen = React.lazy(() =>
   import('../../features/shomes/screens/SHomesScreen').then(m => ({ default: m.SHomesScreen }))
 );
 const ProjectScreen = React.lazy(() =>
-  import('../../features/project/screens/ProjectScreen').then(m => ({ default: m.ProjectScreen }))
+  import('../../features/project/presentation/screens/ProjectScreen').then(m => ({ default: m.ProjectScreen }))
 );
 const FinanceScreen = React.lazy(() =>
-  import('../../features/finance/screens/FinanceScreen').then(m => ({ default: m.FinanceScreen }))
+  import('../../features/finance/presentation/screens/FinanceScreen').then(m => ({ default: m.FinanceScreen }))
 );
 const LegalScreen = React.lazy(() =>
   import('../../features/legal/screens/LegalScreen').then(m => ({ default: m.LegalScreen }))

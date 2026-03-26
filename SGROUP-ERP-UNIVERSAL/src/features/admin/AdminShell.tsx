@@ -15,16 +15,16 @@ import { useAppTheme } from '../../shared/theme/useAppTheme';
 import { useAuthStore } from '../auth/store/authStore';
 
 // Import Screens
-import { AdminDashboard } from './screens/AdminDashboard';
+import { AdminDashboard } from './presentation/screens/AdminDashboard';
 import { OrgConfigScreen } from '../hr/screens/OrgConfigScreen';
-import { UserManagementScreen } from './screens/UserManagementScreen';
-import { RolePermissionScreen } from './screens/RolePermissionScreen';
-import { SystemSettingsScreen } from './screens/SystemSettingsScreen';
-import { AuditLogScreen } from './screens/AuditLogScreen';
-import { FeatureFlagsScreen } from './screens/FeatureFlagsScreen';
-import { AuditAnalyticsScreen } from './screens/AuditAnalyticsScreen';
-import { ScheduledTasksScreen } from './screens/ScheduledTasksScreen';
-import { ChangelogScreen } from './screens/ChangelogScreen';
+import { UserManagementScreen } from './presentation/screens/UserManagementScreen';
+import { RolePermissionScreen } from './presentation/screens/RolePermissionScreen';
+import { SystemSettingsScreen } from './presentation/screens/SystemSettingsScreen';
+import { AuditLogScreen } from './presentation/screens/AuditLogScreen';
+import { FeatureFlagsScreen } from './presentation/screens/FeatureFlagsScreen';
+import { AuditAnalyticsScreen } from './presentation/screens/AuditAnalyticsScreen';
+import { ScheduledTasksScreen } from './presentation/screens/ScheduledTasksScreen';
+import { ChangelogScreen } from './presentation/screens/ChangelogScreen';
 import { NotificationCenter } from './components/NotificationCenter';
 import { KeyboardShortcutsPanel } from './components/KeyboardShortcutsPanel';
 import { CommandPalette } from './components/CommandPalette';

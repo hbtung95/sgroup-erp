@@ -14,14 +14,14 @@ import { MarketingErrorBoundary } from './components/MarketingErrorBoundary';
 import { useMarketingRoute } from './hooks/useMarketingRoute';
 
 // Screens
-import { MarketingDashboard } from './screens/MarketingDashboard';
-import { CampaignManager } from './screens/CampaignManager';
-import { LeadManagement } from './screens/LeadManagement';
-import { BudgetTracker } from './screens/BudgetTracker';
-import { ContentCalendar } from './screens/ContentCalendar';
-import { ChannelPerformance } from './screens/ChannelPerformance';
-import { MarketingReports } from './screens/MarketingReports';
-import { MarketingPlanning } from './screens/MarketingPlanning';
+import { MarketingDashboard } from './presentation/screens/MarketingDashboard';
+import { CampaignManager } from './presentation/screens/CampaignManager';
+import { LeadManagement } from './presentation/screens/LeadManagement';
+import { BudgetTracker } from './presentation/screens/BudgetTracker';
+import { ContentCalendar } from './presentation/screens/ContentCalendar';
+import { ChannelPerformance } from './presentation/screens/ChannelPerformance';
+import { MarketingReports } from './presentation/screens/MarketingReports';
+import { MarketingPlanning } from './presentation/screens/MarketingPlanning';
 
 const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
   MKT_DASHBOARD: MarketingDashboard,

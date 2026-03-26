@@ -9,13 +9,13 @@ import { ToastProvider } from '../sales/components/ToastProvider';
 import { useProjectRoute } from './hooks/useProjectRoute';
 
 // Screens
-import { ProjectDashboard } from './screens/ProjectDashboard';
-import { ProjectListScreen } from './screens/ProjectListScreen';
-import { InventoryScreen } from './screens/InventoryScreen';
+import { ProjectDashboard } from './presentation/screens/ProjectDashboard';
+import { ProjectListScreen } from './presentation/screens/ProjectListScreen';
+import { InventoryScreen } from './presentation/screens/InventoryScreen';
 
-import { ProjectDocs } from './screens/ProjectDocs';
-import { ProjectPolicies } from './screens/ProjectPolicies';
-import { ProjectAssignment } from './screens/ProjectAssignment';
+import { ProjectDocs } from './presentation/screens/ProjectDocs';
+import { ProjectPolicies } from './presentation/screens/ProjectPolicies';
+import { ProjectAssignment } from './presentation/screens/ProjectAssignment';
 
 export function ProjectShell() {
   const validKeys = useMemo(() => [

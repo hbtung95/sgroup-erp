@@ -1,1 +1,1 @@
-export * from './screens/MarketingScreen';
+export * from './presentation/screens/MarketingScreen';

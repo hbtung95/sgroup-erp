@@ -14,31 +14,31 @@ import { ToastProvider } from './components/ToastProvider';
 import { useSalesRoute } from './hooks/useSalesRoute';
 
 // Lazy screens
-import { SalesDashboard } from './screens/SalesDashboard';
-import { TeamManagement } from './screens/TeamManagement';
-import { StaffManagement } from './screens/StaffManagement';
-import { ProjectCatalog } from './screens/ProjectCatalog';
-import { DealTracker } from './screens/Deals/DealTracker';
-import { InventoryScreen } from './screens/Inventory/InventoryScreen';
-import { BookingScreen } from './screens/Booking/BookingScreen';
-import { CrmViewer } from './screens/CrmViewer';
-import { PlanVsActual } from './screens/PlanVsActual';
-import { CommissionCalc } from './screens/CommissionCalc';
-import { Timekeeping } from './screens/Timekeeping';
-import { Payroll } from './screens/Payroll';
-import { ActivityLog } from './screens/ActivityLog';
-import { EmployeeProfile } from './screens/EmployeeProfile';
-import { ProjectDocs } from './screens/ProjectDocs';
-import { Policies } from './screens/Policies';
-import { CustomerLeads } from './screens/CustomerLeads';
-import { Appointments } from './screens/Appointments';
-import { LoanCalculator } from './screens/LoanCalculator';
-import { Training } from './screens/Training';
-import { DepositManagement } from './screens/DepositManagement';
-import { KpiDashboard } from './screens/KpiDashboard';
-import { DealRecording } from './screens/DealRecording';
-import { TargetAllocation } from './screens/TargetAllocation';
-import { TeamReport } from './screens/TeamReport';
+import { SalesDashboard } from './presentation/screens/SalesDashboard';
+import { TeamManagement } from './presentation/screens/TeamManagement';
+import { StaffManagement } from './presentation/screens/StaffManagement';
+import { ProjectCatalog } from './presentation/screens/ProjectCatalog';
+import { DealTracker } from './presentation/screens/Deals/DealTracker';
+import { InventoryScreen } from './presentation/screens/Inventory/InventoryScreen';
+import { BookingScreen } from './presentation/screens/Booking/BookingScreen';
+import { CrmViewer } from './presentation/screens/CrmViewer';
+import { PlanVsActual } from './presentation/screens/PlanVsActual';
+import { CommissionCalc } from './presentation/screens/CommissionCalc';
+import { Timekeeping } from './presentation/screens/Timekeeping';
+import { Payroll } from './presentation/screens/Payroll';
+import { ActivityLog } from './presentation/screens/ActivityLog';
+import { EmployeeProfile } from './presentation/screens/EmployeeProfile';
+import { ProjectDocs } from './presentation/screens/ProjectDocs';
+import { Policies } from './presentation/screens/Policies';
+import { CustomerLeads } from './presentation/screens/CustomerLeads';
+import { Appointments } from './presentation/screens/Appointments';
+import { LoanCalculator } from './presentation/screens/LoanCalculator';
+import { Training } from './presentation/screens/Training';
+import { DepositManagement } from './presentation/screens/DepositManagement';
+import { KpiDashboard } from './presentation/screens/KpiDashboard';
+import { DealRecording } from './presentation/screens/DealRecording';
+import { TargetAllocation } from './presentation/screens/TargetAllocation';
+import { TeamReport } from './presentation/screens/TeamReport';
 
 const KEY_TO_COMPONENT: Record<string, React.ComponentType<any>> = {
   SALES_DASHBOARD: SalesDashboard,
