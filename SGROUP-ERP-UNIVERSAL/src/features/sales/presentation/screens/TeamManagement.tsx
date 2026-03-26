@@ -8,7 +8,7 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard, SGButton, SGModal } from '../../../../shared/ui/components';
 import type { SalesRole } from '../SalesSidebar';
-import { useTeams } from '../hooks/useTeams';
+import { useTeams } from '../../hooks/useTeams';
 import { useAuthStore } from '../../auth/store/authStore';
 
 

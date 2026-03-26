@@ -12,9 +12,9 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard } from '../../../../shared/ui/components';
 import { useAuthStore } from '../../auth/store/authStore';
-import { useGetStaff, useGetTeams } from '../hooks/useSalesOps';
+import { useGetStaff, useGetTeams } from '../../hooks/useSalesOps';
 import { SalesRole } from '../SalesSidebar';
-import { SalesErrorBoundary } from '../components/SalesErrorBoundary';
+import { SalesErrorBoundary } from '../../components/SalesErrorBoundary';
 
 const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   sales_director: { label: 'GIÁM ĐỐC', color: '#ef4444', bg: '#fee2e2' },

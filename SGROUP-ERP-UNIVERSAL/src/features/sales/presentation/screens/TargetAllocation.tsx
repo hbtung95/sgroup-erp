@@ -10,8 +10,8 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable } from '../../../../shared/ui/components';
 import type { SalesRole } from '../SalesSidebar';
-import { useGetTargets, useDistributeTargets } from '../hooks/useSalesOps';
-import { useGetTeams, useGetStaff } from '../hooks/useSalesOps';
+import { useGetTargets, useDistributeTargets } from '../../hooks/useSalesOps';
+import { useGetTeams, useGetStaff } from '../../hooks/useSalesOps';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');
 

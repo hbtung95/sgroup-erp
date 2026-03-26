@@ -9,7 +9,7 @@ import { SGInput } from '../../../../shared/ui/components/SGInput';
 import { SGButton } from '../../../../shared/ui/components/SGButton';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { typography, spacing } from '../../../../shared/theme/theme';
-import { useResetPassword } from '../hooks/useAdmin';
+import { useResetPassword } from '../../hooks/useAdmin';
 import { Key } from 'lucide-react-native';
 import { showAlert } from '../utils/adminUtils';
 

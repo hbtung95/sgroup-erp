@@ -19,8 +19,8 @@ import { SGCard, SGTable, SGPlanningSectionTitle } from '../../../../shared/ui/c
 import type { SalesRole } from '../SalesSidebar';
 import {
   useGetKpiCards, useGetTeamPerformance, useGetStaffPerformance,
-} from '../hooks/useSalesReport';
-import { useTeams } from '../hooks/useTeams';
+} from '../../hooks/useSalesReport';
+import { useTeams } from '../../hooks/useTeams';
 
 // ─── Helpers ───
 const fmt = (n: number) => n.toLocaleString('vi-VN');

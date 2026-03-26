@@ -4,8 +4,8 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { Plus, Save, History, Calendar, PhoneCall, TrendingUp, Users, Presentation, Target, BarChart2, ArrowRight, Filter, Pencil, Trash2, X, Check } from 'lucide-react-native';
 import { SGButton, SGPlanningSectionTitle, SGPlanningNumberField, SGTable, SGStatCard } from '../../../../shared/ui/components';
 import { useSalesStore } from '../store/useSalesStore';
-import { useActivityFilter, ActivityPeriod } from '../hooks/useActivityFilter';
-import { ActivityChart } from '../components/charts/ActivityChart';
+import { useActivityFilter, ActivityPeriod } from '../../hooks/useActivityFilter';
+import { ActivityChart } from '../../components/charts/ActivityChart';
 import type { SalesRole } from '../SalesSidebar';
 import type { ActivityEntry } from '../store/useSalesStore';
 

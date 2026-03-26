@@ -12,7 +12,7 @@ import { SGAvatar } from '../../../../shared/ui/components/SGAvatar';
 import { SGConfirmDialog } from '../../../../shared/ui/components/SGConfirmDialog';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { typography, spacing } from '../../../../shared/theme/theme';
-import { useUpdateUser } from '../hooks/useAdmin';
+import { useUpdateUser } from '../../hooks/useAdmin';
 import { Save } from 'lucide-react-native';
 import { ROLE_OPTIONS, DEPT_OPTIONS, getRoleStyle } from '../constants/adminConstants';
 import { showAlert } from '../utils/adminUtils';

@@ -10,7 +10,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { SGPlanningSectionTitle } from '../../../../shared/ui/components';
-import { useAppointments, AppointmentEntry, AppointmentStatus, AppointmentType } from '../hooks/useAppointments';
+import { useAppointments, AppointmentEntry, AppointmentStatus, AppointmentType } from '../../hooks/useAppointments';
 import type { SalesRole } from '../SalesSidebar';
 
 const STATUS_CFG: Record<AppointmentStatus, { label: string; color: string; icon: any }> = {

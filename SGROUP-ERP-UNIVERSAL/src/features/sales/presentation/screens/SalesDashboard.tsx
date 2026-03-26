@@ -9,10 +9,10 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable, SGPlanningSectionTitle, SGButton } from '../../../../shared/ui/components';
 import type { SalesRole } from '../SalesSidebar';
-import { useSalesData } from '../hooks/useSalesData';
+import { useSalesData } from '../../hooks/useSalesData';
 
-import { useDeals } from '../hooks/useDeals';
-import { useGetKpiCards, useGetActualFunnel } from '../hooks/useSalesReport';
+import { useDeals } from '../../hooks/useDeals';
+import { useGetKpiCards, useGetActualFunnel } from '../../hooks/useSalesReport';
 
 // Icon map for KPI cards from API
 const KPI_ICONS: Record<string, any> = { gmv: DollarSign, revenue: TrendingUp, deals: ShoppingCart, staff: Users, target: Target };

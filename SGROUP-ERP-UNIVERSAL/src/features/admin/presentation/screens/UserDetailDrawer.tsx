@@ -16,7 +16,7 @@ import { SGStatusBadge } from '../../../../shared/ui/components/SGStatusBadge';
 import { SGSection } from '../../../../shared/ui/components/SGSection';
 import { SGAvatar } from '../../../../shared/ui/components/SGAvatar';
 import { SGSkeleton } from '../../../../shared/ui/components/SGSkeleton';
-import { useUserDetail, useRevokeSession, useRevokeAllSessions } from '../hooks/useAdmin';
+import { useUserDetail, useRevokeSession, useRevokeAllSessions } from '../../hooks/useAdmin';
 import { getRoleStyle, METHOD_COLORS } from '../constants/adminConstants';
 import { formatRelativeDate, showToast } from '../utils/adminUtils';
 

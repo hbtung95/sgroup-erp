@@ -14,10 +14,10 @@ import {
   HandCoins,
 } from 'lucide-react-native';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
-import { FinanceErrorBoundary } from '../components/FinanceErrorBoundary';
-import { CashflowSection } from '../components/CashflowTab';
-import { DebtSection } from '../components/DebtTab';
-import { useFinanceDashboard, useFinanceAccounts, useFinanceTransactions, useFinanceDebts } from '../hooks/useFinance';
+import { FinanceErrorBoundary } from '../../components/FinanceErrorBoundary';
+import { CashflowSection } from '../../components/CashflowTab';
+import { DebtSection } from '../../components/DebtTab';
+import { useFinanceDashboard, useFinanceAccounts, useFinanceTransactions, useFinanceDebts } from '../../hooks/useFinance';
 
 const fmt = (n: number) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
