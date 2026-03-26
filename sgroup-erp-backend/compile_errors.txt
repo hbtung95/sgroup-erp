@@ -1,0 +1,8 @@
+﻿src/modules/admin/infrastructure/repositories/admin-user.repository.ts(13,11): error TS2353: Object literal may only specify known properties, and 'phoneNumber' does not exist in type 'UserSelect<DefaultArgs>'.
+src/modules/exec-planning/index.ts(2,37): error TS2307: Cannot find module './exec-planning.service' or its corresponding type declarations.
+src/modules/exec-planning/index.ts(3,40): error TS2307: Cannot find module './exec-planning.controller' or its corresponding type declarations.
+src/modules/finance/infrastructure/repositories/debt-record.repository.ts(17,9): error TS2322: Type '"RECEIVABLE"' is not assignable to type 'DebtType'.
+src/modules/hr/hr.controller.spec.ts(2,30): error TS2307: Cannot find module './hr.controller' or its corresponding type declarations.
+src/modules/hr/hr.service.spec.ts(3,27): error TS2307: Cannot find module './hr.service' or its corresponding type declarations.
+src/modules/marketing/application/services/marketing-to-sales-sync.service.ts(33,11): error TS2322: Type 'string' is not assignable to type 'LeadSource'.
+src/modules/marketing/application/services/marketing-to-sales-sync.service.ts(37,11): error TS2322: Type 'string[]' is not assignable to type 'string'.

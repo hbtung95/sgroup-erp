@@ -254,4 +254,4 @@ throw new ForbiddenException('Access denied');
 
 
 ## 🚨 MANDATORY ARCHITECTURE RULES
-**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/backend-architecture-rules.md` and ADR-002 Database Standards. Any violation of the 6 Red Flags (e.g. `$transaction`, Prisma N+1, `UUIDv7`, `class-validator`) is forbidden.
+**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/backend-architecture-rules.md`, `docs/architecture/api-architecture-rules.md`, and ADR-002 Database Standards. Any violation of the 6 Red Flags (e.g. `$transaction`, Prisma N+1, `UUIDv7`, `class-validator`) is forbidden.

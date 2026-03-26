@@ -10,13 +10,11 @@ export class AdminUserRepository {
     return this.prisma.user.findMany({
       select: {
          id: true,
-          phoneNumber: true,
-          email: true,
-         firstName: true,
-         lastName: true,
+         email: true,
+         name: true,
          role: true,
          isActive: true,
-         lastLogin: true
+         lastLoginAt: true
       },
       orderBy: { createdAt: 'desc' }
     });

@@ -1,9 +1,9 @@
 ﻿import React, { useState, useMemo, useCallback } from 'react';
 import { View, ScrollView, Text, StyleSheet, Platform } from 'react-native';
 import { ProjectSidebar, ProjectSidebarItem, ProjectRole } from './ProjectSidebar';
-import { SGTopBar } from '../../shared/ui';
-import { typography } from '../../shared/theme/theme';
-import { useAppTheme } from '../../shared/theme/useAppTheme';
+import { SGTopBar } from '../../../shared/ui';
+import { typography } from '../../../shared/theme/theme';
+import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { useAuthStore } from '../../auth/store/authStore';
 import { ToastProvider } from '../../sales/components/ToastProvider';
 import { useProjectRoute } from '../application/hooks/useProjectRoute';

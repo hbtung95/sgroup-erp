@@ -246,4 +246,4 @@ export class ModuleErrorBoundary extends Component<Props, State> {
 
 
 ## 🚨 MANDATORY ARCHITECTURE RULES
-**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/frontend-architecture-rules.md`. Any violation of the 7 Red Flags in that document will result in severe consequences. Ensure Clean Architecture, FSD, and React Query/Zustand boundaries are rigidly maintained.
+**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/frontend-architecture-rules.md` and `docs/architecture/api-architecture-rules.md`. Any violation of the 7 Red Flags in that document will result in severe consequences. Ensure Clean Architecture, FSD, and React Query/Zustand boundaries are rigidly maintained.

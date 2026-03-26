@@ -16,8 +16,7 @@ export class ProjectCoreRepository {
     return this.prisma.dimProject.findUnique({
       where: { id },
       include: {
-        projectRoles: { select: { id: true, roleLevel: true, accountId: true } },
-        properties: { select: { id: true, status: true, code: true } }
+        products: { select: { id: true, status: true, code: true } }
       }
     });
   }

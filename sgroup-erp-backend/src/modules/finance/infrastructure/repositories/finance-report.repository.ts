@@ -59,7 +59,7 @@ export class FinanceReportRepository {
     const cashAssets = Number(accounts._sum.currentBalance || 0);
 
     const receivables = await this.prisma.debtRecord.aggregate({
-      where: { debtType: 'RECEIVABLE', status: { in: ['UNPAID', 'PARTIAL', 'OVERDUE'] } },
+      where: { debtType: { in: ['RECEIVABLE_CUSTOMER', 'RECEIVABLE_DEVELOPER'] }, status: { in: ['UNPAID', 'PARTIAL', 'OVERDUE'] } },
       _sum: { remainingAmount: true }
     });
     const totalReceivables = Number(receivables._sum.remainingAmount || 0);
@@ -68,7 +68,7 @@ export class FinanceReportRepository {
 
     // Liabilities (Nợ phải trả) = Payables (Phải trả)
     const payables = await this.prisma.debtRecord.aggregate({
-      where: { debtType: 'PAYABLE', status: { in: ['UNPAID', 'PARTIAL', 'OVERDUE'] } },
+      where: { debtType: 'PAYABLE_STAFF', status: { in: ['UNPAID', 'PARTIAL', 'OVERDUE'] } },
       _sum: { remainingAmount: true }
     });
     const totalLiabilities = Number(payables._sum.remainingAmount || 0);

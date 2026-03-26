@@ -25,20 +25,20 @@ export class MarketingToSalesSyncService {
 
       // 2. Secretly Inject Customer to Sales CRM
       // The sales team automatically gets a new Customer on their FSD views
-      const injectedCustomer = await tx.salesCustomer.create({
+      const injectedCustomer = await tx.customer.create({
         data: {
-          customerCode: `L2C-${Date.now()}`,
           fullName: lead.name,
-          phoneNumber: lead.phone || 'UNKNOWN',
+          phone: lead.phone || 'UNKNOWN',
           email: lead.email,
-          source: lead.source,
-          customerType: 'INDIVIDUAL',
+          source: lead.source as any,
+          year: new Date().getFullYear(),
+          month: new Date().getMonth() + 1,
           status: 'POTENTIAL',
-          tags: ['MARKETING_HANDOFF', 'HOT_LEAD']
+          tags: JSON.stringify(['MARKETING_HANDOFF', 'HOT_LEAD'])
         }
       });
 
-      this.logger.log(`[Cross-Module Sync] Successfully injected Customer ${injectedCustomer.customerCode} for Sales Hunters.`);
+      this.logger.log(`[Cross-Module Sync] Successfully injected Customer ${injectedCustomer.id} for Sales Hunters.`);
       return injectedCustomer;
     });
   }

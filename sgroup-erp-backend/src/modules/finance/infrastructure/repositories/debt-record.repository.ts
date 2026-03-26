@@ -14,7 +14,7 @@ export class DebtRecordRepository {
     return this.prisma.debtRecord.create({
       data: {
         debtCode: `DEBT-${Date.now()}`,
-        debtType: 'RECEIVABLE', // Phải thu
+        debtType: 'RECEIVABLE_CUSTOMER', // Phải thu
         customerId: data.customerId,
         dealId: data.dealId,
         totalAmount: data.totalAmount,
