@@ -1,49 +1,34 @@
-FROM node:22-alpine AS builder
+# Base image
+FROM node:18-alpine AS builder
 
+# Create app directory
 WORKDIR /app
 
-# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install all dependencies including dev dependencies for building
-RUN npm ci
+# Install app dependencies
+RUN npm install
 
-# Generate Prisma Client (multi-file schema from prisma/schema/)
-RUN npx prisma generate
-
-# Copy the rest of the application
+# Copy the rest of the application source code
 COPY . .
 
-# Build the NestJS application (clean build)
-RUN rm -rf dist tsconfig.build.tsbuildinfo && npm run build
+# Generate Prisma Client
+RUN npx prisma generate
 
-# ---
+# Build the NestJS app
+RUN npm run build
 
-FROM node:22-alpine AS production
+# Production image
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --omit=dev
-
-# Copy Prisma schema directory (multi-file) and generate client in production
-COPY --from=builder /app/prisma ./prisma
-RUN npx prisma generate
-
-# Copy built application from builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
 
-# Expose port
 EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
-  CMD wget -qO- http://localhost:3000/api || exit 1
-
-# Sync schema then start the application
-# Using db push instead of migrate deploy because this project uses schema-first approach
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/main"]
+CMD [ "npm", "run", "start:prod" ]

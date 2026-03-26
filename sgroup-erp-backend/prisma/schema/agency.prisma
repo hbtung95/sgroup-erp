@@ -1,0 +1,67 @@
+model AgAgency {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  taxId       String?
+  region      String?
+  status      String   @default("ACTIVE") // ACTIVE, SUSPENDED, INACTIVE
+  tierId      String?
+  managedBy   String?
+  userId      String?  @unique // Link to system User account
+
+  tier        AgTier?  @relation(fields: [tierId], references: [id])
+  contracts   AgContract[]
+  transactions AgTransaction[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("ag_agencies")
+}
+
+model AgTier {
+  id              String   @id @default(uuid())
+  name            String   @unique // DIAMOND, GOLD, SILVER
+  discountRate    Float    @default(0.0)
+  minRevenueLimit Float    @default(0.0)
+
+  agencies        AgAgency[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("ag_tiers")
+}
+
+model AgContract {
+  id          String   @id @default(uuid())
+  agencyId    String
+  contractNo  String   @unique
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("ACTIVE") // ACTIVE, EXPIRED, TERMINATED
+  creditLimit Float    @default(0.0)
+
+  agency      AgAgency @relation(fields: [agencyId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("ag_contracts")
+}
+
+model AgTransaction {
+  id          String   @id @default(uuid())
+  agencyId    String
+  type        String   @default("COMMISSION") // COMMISSION, DEPOSIT, DEDUCTION, WITHDRAWAL
+  amount      Float
+  referenceId String?  // ID of the related Sales Deal or Order
+  notes       String?
+  status      String   @default("COMPLETED") // COMPLETED, PENDING, FAILED
+
+  agency      AgAgency @relation(fields: [agencyId], references: [id])
+
+  createdAt   DateTime @default(now())
+
+  @@map("ag_transactions")
+}

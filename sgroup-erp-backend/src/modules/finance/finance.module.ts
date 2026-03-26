@@ -1,34 +1,32 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
-import { FinanceAccountController } from './controllers/account.controller';
-import { FinanceCategoryController } from './controllers/category.controller';
-import { FinanceTransactionController } from './controllers/transaction.controller';
-import { DebtRecordController } from './controllers/debt.controller';
-
-import { FinanceAccountService } from './services/account.service';
-import { FinanceCategoryService } from './services/category.service';
-import { FinanceTransactionService } from './services/transaction.service';
-import { DebtRecordService } from './services/debt.service';
+import { FinanceController } from './presentation/controllers/finance.controller';
+import { FinanceDebtController } from './presentation/controllers/finance-debt.controller';
+import { FinanceBudgetController } from './presentation/controllers/finance-budget.controller';
+import { FinanceReportController } from './presentation/controllers/finance-report.controller';
+import { FinanceService } from './application/services/finance.service';
+import { SalesToFinanceSyncService } from './application/services/sales-to-finance-sync.service';
+import { FinanceAccountRepository } from './infrastructure/repositories/finance-account.repository';
+import { FinanceTransactionRepository } from './infrastructure/repositories/finance-transaction.repository';
+import { DebtRecordRepository } from './infrastructure/repositories/debt-record.repository';
+import { FinanceBudgetRepository } from './infrastructure/repositories/finance-budget.repository';
+import { FinanceReportRepository } from './infrastructure/repositories/finance-report.repository';
 
 @Module({
-  imports: [PrismaModule],
   controllers: [
-    FinanceAccountController,
-    FinanceCategoryController,
-    FinanceTransactionController,
-    DebtRecordController,
+    FinanceController, 
+    FinanceDebtController, 
+    FinanceBudgetController,
+    FinanceReportController
   ],
   providers: [
-    FinanceAccountService,
-    FinanceCategoryService,
-    FinanceTransactionService,
-    DebtRecordService,
+    FinanceService,
+    SalesToFinanceSyncService,
+    FinanceAccountRepository,
+    FinanceTransactionRepository,
+    DebtRecordRepository,
+    FinanceBudgetRepository,
+    FinanceReportRepository
   ],
-  exports: [
-    FinanceAccountService,
-    FinanceCategoryService,
-    FinanceTransactionService,
-    DebtRecordService,
-  ],
+  exports: [FinanceService, SalesToFinanceSyncService]
 })
 export class FinanceModule {}

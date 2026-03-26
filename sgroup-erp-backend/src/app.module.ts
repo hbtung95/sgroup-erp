@@ -26,6 +26,7 @@ import { HrModule } from './modules/hr/hr.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AdminModule as SysAdminModule } from './modules/admin/admin.module';
+import { AgencyModule } from './modules/agency/agency.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -56,6 +57,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     MarketingModule,
     NotificationsModule,
     SysAdminModule,
+    AgencyModule,
   ],
   providers: [
     {

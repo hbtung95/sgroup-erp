@@ -1,0 +1,11 @@
+import { Module } from '@nestjs/common';
+import { LeaveController } from './presentation/leave.controller';
+import { LeaveService } from './application/leave.service';
+import { LeaveRepository } from './infrastructure/leave.repository';
+
+@Module({
+  controllers: [LeaveController],
+  providers: [LeaveService, LeaveRepository],
+  exports: [LeaveService],
+})
+export class LeaveModule {}
