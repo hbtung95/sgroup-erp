@@ -10,6 +10,19 @@ description: Database design, Prisma migration workflows, query optimization for
 - **Database**: PostgreSQL
 - **Migration**: Prisma Migrate
 
+## Core Design Principles (ADR-002: Tiêu Chuẩn Database Toàn Dự Án)
+Tất cả các agent thao tác với Database BẮT BUỘC tuân thủ 8 nguyên tắc sau ngầm định:
+1. **UUIDv7 Primary Key:** Toàn bộ bảng dùng `uuid(7)`. Không dùng Int hay Cuid.
+2. **Soft Delete Policy:** Dữ liệu lõi tài chính/nhân sự/giao dịch không bao giờ xóa cứng. Dùng `deletedAt DateTime?`.
+3. **Pessimistic/Optimistic Locking:** Các tài nguyên độc quyền (VD: Booking Căn hộ) phải có khóa thời gian `lockedUntil` để tránh Race Condition.
+4. **High-Precision Decimal:** Mọi trường tài chính bắt buộc dùng `Decimal(18, 4)`. KHÔNG dùng Float.
+5. **Cascade vs SetNull:** Dùng `SetNull` cho dữ liệu thao tác nghiệp vụ để tránh mất tham chiếu khi nhân sự nghỉ việc. Bỏ rác mới dùng `Cascade`.
+6. **Denormalization Snapshot:** Cố tình lưu dư thừa text (Tên NV, Tên KH) vào bảng Giao Dịch (`FactDeal`) để giữ nguyên biến động lịch sử.
+7. **The "Big Brother" Audit:** Mọi API thay đổi Database phải log lại (IP, Body, Dữ liệu cũ/mới) vào bảng `audit_logs`.
+8. **Atomic Status Logs:** Chuyển đổi trạng thái phức tạp phải log lại thành file lịch sử vòng đời tách biệt.
+
+*👉 Chi tiết đọc thêm ở `docs/adr/ADR-002-database-design-standards.md`.*
+
 ## Schema Design Conventions
 
 ### Model Template

@@ -1,19 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../../prisma/prisma.service';
+import { IProjectRepository } from '../../domain/repositories/project.repository.interface';
 
 @Injectable()
-export class ProjectService {
+export class PrismaProjectRepository implements IProjectRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createProjectDto: CreateProjectDto) {
-    return this.prisma.dimProject.create({
-      data: createProjectDto,
-    });
+  async create(data: any): Promise<any> {
+    return this.prisma.dimProject.create({ data });
   }
 
-  async findAll() {
+  async findAll(): Promise<any[]> {
     return this.prisma.dimProject.findMany({
       orderBy: { createdAt: 'desc' },
       include: {
@@ -24,8 +21,8 @@ export class ProjectService {
     });
   }
 
-  async findOne(id: string) {
-    const project = await this.prisma.dimProject.findUnique({
+  async findById(id: string): Promise<any | null> {
+    return this.prisma.dimProject.findUnique({
       where: { id },
       include: {
         products: { orderBy: { code: 'asc' } },
@@ -34,22 +31,16 @@ export class ProjectService {
         }
       }
     });
-    if (!project) {
-      throw new NotFoundException(`Project with ID ${id} not found`);
-    }
-    return project;
   }
 
-  async update(id: string, updateProjectDto: UpdateProjectDto) {
-    await this.findOne(id); // verify exists
+  async update(id: string, data: any): Promise<any> {
     return this.prisma.dimProject.update({
       where: { id },
-      data: updateProjectDto,
+      data,
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async delete(id: string): Promise<any> {
     return this.prisma.dimProject.delete({
       where: { id },
     });
@@ -58,34 +49,28 @@ export class ProjectService {
   // ═══════════════════════════════════════════
   // POLICIES
   // ═══════════════════════════════════════════
-  async findAllPolicies(status?: string) {
+  async findAllPolicies(status?: string): Promise<any[]> {
     const where: any = {};
     if (status) where.status = status;
     return this.prisma.projectPolicy.findMany({ where, orderBy: { createdAt: 'desc' } });
   }
 
-  async createPolicy(data: any) {
-    if (data.startDate) data.startDate = new Date(data.startDate);
-    if (data.endDate) data.endDate = new Date(data.endDate);
-    if (Array.isArray(data.rules)) data.rules = JSON.stringify(data.rules);
+  async createPolicy(data: any): Promise<any> {
     return this.prisma.projectPolicy.create({ data });
   }
 
-  async updatePolicy(id: string, data: any) {
-    if (data.startDate) data.startDate = new Date(data.startDate);
-    if (data.endDate) data.endDate = new Date(data.endDate);
-    if (Array.isArray(data.rules)) data.rules = JSON.stringify(data.rules);
+  async updatePolicy(id: string, data: any): Promise<any> {
     return this.prisma.projectPolicy.update({ where: { id }, data });
   }
 
-  async deletePolicy(id: string) {
+  async deletePolicy(id: string): Promise<any> {
     return this.prisma.projectPolicy.delete({ where: { id } });
   }
 
   // ═══════════════════════════════════════════
-  // DOCUMENTS (LegalProjectDoc)
+  // DOCUMENTS
   // ═══════════════════════════════════════════
-  async findAllDocs(projectId?: string) {
+  async findAllDocs(projectId?: string): Promise<any[]> {
     const where: any = {};
     if (projectId) where.projectId = projectId;
     return this.prisma.legalProjectDoc.findMany({
@@ -95,41 +80,37 @@ export class ProjectService {
     });
   }
 
-  async createDoc(data: any) {
-    if (data.issuedDate) data.issuedDate = new Date(data.issuedDate);
-    if (data.expiredDate) data.expiredDate = new Date(data.expiredDate);
+  async createDoc(data: any): Promise<any> {
     return this.prisma.legalProjectDoc.create({ data });
   }
 
-  async updateDoc(id: string, data: any) {
-    if (data.issuedDate) data.issuedDate = new Date(data.issuedDate);
-    if (data.expiredDate) data.expiredDate = new Date(data.expiredDate);
+  async updateDoc(id: string, data: any): Promise<any> {
     return this.prisma.legalProjectDoc.update({ where: { id }, data });
   }
 
-  async deleteDoc(id: string) {
+  async deleteDoc(id: string): Promise<any> {
     return this.prisma.legalProjectDoc.delete({ where: { id } });
   }
 
   // ═══════════════════════════════════════════
   // ASSIGNMENTS
   // ═══════════════════════════════════════════
-  async findAllAssignments(opts?: { projectId?: string; status?: string }) {
+  async findAllAssignments(opts?: { projectId?: string; status?: string }): Promise<any[]> {
     const where: any = {};
     if (opts?.projectId) where.projectId = opts.projectId;
     if (opts?.status) where.status = opts.status;
     return this.prisma.projectAssignment.findMany({ where, orderBy: { assignedAt: 'desc' } });
   }
 
-  async createAssignment(data: any) {
+  async createAssignment(data: any): Promise<any> {
     return this.prisma.projectAssignment.create({ data });
   }
 
-  async updateAssignment(id: string, data: any) {
+  async updateAssignment(id: string, data: any): Promise<any> {
     return this.prisma.projectAssignment.update({ where: { id }, data });
   }
 
-  async deleteAssignment(id: string) {
+  async deleteAssignment(id: string): Promise<any> {
     return this.prisma.projectAssignment.delete({ where: { id } });
   }
 }

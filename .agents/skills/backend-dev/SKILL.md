@@ -251,3 +251,7 @@ throw new ForbiddenException('Access denied');
 - ❌ Don't expose internal errors — use proper exception filters
 - ❌ Don't hardcode secrets — use environment variables
 - ❌ Don't skip authentication — use guards on all protected endpoints
+
+
+## 🚨 MANDATORY ARCHITECTURE RULES
+**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/backend-architecture-rules.md` and ADR-002 Database Standards. Any violation of the 6 Red Flags (e.g. `$transaction`, Prisma N+1, `UUIDv7`, `class-validator`) is forbidden.

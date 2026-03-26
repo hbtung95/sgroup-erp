@@ -214,3 +214,7 @@ login() { ... }
 - [ ] HTTPS enforced in production
 - [ ] Secrets never committed to git (.env in .gitignore)
 - [ ] Dependencies regularly audited (`npm audit`)
+
+
+## 🚨 MANDATORY ARCHITECTURE RULES
+**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/security-architecture-rules.md`. RBAC/ABAC, Encryption (AES-256), Audit Trails, and PDPA masking are absolutely non-negotiable.

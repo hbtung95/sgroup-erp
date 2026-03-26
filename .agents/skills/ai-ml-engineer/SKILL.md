@@ -170,3 +170,7 @@ const testCases = [
 - ❌ Never pass raw user input as system prompt
 - ❌ Never execute AI-generated code without review
 - ❌ Never expose API keys in frontend
+
+
+## 🚨 MANDATORY ARCHITECTURE RULES
+**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/ai-data-architecture-rules.md`. RAG Context Isolation, JSON Validated Outputs, and BigQuery ETL flows are mandatory.

@@ -200,3 +200,7 @@ npm run test:e2e            # E2E tests
 4. **Mock external deps** — Don't hit real databases or APIs
 5. **Test behavior, not implementation** — Focus on inputs/outputs
 6. **Reset state** — Use `beforeEach` to reset stores and mocks
+
+
+## 🚨 MANDATORY ARCHITECTURE RULES
+**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/test-architecture-rules.md`. Follow the Testing Pyramid, Testcontainers DB isolation, and coverage targets. No flaky test bypassing.

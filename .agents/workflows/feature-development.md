@@ -67,3 +67,7 @@ Use this workflow when implementing a new feature. Follow each step in order.
    - Add micro-animations per UI/UX design skill
    - Verify all data displays use `Array.isArray()` guards
    - Test with browser DevTools open (check for console errors)
+
+
+## 🚨 ARCHITECTURE COMPLIANCE STEP
+**CRITICAL ZERO-STEP:** Before writing any code for a feature, you MUST review all 7 pillars in `docs/architecture/` (UI, Frontend, Backend, Test, DevOps, Security, AI/Data) to verify that your technical design complies with the Enterprise Constraints and RED FLAGS.

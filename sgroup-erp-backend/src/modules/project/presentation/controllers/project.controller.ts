@@ -1,14 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
-import { ProjectService } from './project.service';
-import { PropertyProductService } from './property-product.service';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
-import { CreatePropertyProductDto } from './dto/create-property-product.dto';
-import { UpdatePropertyProductDto } from './dto/update-property-product.dto';
-import { GenerateInventoryDto } from './dto/generate-inventory.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
+import { ProjectService } from '../../application/use-cases/project.service';
+import { PropertyProductService } from '../../application/use-cases/property-product.service';
+import { CreateProjectDto } from '../dtos/create-project.dto';
+import { UpdateProjectDto } from '../dtos/update-project.dto';
+import { CreatePropertyProductDto } from '../dtos/create-property-product.dto';
+import { UpdatePropertyProductDto } from '../dtos/update-property-product.dto';
+import { GenerateInventoryDto } from '../dtos/generate-inventory.dto';
+import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../../common/guards/roles.guard';
+import { Roles } from '../../../../common/decorators/roles.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('projects')

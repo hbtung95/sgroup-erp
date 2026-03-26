@@ -267,3 +267,7 @@ Monthly budget: 0.1% × 43,200 min = 43.2 minutes of downtime
 
 If budget exhausted → freeze deployments, focus on reliability
 ```
+
+
+## 🚨 MANDATORY ARCHITECTURE RULES
+**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/devops-architecture-rules.md`. Git Flow, Zero-downtime Deployments, and CI/CD pipelines must follow the Red Flags.

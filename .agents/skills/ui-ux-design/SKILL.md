@@ -677,3 +677,7 @@ const glowCard = {
 - Don't use `any` type — define TypeScript interfaces
 - Don't build new components when an SG* equivalent exists
 - Don't forget bottom safe area on mobile
+
+
+## 🚨 MANDATORY ARCHITECTURE RULES
+**CRITICAL:** You MUST read and strictly adhere to the `docs/architecture/ui-architecture-rules.md`. Neo-glassmorphism, component colocation, and strict Z-index / animation boundaries must be enforced.

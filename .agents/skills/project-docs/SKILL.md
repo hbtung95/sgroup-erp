@@ -20,6 +20,7 @@ All project documentation is centralized in `d:\SGROUP ERP FULL\docs\`.
 | **Project Review** | `docs/architecture/project-review.md` | Đánh giá kiến trúc tổng thể FE (React Native/Expo) + BE (NestJS/Prisma), 4 điểm yếu chính (SQLite, State Fetching, RBAC, Docker), lộ trình nâng cấp 6 bước |
 | **UI Flow Matrix** | `docs/architecture/ui-flow-matrix.md` | Cấu trúc layout dùng chung 8 modules (5 tầng: topbar, KPI, flow switcher, summary, work area), 5 business flows chuẩn (overview, operations, approval, reporting, settings) |
 | **ADR-001** | `docs/adr/ADR-001-microservices-strategy.md` | Chiến lược microservices 3 phase: Monolith → Extract high-load → Full microservices |
+| **ADR-002** | `docs/adr/ADR-002-database-design-standards.md` | 8 Tiêu chuẩn thiết kế Database cốt lõi (UUIDv7, Soft Delete, Locking, Precision, Audit Pattern, Denormalization) |
 
 ### Sales Module (6 files)
 

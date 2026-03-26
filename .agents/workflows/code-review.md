@@ -43,3 +43,7 @@ Use this workflow to perform a systematic code review on changed files.
    - 🟡 SUGGESTION issues (should fix)
    - 🟢 NICE highlights (well done)
    - 💡 QUESTION items (need clarification)
+
+
+## 🚨 ARCHITECTURE RED-FLAG REVIEW
+**CRITICAL STEP:** During Code Review, you MUST cross-reference the PR against the RED FLAGS defined in the `docs/architecture/*-architecture-rules.md` documents. Specifically hunt for Prisma N+1, direct Axios UI calls, Missing DTOs, and Hardcoded strings/secrets. Reject PR immediately on any single violation.
