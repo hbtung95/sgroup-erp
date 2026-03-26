@@ -8,7 +8,7 @@ import { View, Text, ScrollView, Platform, TouchableOpacity } from 'react-native
 import { useNavigation } from '@react-navigation/native';
 import { FileText, CheckCircle2, ChevronRight, Calculator, AlignLeft, TrendingUp, AlertCircle, Clock } from 'lucide-react-native';
 import { useAppTheme } from '../../../../../shared/theme/useAppTheme';
-import { useDeals, Deal, DealStage } from '../../hooks/useDeals';
+import { useDeals, Deal, DealStage } from '../../../hooks/useDeals';
 
 const STAGE_CONFIG: Record<DealStage, { label: string; color: string; bg: string; icon: any }> = {
   LEAD: { label: 'LEAD', color: '#94a3b8', bg: '#f1f5f9', icon: Clock },

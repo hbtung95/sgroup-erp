@@ -7,7 +7,7 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 import { Target } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
-import { marketingPlanningApi } from '../api/marketingApi';
+import { marketingPlanningApi } from '../../api/marketingApi';
 import { SGPageContainer, SGSkeleton, SGSectionHeader, SGEmptyState } from '../../../../shared/ui';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { typography, spacing, radius, sgds } from '../../../../shared/theme/theme';

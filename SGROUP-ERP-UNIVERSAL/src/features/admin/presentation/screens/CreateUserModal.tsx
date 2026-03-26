@@ -12,8 +12,8 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { typography, spacing } from '../../../../shared/theme/theme';
 import { useCreateUser } from '../../hooks/useAdmin';
 import { Plus } from 'lucide-react-native';
-import { ROLE_OPTIONS, DEPT_OPTIONS } from '../constants/adminConstants';
-import { showAlert } from '../utils/adminUtils';
+import { ROLE_OPTIONS, DEPT_OPTIONS } from '../../constants/adminConstants';
+import { showAlert } from '../../utils/adminUtils';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

@@ -11,7 +11,7 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { typography, spacing } from '../../../../shared/theme/theme';
 import { useResetPassword } from '../../hooks/useAdmin';
 import { Key } from 'lucide-react-native';
-import { showAlert } from '../utils/adminUtils';
+import { showAlert } from '../../utils/adminUtils';
 
 interface Props {
   visible: boolean;

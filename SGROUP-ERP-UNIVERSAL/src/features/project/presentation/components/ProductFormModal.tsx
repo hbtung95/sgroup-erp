@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Modal, Platform } from 'react-native';
 import { typography, sgds } from '../../../shared/theme/theme';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { SGButton } from '../../../shared/ui/components';
 import { X, AlertCircle } from 'lucide-react-native';
-import { useCreateProduct, useUpdateProduct } from '../hooks/useProjects';
-import { PropertyProduct } from '../types';
-import { useToast } from '../../sales/components/ToastProvider';
+import { useCreateProduct, useUpdateProduct } from '../../application/hooks/useProjects';
+import { PropertyProduct } from '../../domain/models';
+import { useToast } from '../../../sales/components/ToastProvider';
 
 interface Props {
   visible: boolean;
@@ -15,15 +15,15 @@ interface Props {
   editData?: PropertyProduct | null;
 }
 
-const DIRECTIONS = ['Đông', 'Tây', 'Nam', 'Bắc', 'Đông Nam', 'Đông Bắc', 'Tây Nam', 'Tây Bắc'];
+const DIRECTIONS = ['ÄÃ´ng', 'TÃ¢y', 'Nam', 'Báº¯c', 'ÄÃ´ng Nam', 'ÄÃ´ng Báº¯c', 'TÃ¢y Nam', 'TÃ¢y Báº¯c'];
 const PRODUCT_STATUSES = [
-  { value: 'AVAILABLE', label: 'Sẵn sàng' },
-  { value: 'LOCKED', label: 'Đang Lock' },
-  { value: 'BOOKED', label: 'Đã đặt chỗ' },
-  { value: 'PENDING_DEPOSIT', label: 'Chờ cọc' },
-  { value: 'DEPOSIT', label: 'Đã cọc' },
-  { value: 'SOLD', label: 'Đã bán' },
-  { value: 'COMPLETED', label: 'Hoàn tất' },
+  { value: 'AVAILABLE', label: 'Sáºµn sÃ ng' },
+  { value: 'LOCKED', label: 'Äang Lock' },
+  { value: 'BOOKED', label: 'ÄÃ£ Ä‘áº·t chá»—' },
+  { value: 'PENDING_DEPOSIT', label: 'Chá» cá»c' },
+  { value: 'DEPOSIT', label: 'ÄÃ£ cá»c' },
+  { value: 'SOLD', label: 'ÄÃ£ bÃ¡n' },
+  { value: 'COMPLETED', label: 'HoÃ n táº¥t' },
 ];
 
 export function ProductFormModal({ visible, onClose, projectId, editData }: Props) {
@@ -65,7 +65,7 @@ export function ProductFormModal({ visible, onClose, projectId, editData }: Prop
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.code.trim()) newErrors.code = 'Mã căn bắt buộc';
+    if (!form.code.trim()) newErrors.code = 'MÃ£ cÄƒn báº¯t buá»™c';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -89,16 +89,16 @@ export function ProductFormModal({ visible, onClose, projectId, editData }: Prop
     try {
       if (isEdit && editData) {
         await updateMutation.mutateAsync({ projectId, id: editData.id, data: payload });
-        showToast(`Đã cập nhật sản phẩm "${form.code}"`, 'success');
+        showToast(`ÄÃ£ cáº­p nháº­t sáº£n pháº©m "${form.code}"`, 'success');
       } else {
         await createMutation.mutateAsync({ projectId, data: payload });
-        showToast(`Đã thêm sản phẩm "${form.code}" thành công!`, 'success');
+        showToast(`ÄÃ£ thÃªm sáº£n pháº©m "${form.code}" thÃ nh cÃ´ng!`, 'success');
       }
       onClose();
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || 'Lỗi không xác định';
+      const msg = e?.response?.data?.message || e?.message || 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh';
       setSubmitError(msg);
-      showToast(`Thất bại: ${msg}`, 'error');
+      showToast(`Tháº¥t báº¡i: ${msg}`, 'error');
     }
   };
 
@@ -156,7 +156,7 @@ export function ProductFormModal({ visible, onClose, projectId, editData }: Prop
       } as any]}>
         <View style={[styles.modalHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }]}>
           <Text style={[typography.h3, { color: colors.text }]}>
-            {isEdit ? 'Chỉnh sửa Sản phẩm' : 'Thêm Sản phẩm mới'}
+            {isEdit ? 'Chá»‰nh sá»­a Sáº£n pháº©m' : 'ThÃªm Sáº£n pháº©m má»›i'}
           </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
             <X size={20} color={colors.textSecondary} />
@@ -175,21 +175,21 @@ export function ProductFormModal({ visible, onClose, projectId, editData }: Prop
           )}
 
           <View style={{ flexDirection: 'row', gap: 16 }}>
-            <View style={{ flex: 1 }}>{renderField('Mã Căn *', 'code', { placeholder: 'VD: A1-0201' })}</View>
-            <View style={{ flex: 1 }}>{renderField('Block / Tòa', 'block', { placeholder: 'VD: A1' })}</View>
+            <View style={{ flex: 1 }}>{renderField('MÃ£ CÄƒn *', 'code', { placeholder: 'VD: A1-0201' })}</View>
+            <View style={{ flex: 1 }}>{renderField('Block / TÃ²a', 'block', { placeholder: 'VD: A1' })}</View>
           </View>
 
           <View style={{ flexDirection: 'row', gap: 16 }}>
-            <View style={{ flex: 1 }}>{renderField('Tầng', 'floor', { placeholder: '2' })}</View>
-            <View style={{ flex: 1 }}>{renderField('Diện tích (m²)', 'area', { placeholder: '65.5' })}</View>
-            <View style={{ flex: 1 }}>{renderField('Số phòng ngủ', 'bedrooms', { placeholder: '2' })}</View>
+            <View style={{ flex: 1 }}>{renderField('Táº§ng', 'floor', { placeholder: '2' })}</View>
+            <View style={{ flex: 1 }}>{renderField('Diá»‡n tÃ­ch (mÂ²)', 'area', { placeholder: '65.5' })}</View>
+            <View style={{ flex: 1 }}>{renderField('Sá»‘ phÃ²ng ngá»§', 'bedrooms', { placeholder: '2' })}</View>
           </View>
 
-          {renderField('Giá bán (Tỷ VND)', 'price', { placeholder: '3.5' })}
-          {renderChips('Hướng', 'direction', DIRECTIONS)}
+          {renderField('GiÃ¡ bÃ¡n (Tá»· VND)', 'price', { placeholder: '3.5' })}
+          {renderChips('HÆ°á»›ng', 'direction', DIRECTIONS)}
 
           <View style={styles.fieldGroup}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>TRẠNG THÁI</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>TRáº NG THÃI</Text>
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
               {PRODUCT_STATUSES.map(s => (
                 <TouchableOpacity
@@ -209,13 +209,13 @@ export function ProductFormModal({ visible, onClose, projectId, editData }: Prop
             </View>
           </View>
 
-          {renderField('Ghi chú', 'note', { multiline: true, placeholder: 'Ghi chú thêm...' })}
+          {renderField('Ghi chÃº', 'note', { multiline: true, placeholder: 'Ghi chÃº thÃªm...' })}
         </ScrollView>
 
         <View style={[styles.modalFooter, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }]}>
-          <SGButton title="Hủy" variant="outline" onPress={onClose} style={{ marginRight: 12 }} />
+          <SGButton title="Há»§y" variant="outline" onPress={onClose} style={{ marginRight: 12 }} />
           <SGButton
-            title={isLoading ? 'Đang lưu...' : (isEdit ? 'Cập nhật' : 'Thêm Sản phẩm')}
+            title={isLoading ? 'Äang lÆ°u...' : (isEdit ? 'Cáº­p nháº­t' : 'ThÃªm Sáº£n pháº©m')}
             onPress={handleSubmit}
             disabled={isLoading}
           />

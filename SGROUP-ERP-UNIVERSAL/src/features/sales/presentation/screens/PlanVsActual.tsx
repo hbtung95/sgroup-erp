@@ -10,7 +10,7 @@ import { BarChart3, TrendingUp, TrendingDown, Target, Eye, Info } from 'lucide-r
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable } from '../../../../shared/ui/components';
-import type { SalesRole } from '../SalesSidebar';
+import type { SalesRole } from '../../SalesSidebar';
 import { useGetPlanVsActual } from '../../hooks/useSalesReport';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');

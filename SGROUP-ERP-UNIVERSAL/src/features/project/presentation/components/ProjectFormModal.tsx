@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Modal, Platform } from 'react-native';
 import { typography, sgds } from '../../../shared/theme/theme';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
 import { SGButton } from '../../../shared/ui/components';
 import { X, AlertCircle } from 'lucide-react-native';
-import { useCreateProject, useUpdateProject } from '../hooks/useProjects';
-import { DimProject } from '../types';
-import { useToast } from '../../sales/components/ToastProvider';
+import { useCreateProject, useUpdateProject } from '../../application/hooks/useProjects';
+import { DimProject } from '../../domain/models';
+import { useToast } from '../../../sales/components/ToastProvider';
 
 interface Props {
   visible: boolean;
@@ -14,11 +14,11 @@ interface Props {
   editData?: DimProject | null;
 }
 
-const PROJECT_TYPES = ['Chung cư', 'Biệt thự', 'Shophouse', 'Đất nền', 'Townhouse'];
+const PROJECT_TYPES = ['Chung cÆ°', 'Biá»‡t thá»±', 'Shophouse', 'Äáº¥t ná»n', 'Townhouse'];
 const PROJECT_STATUSES = [
-  { value: 'ACTIVE', label: 'Đang mở bán' },
-  { value: 'PAUSED', label: 'Tạm dừng' },
-  { value: 'CLOSED', label: 'Đã đóng' },
+  { value: 'ACTIVE', label: 'Äang má»Ÿ bÃ¡n' },
+  { value: 'PAUSED', label: 'Táº¡m dá»«ng' },
+  { value: 'CLOSED', label: 'ÄÃ£ Ä‘Ã³ng' },
 ];
 
 export function ProjectFormModal({ visible, onClose, editData }: Props) {
@@ -33,7 +33,7 @@ export function ProjectFormModal({ visible, onClose, editData }: Props) {
     name: '',
     developer: '',
     location: '',
-    type: 'Chung cư',
+    type: 'Chung cÆ°',
     feeRate: '',
     avgPrice: '',
     totalUnits: '',
@@ -53,7 +53,7 @@ export function ProjectFormModal({ visible, onClose, editData }: Props) {
         name: editData.name || '',
         developer: editData.developer || '',
         location: editData.location || '',
-        type: editData.type || 'Chung cư',
+        type: editData.type || 'Chung cÆ°',
         feeRate: editData.feeRate?.toString() || '0',
         avgPrice: editData.avgPrice?.toString() || '0',
         totalUnits: editData.totalUnits?.toString() || '0',
@@ -65,7 +65,7 @@ export function ProjectFormModal({ visible, onClose, editData }: Props) {
     } else {
       setForm({
         projectCode: '', name: '', developer: '', location: '',
-        type: 'Chung cư', feeRate: '', avgPrice: '', totalUnits: '',
+        type: 'Chung cÆ°', feeRate: '', avgPrice: '', totalUnits: '',
         status: 'ACTIVE', startDate: '', endDate: '', note: '',
       });
     }
@@ -75,10 +75,10 @@ export function ProjectFormModal({ visible, onClose, editData }: Props) {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.projectCode.trim()) newErrors.projectCode = 'Mã dự án bắt buộc';
-    if (!form.name.trim()) newErrors.name = 'Tên dự án bắt buộc';
+    if (!form.projectCode.trim()) newErrors.projectCode = 'MÃ£ dá»± Ã¡n báº¯t buá»™c';
+    if (!form.name.trim()) newErrors.name = 'TÃªn dá»± Ã¡n báº¯t buá»™c';
     if (form.startDate && form.endDate && form.startDate > form.endDate) {
-      newErrors.endDate = 'Ngày kết thúc phải sau ngày bắt đầu';
+      newErrors.endDate = 'NgÃ y káº¿t thÃºc pháº£i sau ngÃ y báº¯t Ä‘áº§u';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -106,16 +106,16 @@ export function ProjectFormModal({ visible, onClose, editData }: Props) {
     try {
       if (isEdit && editData) {
         await updateMutation.mutateAsync({ id: editData.id, data: payload });
-        showToast(`Đã cập nhật dự án "${form.name}"`, 'success');
+        showToast(`ÄÃ£ cáº­p nháº­t dá»± Ã¡n "${form.name}"`, 'success');
       } else {
         await createMutation.mutateAsync(payload);
-        showToast(`Đã tạo dự án "${form.name}" thành công!`, 'success');
+        showToast(`ÄÃ£ táº¡o dá»± Ã¡n "${form.name}" thÃ nh cÃ´ng!`, 'success');
       }
       onClose();
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || 'Lỗi không xác định';
+      const msg = e?.response?.data?.message || e?.message || 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh';
       setSubmitError(msg);
-      showToast(`Thất bại: ${msg}`, 'error');
+      showToast(`Tháº¥t báº¡i: ${msg}`, 'error');
     }
   };
 
@@ -178,7 +178,7 @@ export function ProjectFormModal({ visible, onClose, editData }: Props) {
         {/* Header */}
         <View style={[styles.modalHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }]}>
           <Text style={[typography.h3, { color: colors.text }]}>
-            {isEdit ? 'Chỉnh sửa Dự án' : 'Thêm Dự án mới'}
+            {isEdit ? 'Chá»‰nh sá»­a Dá»± Ã¡n' : 'ThÃªm Dá»± Ã¡n má»›i'}
           </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
             <X size={20} color={colors.textSecondary} />
@@ -199,36 +199,36 @@ export function ProjectFormModal({ visible, onClose, editData }: Props) {
           )}
 
           <View style={{ flexDirection: 'row', gap: 16 }}>
-            <View style={{ flex: 1 }}>{renderField('Mã Dự án *', 'projectCode', { placeholder: 'VD: DA001' })}</View>
-            <View style={{ flex: 2 }}>{renderField('Tên Dự án *', 'name', { placeholder: 'VD: SG Center Tower' })}</View>
+            <View style={{ flex: 1 }}>{renderField('MÃ£ Dá»± Ã¡n *', 'projectCode', { placeholder: 'VD: DA001' })}</View>
+            <View style={{ flex: 2 }}>{renderField('TÃªn Dá»± Ã¡n *', 'name', { placeholder: 'VD: SG Center Tower' })}</View>
           </View>
 
-          {renderField('Chủ đầu tư', 'developer', { placeholder: 'VD: SGROUP' })}
-          {renderField('Vị trí', 'location', { placeholder: 'VD: Q7, TP.HCM' })}
+          {renderField('Chá»§ Ä‘áº§u tÆ°', 'developer', { placeholder: 'VD: SGROUP' })}
+          {renderField('Vá»‹ trÃ­', 'location', { placeholder: 'VD: Q7, TP.HCM' })}
 
-          {renderDropdown('Loại hình', 'type', PROJECT_TYPES.map(t => ({ value: t, label: t })))}
-          {renderDropdown('Trạng thái', 'status', PROJECT_STATUSES)}
+          {renderDropdown('Loáº¡i hÃ¬nh', 'type', PROJECT_TYPES.map(t => ({ value: t, label: t })))}
+          {renderDropdown('Tráº¡ng thÃ¡i', 'status', PROJECT_STATUSES)}
 
           <View style={{ flexDirection: 'row', gap: 16 }}>
-            <View style={{ flex: 1 }}>{renderField('Phí MG (%)', 'feeRate', { placeholder: '2.5' })}</View>
-            <View style={{ flex: 1 }}>{renderField('Giá TB (Tỷ)', 'avgPrice', { placeholder: '3.5' })}</View>
-            <View style={{ flex: 1 }}>{renderField('Tổng SP', 'totalUnits', { placeholder: '500' })}</View>
+            <View style={{ flex: 1 }}>{renderField('PhÃ­ MG (%)', 'feeRate', { placeholder: '2.5' })}</View>
+            <View style={{ flex: 1 }}>{renderField('GiÃ¡ TB (Tá»·)', 'avgPrice', { placeholder: '3.5' })}</View>
+            <View style={{ flex: 1 }}>{renderField('Tá»•ng SP', 'totalUnits', { placeholder: '500' })}</View>
           </View>
 
           {/* Date Fields */}
           <View style={{ flexDirection: 'row', gap: 16 }}>
-            <View style={{ flex: 1 }}>{renderField('Ngày mở bán', 'startDate', { placeholder: 'YYYY-MM-DD' })}</View>
-            <View style={{ flex: 1 }}>{renderField('Ngày kết thúc', 'endDate', { placeholder: 'YYYY-MM-DD' })}</View>
+            <View style={{ flex: 1 }}>{renderField('NgÃ y má»Ÿ bÃ¡n', 'startDate', { placeholder: 'YYYY-MM-DD' })}</View>
+            <View style={{ flex: 1 }}>{renderField('NgÃ y káº¿t thÃºc', 'endDate', { placeholder: 'YYYY-MM-DD' })}</View>
           </View>
 
-          {renderField('Ghi chú', 'note', { multiline: true, placeholder: 'Ghi chú thêm...' })}
+          {renderField('Ghi chÃº', 'note', { multiline: true, placeholder: 'Ghi chÃº thÃªm...' })}
         </ScrollView>
 
         {/* Footer */}
         <View style={[styles.modalFooter, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }]}>
-          <SGButton title="Hủy" variant="outline" onPress={onClose} style={{ marginRight: 12 }} />
+          <SGButton title="Há»§y" variant="outline" onPress={onClose} style={{ marginRight: 12 }} />
           <SGButton
-            title={isLoading ? 'Đang lưu...' : (isEdit ? 'Cập nhật' : 'Tạo Dự án')}
+            title={isLoading ? 'Äang lÆ°u...' : (isEdit ? 'Cáº­p nháº­t' : 'Táº¡o Dá»± Ã¡n')}
             onPress={handleSubmit}
             disabled={isLoading}
           />

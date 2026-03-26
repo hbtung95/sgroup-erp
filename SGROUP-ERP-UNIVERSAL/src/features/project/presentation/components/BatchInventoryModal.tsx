@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Modal, Platform, Alert } from 'react-native';
 import { typography, useTheme } from '../../../shared/theme/theme';
 import { useThemeStore } from '../../../shared/theme/themeStore';
 import { SGButton } from '../../../shared/ui/components';
 import { X, Plus, Trash2, ChevronRight, ChevronLeft, Layers, Grid3x3, Eye } from 'lucide-react-native';
-import { useGenerateInventory } from '../hooks/useProjects';
+import { useGenerateInventory } from '../../application/hooks/useProjects';
 
 interface Props {
   visible: boolean;
@@ -89,20 +89,20 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
           defaultBedrooms: parseInt(defaultBedrooms) || 0,
         },
       }) as { created: number; skipped: number; total: number };
-      const msg = `✅ Đã tạo ${result.created} sản phẩm thành công!\n${result.skipped > 0 ? `⚠️ Bỏ qua ${result.skipped} mã đã tồn tại.` : ''}\nTổng sản phẩm: ${result.total}`;
+      const msg = `âœ… ÄÃ£ táº¡o ${result.created} sáº£n pháº©m thÃ nh cÃ´ng!\n${result.skipped > 0 ? `âš ï¸ Bá» qua ${result.skipped} mÃ£ Ä‘Ã£ tá»“n táº¡i.` : ''}\nTá»•ng sáº£n pháº©m: ${result.total}`;
       if (Platform.OS === 'web') {
         alert(msg);
       } else {
-        Alert.alert('Thành công', msg);
+        Alert.alert('ThÃ nh cÃ´ng', msg);
       }
       onClose();
       setStep(1);
     } catch (e: any) {
-      const errMsg = e?.message || 'Lỗi không xác định';
+      const errMsg = e?.message || 'Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh';
       if (Platform.OS === 'web') {
-        alert('❌ Lỗi: ' + errMsg);
+        alert('âŒ Lá»—i: ' + errMsg);
       } else {
-        Alert.alert('Lỗi', errMsg);
+        Alert.alert('Lá»—i', errMsg);
       }
     }
   };
@@ -124,7 +124,7 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
     <View style={{ gap: 20 }}>
       {/* Blocks */}
       <View>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>BLOCK / TÒA</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>BLOCK / TÃ’A</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
           {blocks.map(b => (
             <View key={b} style={[styles.tag, { backgroundColor: '#10b981', borderColor: '#10b981' }]}>
@@ -138,27 +138,27 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TextInput
             style={[inputStyle(), { flex: 1 }]}
-            placeholder="Nhập tên Block (VD: C)"
+            placeholder="Nháº­p tÃªn Block (VD: C)"
             placeholderTextColor={colors.textTertiary}
             value={newBlock}
             onChangeText={setNewBlock}
             onSubmitEditing={addBlock}
           />
-          <SGButton title="Thêm" size="sm" onPress={addBlock} icon={<Plus size={16} color="#fff" />} />
+          <SGButton title="ThÃªm" size="sm" onPress={addBlock} icon={<Plus size={16} color="#fff" />} />
         </View>
       </View>
 
       {/* Floor Range */}
       <View>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>SỐ TẦNG</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Sá» Táº¦NG</Text>
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.sublabel, { color: colors.textTertiary }]}>Từ tầng</Text>
+            <Text style={[styles.sublabel, { color: colors.textTertiary }]}>Tá»« táº§ng</Text>
             <TextInput style={inputStyle()} value={fromFloor} onChangeText={setFromFloor} keyboardType="number-pad" />
           </View>
-          <Text style={{ color: colors.textSecondary, fontWeight: '800', fontSize: 18, marginTop: 20 }}>→</Text>
+          <Text style={{ color: colors.textSecondary, fontWeight: '800', fontSize: 18, marginTop: 20 }}>â†’</Text>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.sublabel, { color: colors.textTertiary }]}>Đến tầng</Text>
+            <Text style={[styles.sublabel, { color: colors.textTertiary }]}>Äáº¿n táº§ng</Text>
             <TextInput style={inputStyle()} value={toFloor} onChangeText={setToFloor} keyboardType="number-pad" />
           </View>
         </View>
@@ -166,7 +166,7 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
 
       <View style={[styles.summaryBox, { backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#ecfdf5', borderColor: isDark ? 'rgba(16,185,129,0.2)' : '#a7f3d0' }]}>
         <Text style={{ color: '#059669', fontWeight: '800', fontSize: 14 }}>
-          📊 {blocks.length} Block × {Math.max(0, (parseInt(toFloor) || 0) - (parseInt(fromFloor) || 0) + 1)} Tầng
+          ðŸ“Š {blocks.length} Block Ã— {Math.max(0, (parseInt(toFloor) || 0) - (parseInt(fromFloor) || 0) + 1)} Táº§ng
         </Text>
       </View>
     </View>
@@ -175,15 +175,15 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
   const renderStep2 = () => (
     <View style={{ gap: 20 }}>
       <View>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>SỐ CĂN / TẦNG</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Sá» CÄ‚N / Táº¦NG</Text>
         <TextInput style={inputStyle()} value={unitsPerFloor} onChangeText={setUnitsPerFloor} keyboardType="number-pad" placeholder="4" placeholderTextColor={colors.textTertiary} />
       </View>
 
       <View>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>MẪU MÃ CĂN</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>MáºªU MÃƒ CÄ‚N</Text>
         <TextInput style={inputStyle()} value={codePattern} onChangeText={setCodePattern} placeholder="{block}-{floor}{unit}" placeholderTextColor={colors.textTertiary} />
         <Text style={{ fontSize: 11, color: colors.textTertiary, marginTop: 6 }}>
-          {'{block}'} = Tên Block, {'{floor}'} = Số tầng (01, 02...), {'{unit}'} = Số căn (01, 02...)
+          {'{block}'} = TÃªn Block, {'{floor}'} = Sá»‘ táº§ng (01, 02...), {'{unit}'} = Sá»‘ cÄƒn (01, 02...)
         </Text>
         <Text style={{ fontSize: 12, color: '#10b981', marginTop: 4, fontWeight: '700' }}>
           VD: {codePattern.replace('{block}', blocks[0] || 'A').replace('{floor}', '05').replace('{unit}', '03')}
@@ -192,22 +192,22 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
 
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>DIỆN TÍCH (m²)</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>DIá»†N TÃCH (mÂ²)</Text>
           <TextInput style={inputStyle()} value={defaultArea} onChangeText={setDefaultArea} keyboardType="decimal-pad" placeholder="65" placeholderTextColor={colors.textTertiary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>GIÁ BÁN (TỶ)</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>GIÃ BÃN (Tá»¶)</Text>
           <TextInput style={inputStyle()} value={defaultPrice} onChangeText={setDefaultPrice} keyboardType="decimal-pad" placeholder="3.5" placeholderTextColor={colors.textTertiary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>PHÒNG NGỦ</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>PHÃ’NG NGá»¦</Text>
           <TextInput style={inputStyle()} value={defaultBedrooms} onChangeText={setDefaultBedrooms} keyboardType="number-pad" placeholder="2" placeholderTextColor={colors.textTertiary} />
         </View>
       </View>
 
       <View style={[styles.summaryBox, { backgroundColor: isDark ? 'rgba(59,130,246,0.08)' : '#eff6ff', borderColor: isDark ? 'rgba(59,130,246,0.2)' : '#bfdbfe' }]}>
         <Text style={{ color: '#2563eb', fontWeight: '800', fontSize: 14 }}>
-          🏗️ Sẽ tạo tổng cộng {totalUnits} sản phẩm
+          ðŸ—ï¸ Sáº½ táº¡o tá»•ng cá»™ng {totalUnits} sáº£n pháº©m
         </Text>
       </View>
     </View>
@@ -217,10 +217,10 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
     <View style={{ gap: 16 }}>
       <View style={[styles.summaryBox, { backgroundColor: isDark ? 'rgba(16,185,129,0.08)' : '#ecfdf5', borderColor: isDark ? 'rgba(16,185,129,0.2)' : '#a7f3d0' }]}>
         <Text style={{ color: '#059669', fontWeight: '900', fontSize: 16 }}>
-          ✅ Xem trước: {totalUnits} sản phẩm
+          âœ… Xem trÆ°á»›c: {totalUnits} sáº£n pháº©m
         </Text>
         <Text style={{ color: '#059669', fontWeight: '600', fontSize: 12, marginTop: 4 }}>
-          {blocks.length} Block × {Math.max(0, (parseInt(toFloor) || 0) - (parseInt(fromFloor) || 0) + 1)} Tầng × {unitsPerFloor} Căn/Tầng
+          {blocks.length} Block Ã— {Math.max(0, (parseInt(toFloor) || 0) - (parseInt(fromFloor) || 0) + 1)} Táº§ng Ã— {unitsPerFloor} CÄƒn/Táº§ng
         </Text>
       </View>
 
@@ -228,7 +228,7 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
         {previewData.map(blockData => (
           <View key={blockData.block} style={{ marginBottom: 20 }}>
             <Text style={{ fontSize: 15, fontWeight: '900', color: colors.text, marginBottom: 8 }}>
-              🏢 Block {blockData.block}
+              ðŸ¢ Block {blockData.block}
             </Text>
             {blockData.floors.map(floorData => (
               <View key={floorData.floor} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 8 }}>
@@ -237,7 +237,7 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
                   backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
                   alignItems: 'center',
                 }}>
-                  <Text style={{ fontSize: 10, fontWeight: '700', color: colors.textTertiary }}>TẦNG</Text>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: colors.textTertiary }}>Táº¦NG</Text>
                   <Text style={{ fontSize: 13, fontWeight: '900', color: colors.text }}>{floorData.floor}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4, flex: 1 }}>
@@ -258,7 +258,7 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
     </View>
   );
 
-  const stepTitles = ['Thiết lập Block & Tầng', 'Cấu hình Sản phẩm', 'Xác nhận & Tạo'];
+  const stepTitles = ['Thiáº¿t láº­p Block & Táº§ng', 'Cáº¥u hÃ¬nh Sáº£n pháº©m', 'XÃ¡c nháº­n & Táº¡o'];
   const stepIcons = [Layers, Grid3x3, Eye];
 
   const content = (
@@ -270,7 +270,7 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
         {/* Header */}
         <View style={[styles.modalHeader, { borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }]}>
           <View>
-            <Text style={[typography.h3, { color: colors.text }]}>🏗️ Tạo Bảng Hàng Nhanh</Text>
+            <Text style={[typography.h3, { color: colors.text }]}>ðŸ—ï¸ Táº¡o Báº£ng HÃ ng Nhanh</Text>
             {projectName && (
               <Text style={{ fontSize: 13, color: '#10b981', fontWeight: '700', marginTop: 4 }}>
                 {projectName}
@@ -318,7 +318,7 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
         <View style={[styles.modalFooter, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }]}>
           {step > 1 && (
             <SGButton
-              title="Quay lại"
+              title="Quay láº¡i"
               variant="outline"
               onPress={() => setStep(s => s - 1)}
               icon={<ChevronLeft size={16} color={isDark ? '#E2E8F0' : '#475569'} />}
@@ -328,14 +328,14 @@ export function BatchInventoryModal({ visible, onClose, projectId, projectName }
           <View style={{ flex: 1 }} />
           {step < 3 ? (
             <SGButton
-              title="Tiếp tục"
+              title="Tiáº¿p tá»¥c"
               onPress={() => setStep(s => s + 1)}
               disabled={step === 1 ? !canProceedStep1 : !canProceedStep2}
               icon={<ChevronRight size={16} color="#fff" />}
             />
           ) : (
             <SGButton
-              title={generateMutation.isPending ? 'Đang tạo...' : `Tạo ${totalUnits} Sản phẩm`}
+              title={generateMutation.isPending ? 'Äang táº¡o...' : `Táº¡o ${totalUnits} Sáº£n pháº©m`}
               onPress={handleSubmit}
               disabled={generateMutation.isPending}
               style={{ backgroundColor: '#10b981' }}

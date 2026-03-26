@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Users } from 'lucide-react-native';
-import { useGetDepartmentPulse } from '../../application/hooks/useBdhQueries';
+import { useGetDepartmentPulse } from '../application/hooks/useBdhQueries';
 
 export const OverviewHR = () => {
   const { data } = useGetDepartmentPulse('HR');

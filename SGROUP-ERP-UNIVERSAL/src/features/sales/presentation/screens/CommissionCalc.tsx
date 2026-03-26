@@ -5,7 +5,7 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGButton, SGPlanningSectionTitle } from '../../../../shared/ui/components';
 import { useGetCommissionReport } from '../../hooks/useSalesReport';
-import type { SalesRole } from '../SalesSidebar';
+import type { SalesRole } from '../../SalesSidebar';
 
 type CommissionRecord = {
   id: string;

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, ScrollView, StyleSheet , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,7 +22,7 @@ export const ProjectDashboard = () => {
            <Text variant="h3" weight="bold" style={{ marginBottom: 16 }}>Quick Access</Text>
            <View style={styles.menuGrid}>
              {[
-               { icon: Building, label: 'Inventory (Bảng hàng)', color: '#10B981' },
+               { icon: Building, label: 'Inventory (Báº£ng hÃ ng)', color: '#10B981' },
                { icon: FileText, label: 'Docs & Legal', color: '#3B82F6' },
                { icon: CheckSquare, label: 'Policies', color: '#8B5CF6' },
                { icon: Users, label: 'Assignments', color: '#F59E0B' },

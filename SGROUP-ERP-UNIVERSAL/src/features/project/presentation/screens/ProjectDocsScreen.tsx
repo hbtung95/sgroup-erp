@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, ScrollView, StyleSheet , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { FileText, Download } from 'lucide-react-native';
@@ -11,15 +11,15 @@ export const ProjectDocsScreen = () => {
     <View style={styles.container}>
       <BlurView intensity={90} tint="light" style={styles.header}>
         <FileText size={28} color="#2563EB" />
-        <Text variant="h2" weight="bold">Tài liệu dự án</Text>
+        <Text variant="h2" weight="bold">TÃ i liá»‡u dá»± Ã¡n</Text>
       </BlurView>
       <ScrollView contentContainerStyle={styles.list}>
         <SGCard style={styles.docItem}>
            <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
              <View style={styles.iconBg}><FileText size={20} color="#2563EB" /></View>
              <View>
-               <Text variant="body1" weight="bold">Bảng giá T3/2026.pdf</Text>
-               <Text variant="caption" color="#64748B">2.4 MB • Pháp lý</Text>
+               <Text variant="body1" weight="bold">Báº£ng giÃ¡ T3/2026.pdf</Text>
+               <Text variant="caption" color="#64748B">2.4 MB â€¢ PhÃ¡p lÃ½</Text>
              </View>
            </View>
            <Download size={20} color="#64748B" />

@@ -3,8 +3,8 @@ import { View, Text, ScrollView, Platform, TouchableOpacity, TextInput, Activity
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { UserCircle, Mail, Phone, MapPin, Award, Star, TrendingUp, ShieldCheck, Briefcase, Lock, Eye, EyeOff, CheckCircle, Users } from 'lucide-react-native';
 import { SGButton, SGPlanningSectionTitle } from '../../../../shared/ui/components';
-import { useAuthStore } from '../../auth/store/authStore';
-import { apiFetch } from '../../../core/api/api';
+import { useAuthStore } from '../../../auth/store/authStore';
+import { apiFetch } from '../../../../core/api/api';
 
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin Hệ Thống',

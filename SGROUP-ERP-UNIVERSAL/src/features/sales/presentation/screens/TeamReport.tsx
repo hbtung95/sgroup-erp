@@ -8,7 +8,7 @@ import { FileText, TrendingUp, Users, Target, Award, BarChart3, Trophy } from 'l
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable } from '../../../../shared/ui/components';
-import type { SalesRole } from '../SalesSidebar';
+import type { SalesRole } from '../../SalesSidebar';
 import { useGetTeamPerformance, useGetStaffPerformance } from '../../hooks/useSalesReport';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');

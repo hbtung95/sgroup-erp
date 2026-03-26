@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -46,9 +46,9 @@ export const InventoryScreen = ({ route }: any) => {
                 <View style={[styles.statusDot, { backgroundColor: getStatusColor(unit.status) }]} />
               </View>
               
-              <Text variant="body2" color="#64748B">{unit.area} m² • {unit.bedrooms} BR</Text>
+              <Text variant="body2" color="#64748B">{unit.area} mÂ² â€¢ {unit.bedrooms} BR</Text>
               <Text variant="h2" weight="bold" color="#065F46" style={styles.price}>
-                {unit.price} Tỷ
+                {unit.price} Tá»·
               </Text>
 
               {unit.status === 'AVAILABLE' ? (

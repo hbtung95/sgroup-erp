@@ -7,7 +7,7 @@ import { Building, Plus, MapPin, Home } from 'lucide-react-native';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard } from '../../../../shared/ui/components';
-import type { SalesRole } from '../SalesSidebar';
+import type { SalesRole } from '../../SalesSidebar';
 import { useGetProjects } from '../../hooks/useSalesOps';
 
 const fmt = (n: number) => n.toLocaleString('vi-VN');

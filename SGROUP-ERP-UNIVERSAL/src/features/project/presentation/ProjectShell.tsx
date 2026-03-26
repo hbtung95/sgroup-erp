@@ -1,12 +1,12 @@
-import React, { useState, useMemo, useCallback } from 'react';
+﻿import React, { useState, useMemo, useCallback } from 'react';
 import { View, ScrollView, Text, StyleSheet, Platform } from 'react-native';
 import { ProjectSidebar, ProjectSidebarItem, ProjectRole } from './ProjectSidebar';
 import { SGTopBar } from '../../shared/ui';
 import { typography } from '../../shared/theme/theme';
 import { useAppTheme } from '../../shared/theme/useAppTheme';
-import { useAuthStore } from '../auth/store/authStore';
-import { ToastProvider } from '../sales/components/ToastProvider';
-import { useProjectRoute } from './hooks/useProjectRoute';
+import { useAuthStore } from '../../auth/store/authStore';
+import { ToastProvider } from '../../sales/components/ToastProvider';
+import { useProjectRoute } from '../application/hooks/useProjectRoute';
 
 // Screens
 import { ProjectDashboard } from './presentation/screens/ProjectDashboard';
@@ -23,7 +23,7 @@ export function ProjectShell() {
     'PROJECT_INVENTORY', 'PROJECT_POLICIES', 'PROJECT_ASSIGNMENT'
   ], []);
   const { activeKey, navigate } = useProjectRoute(validKeys);
-  const [activeLabel, setActiveLabel] = useState('Tổng quan Dự án');
+  const [activeLabel, setActiveLabel] = useState('Tá»•ng quan Dá»± Ã¡n');
   const [activeSection, setActiveSection] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [inventoryProjectId, setInventoryProjectId] = useState<string | undefined>(undefined);
@@ -45,15 +45,15 @@ export function ProjectShell() {
   const handleNavigateInventory = useCallback((projectId: string) => {
     setInventoryProjectId(projectId);
     navigate('PROJECT_INVENTORY');
-    setActiveLabel('Quản lý Bảng hàng');
+    setActiveLabel('Quáº£n lÃ½ Báº£ng hÃ ng');
     setActiveSection('inventory');
   }, [navigate]);
 
   const sectionLabels: Record<string, string> = {
-    dashboard: 'TỔNG QUAN',
-    master_data: 'DỮ LIỆU DỰ ÁN',
-    inventory: 'QUẢN LÝ SẢN PHẨM',
-    settings: 'HỆ THỐNG & CÀI ĐẶT',
+    dashboard: 'Tá»”NG QUAN',
+    master_data: 'Dá»® LIá»†U Dá»° ÃN',
+    inventory: 'QUáº¢N LÃ Sáº¢N PHáº¨M',
+    settings: 'Há»† THá»NG & CÃ€I Äáº¶T',
   };
 
   const breadcrumb = (
@@ -85,8 +85,8 @@ export function ProjectShell() {
       default:
         return (
           <View style={styles.placeholder}>
-            <Text style={{ fontSize: 60, marginBottom: 24 }}>🚀</Text>
-            <Text style={[typography.h3, { color: colors.text, marginBottom: 8 }]}>Module Đang Phát Triển</Text>
+            <Text style={{ fontSize: 60, marginBottom: 24 }}>ðŸš€</Text>
+            <Text style={[typography.h3, { color: colors.text, marginBottom: 8 }]}>Module Äang PhÃ¡t Triá»ƒn</Text>
           </View>
         );
     }

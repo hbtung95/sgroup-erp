@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Platform } from 'react-native';
 import { typography, sgds } from '../../../shared/theme/theme';
 import { useAppTheme } from '../../../shared/theme/useAppTheme';
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export function DeleteConfirmModal({
-  visible, onClose, onConfirm, title = 'Xác nhận Xóa', message, confirmLabel = 'Xóa', isLoading = false,
+  visible, onClose, onConfirm, title = 'XÃ¡c nháº­n XÃ³a', message, confirmLabel = 'XÃ³a', isLoading = false,
 }: Props) {
   const { colors, theme, isDark } = useAppTheme();
 
@@ -36,13 +36,13 @@ export function DeleteConfirmModal({
         </View>
 
         <View style={[styles.footer, { borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }]}>
-          <SGButton title="Hủy" variant="outline" onPress={onClose} style={{ flex: 1, marginRight: 12 }} />
+          <SGButton title="Há»§y" variant="outline" onPress={onClose} style={{ flex: 1, marginRight: 12 }} />
           <TouchableOpacity
             onPress={onConfirm}
             disabled={isLoading}
             style={[styles.deleteBtn, { opacity: isLoading ? 0.6 : 1 }]}
           >
-            <Text style={styles.deleteBtnText}>{isLoading ? 'Đang xóa...' : confirmLabel}</Text>
+            <Text style={styles.deleteBtnText}>{isLoading ? 'Äang xÃ³a...' : confirmLabel}</Text>
           </TouchableOpacity>
         </View>
       </View>

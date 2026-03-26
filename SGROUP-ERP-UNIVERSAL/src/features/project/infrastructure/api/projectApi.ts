@@ -1,4 +1,4 @@
-import { apiClient } from '../../../core/api/apiClient';
+﻿import { apiClient } from '../../../../core/api/apiClient';
 
 export interface GenerateInventoryParams {
   blocks: string[];

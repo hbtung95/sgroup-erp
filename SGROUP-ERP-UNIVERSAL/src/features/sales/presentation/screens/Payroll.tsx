@@ -7,8 +7,8 @@ import { CreditCard, Download, TrendingUp, TrendingDown, DollarSign } from 'luci
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard } from '../../../../shared/ui/components';
-import { useAuthStore } from '../../auth/store/authStore';
-import type { SalesRole } from '../SalesSidebar';
+import { useAuthStore } from '../../../auth/store/authStore';
+import type { SalesRole } from '../../SalesSidebar';
 
 const ROLE_LABELS: Record<string, string> = {
   sales: 'Chuyên viên Kinh doanh',

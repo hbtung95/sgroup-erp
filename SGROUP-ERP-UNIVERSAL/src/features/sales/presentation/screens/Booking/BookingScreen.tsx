@@ -13,7 +13,7 @@ import {
   Building2, Phone, User, Hash, AlertTriangle, Search,
 } from 'lucide-react-native';
 import { SGButton, SGPlanningSectionTitle, SGPlanningNumberField, SGTable, SGStatCard } from '../../../../../shared/ui/components';
-import { useSalesStore } from '../../store/useSalesStore';
+import { useSalesStore } from '../../../store/useSalesStore';
 import {
   useApproveBooking,
   useCreateBooking,
@@ -21,11 +21,11 @@ import {
   useRejectBooking,
   useUpdateBooking,
   type BookingEntry,
-} from '../../hooks/useBookings';
-import { useGetProjects } from '../../hooks/useSalesOps';
-import { useBookingFilter, BookingPeriod } from '../../hooks/useBookingFilter';
-import { BookingChart } from '../../components/charts/BookingChart';
-import { useToast } from '../../components/ToastProvider';
+} from '../../../hooks/useBookings';
+import { useGetProjects } from '../../../hooks/useSalesOps';
+import { useBookingFilter, BookingPeriod } from '../../../hooks/useBookingFilter';
+import { BookingChart } from '../../../components/charts/BookingChart';
+import { useToast } from '../../../components/ToastProvider';
 import type { SalesRole } from '../../SalesSidebar';
 
 const PERIOD_TABS: { label: string; value: BookingPeriod }[] = [

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { Platform } from 'react-native';
 
 export function useProjectRoute(validKeys: string[]) {

@@ -5,6 +5,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactNative from "eslint-plugin-react-native";
 
 export default tseslint.config(
+  { ignores: ["*.js", "*.cjs", "dist/**", "web/**", "scripts/**"] },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {

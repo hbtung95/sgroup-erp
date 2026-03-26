@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, ActivityIndicator , Text } from 'react-na
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Globe, Users, Briefcase, ShoppingCart, Target, Wallet } from 'lucide-react-native';
-import { useGetBdhOverview } from '../../application/hooks/useBdhQueries';
+import { useGetBdhOverview } from '../application/hooks/useBdhQueries';
 
 export const OverviewDashboard = () => {
   const { data, isLoading } = useGetBdhOverview();

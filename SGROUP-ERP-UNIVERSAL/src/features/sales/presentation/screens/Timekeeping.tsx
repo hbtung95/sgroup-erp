@@ -8,8 +8,8 @@ import { Clock, CheckCircle, AlertCircle, Calendar } from 'lucide-react-native';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable } from '../../../../shared/ui/components';
-import { useAuthStore } from '../../auth/store/authStore';
-import type { SalesRole } from '../SalesSidebar';
+import { useAuthStore } from '../../../auth/store/authStore';
+import type { SalesRole } from '../../SalesSidebar';
 
 const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 

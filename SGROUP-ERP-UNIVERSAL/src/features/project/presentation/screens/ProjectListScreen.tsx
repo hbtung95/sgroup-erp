@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, ScrollView, StyleSheet , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 
@@ -6,7 +6,7 @@ export const ProjectListScreen = () => {
   return (
     <View style={styles.container}>
       <BlurView intensity={90} style={styles.header}>
-        <Text variant="h1" weight="bold">Danh sách Dự án</Text>
+        <Text variant="h1" weight="bold">Danh sÃ¡ch Dá»± Ã¡n</Text>
       </BlurView>
       <ScrollView contentContainerStyle={styles.list}>
         <Text>Glassmorphism Project List view...</Text>

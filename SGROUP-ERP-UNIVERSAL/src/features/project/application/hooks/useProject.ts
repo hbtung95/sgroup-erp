@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { projectApi } from '../api/projectApi';
+﻿import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { projectApi } from '../../infrastructure/api/projectApi';
 
 // Policies
 export function usePolicies(status?: string) {

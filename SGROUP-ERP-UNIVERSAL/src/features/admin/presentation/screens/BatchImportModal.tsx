@@ -9,7 +9,7 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { typography, spacing } from '../../../../shared/theme/theme';
 import { SGButton } from '../../../../shared/ui/components/SGButton';
 import { useBatchImportUsers } from '../../hooks/useAdmin';
-import { showToast } from '../utils/adminUtils';
+import { showToast } from '../../utils/adminUtils';
 
 interface Props {
   visible: boolean;

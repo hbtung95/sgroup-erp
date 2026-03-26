@@ -16,7 +16,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { SGCard, SGTable, SGPlanningSectionTitle } from '../../../../shared/ui/components';
-import type { SalesRole } from '../SalesSidebar';
+import type { SalesRole } from '../../SalesSidebar';
 import {
   useGetKpiCards, useGetTeamPerformance, useGetStaffPerformance,
 } from '../../hooks/useSalesReport';

@@ -11,9 +11,9 @@ import {
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard } from '../../../../shared/ui/components';
-import { useAuthStore } from '../../auth/store/authStore';
+import { useAuthStore } from '../../../auth/store/authStore';
 import { useGetStaff, useGetTeams } from '../../hooks/useSalesOps';
-import { SalesRole } from '../SalesSidebar';
+import { SalesRole } from '../../SalesSidebar';
 import { SalesErrorBoundary } from '../../components/SalesErrorBoundary';
 
 const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {

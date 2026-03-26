@@ -3,11 +3,11 @@ import { View, Text, ScrollView, Platform, TouchableOpacity, TextInput, useWindo
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { Plus, Save, History, Calendar, PhoneCall, TrendingUp, Users, Presentation, Target, BarChart2, ArrowRight, Filter, Pencil, Trash2, X, Check } from 'lucide-react-native';
 import { SGButton, SGPlanningSectionTitle, SGPlanningNumberField, SGTable, SGStatCard } from '../../../../shared/ui/components';
-import { useSalesStore } from '../store/useSalesStore';
+import { useSalesStore } from '../../store/useSalesStore';
 import { useActivityFilter, ActivityPeriod } from '../../hooks/useActivityFilter';
 import { ActivityChart } from '../../components/charts/ActivityChart';
-import type { SalesRole } from '../SalesSidebar';
-import type { ActivityEntry } from '../store/useSalesStore';
+import type { SalesRole } from '../../SalesSidebar';
+import type { ActivityEntry } from '../../store/useSalesStore';
 
 const PERIOD_TABS: { label: string, value: ActivityPeriod }[] = [
   { label: 'Ngày', value: 'DAY' },

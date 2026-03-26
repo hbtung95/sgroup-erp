@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard, SGTable } from '../../../../shared/ui/components';
-import type { SalesRole } from '../SalesSidebar';
+import type { SalesRole } from '../../SalesSidebar';
 import { useGetDeals } from '../../hooks/useSalesOps';
 
 type DealEntry = {

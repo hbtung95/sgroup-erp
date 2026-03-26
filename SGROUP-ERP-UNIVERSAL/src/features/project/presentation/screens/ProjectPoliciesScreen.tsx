@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,7 +13,7 @@ export const ProjectPoliciesScreen = () => {
     <LinearGradient colors={['#F3E8FF', '#E9D5FF']} style={styles.container}>
       <BlurView intensity={40} style={styles.header}>
         <Shield size={32} color="#9333EA" />
-        <Text variant="h1" color="#6B21A8">Chính sách Bán Hàng</Text>
+        <Text variant="h1" color="#6B21A8">ChÃ­nh sÃ¡ch BÃ¡n HÃ ng</Text>
       </BlurView>
       
       <ScrollView contentContainerStyle={styles.content}>
@@ -26,7 +26,7 @@ export const ProjectPoliciesScreen = () => {
               </View>
               <Text variant="body2" color="#64748B">{policy.description}</Text>
               <View style={styles.divider} />
-              <Text variant="caption" weight="bold">Hiệu lực: {policy.effectiveDate}</Text>
+              <Text variant="caption" weight="bold">Hiá»‡u lá»±c: {policy.effectiveDate}</Text>
             </BlurView>
           )) || <Text>No active policies</Text>
         )}

@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, TouchableOpacity , Text } from 'react-nat
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Network, Save } from 'lucide-react-native';
-import { useGetExecPlan, useUpsertExecPlan } from '../../application/hooks/useBdhQueries';
+import { useGetExecPlan, useUpsertExecPlan } from '../application/hooks/useBdhQueries';
 
 export const PlanTotal = () => {
   const [year, setYear] = useState(2026);

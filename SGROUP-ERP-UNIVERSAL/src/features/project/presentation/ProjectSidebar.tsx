@@ -1,15 +1,15 @@
-import React from 'react';
+﻿import React from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, Platform,
 } from 'react-native';
-import { typography } from '../../shared/theme/theme';
-import { useAppTheme } from '../../shared/theme/useAppTheme';
-import { useAuthStore } from '../auth/store/authStore';
+import { typography } from '../../../shared/theme/theme';
+import { useAppTheme } from '../../../shared/theme/useAppTheme';
+import { useAuthStore } from '../../auth/store/authStore';
 import {
   LayoutDashboard, Building2, Grid3x3, ChevronLeft, ChevronRight, LogOut,
   FolderOpen, FileCheck, Users
 } from 'lucide-react-native';
-import { SGThemeToggle } from '../../shared/ui/components/SGThemeToggle';
+import { SGThemeToggle } from '../../../shared/ui/components/SGThemeToggle';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export type ProjectRole = 'project_manager' | 'sales_director' | 'ceo' | 'admin' | 'sales_manager' | 'sales';
@@ -25,15 +25,15 @@ export interface ProjectSidebarItem {
 const ALL_ROLES: ProjectRole[] = ['project_manager', 'sales_director', 'ceo', 'admin'];
 
 const SIDEBAR_ITEMS: ProjectSidebarItem[] = [
-  { key: 'PROJECT_DASHBOARD', label: 'Tổng quan Dự án', icon: LayoutDashboard, section: 'dashboard', minRole: ALL_ROLES },
+  { key: 'PROJECT_DASHBOARD', label: 'Tá»•ng quan Dá»± Ã¡n', icon: LayoutDashboard, section: 'dashboard', minRole: ALL_ROLES },
   
-  { key: 'PROJECT_LIST', label: 'Danh mục Dự án', icon: Building2, section: 'master_data', minRole: ALL_ROLES },
-  { key: 'PROJECT_DOCS', label: 'Tài liệu Dự án', icon: FolderOpen, section: 'master_data', minRole: ALL_ROLES },
+  { key: 'PROJECT_LIST', label: 'Danh má»¥c Dá»± Ã¡n', icon: Building2, section: 'master_data', minRole: ALL_ROLES },
+  { key: 'PROJECT_DOCS', label: 'TÃ i liá»‡u Dá»± Ã¡n', icon: FolderOpen, section: 'master_data', minRole: ALL_ROLES },
   
-  { key: 'PROJECT_INVENTORY', label: 'Quản lý Bảng hàng', icon: Grid3x3, section: 'inventory', minRole: ALL_ROLES },
-  { key: 'PROJECT_POLICIES', label: 'Chính sách Bán hàng', icon: FileCheck, section: 'inventory', minRole: ALL_ROLES },
+  { key: 'PROJECT_INVENTORY', label: 'Quáº£n lÃ½ Báº£ng hÃ ng', icon: Grid3x3, section: 'inventory', minRole: ALL_ROLES },
+  { key: 'PROJECT_POLICIES', label: 'ChÃ­nh sÃ¡ch BÃ¡n hÃ ng', icon: FileCheck, section: 'inventory', minRole: ALL_ROLES },
   
-  { key: 'PROJECT_ASSIGNMENT', label: 'Phân quyền Dự án', icon: Users, section: 'settings', minRole: ['admin', 'project_manager', 'sales_director', 'ceo'] },
+  { key: 'PROJECT_ASSIGNMENT', label: 'PhÃ¢n quyá»n Dá»± Ã¡n', icon: Users, section: 'settings', minRole: ['admin', 'project_manager', 'sales_director', 'ceo'] },
 ];
 
 interface Props {
@@ -51,9 +51,9 @@ export function ProjectSidebar({ activeKey, onSelect, collapsed, onToggleCollaps
   const visibleItems = SIDEBAR_ITEMS.filter(item => item.minRole.includes(userRole as any) || userRole === 'admin');
   const sections = [
     { key: 'dashboard', label: 'DASHBOARD' },
-    { key: 'master_data', label: 'DỮ LIỆU DỰ ÁN' },
-    { key: 'inventory', label: 'QUẢN LÝ SẢN PHẨM' },
-    { key: 'settings', label: 'HỆ THỐNG & CÀI ĐẶT' },
+    { key: 'master_data', label: 'Dá»® LIá»†U Dá»° ÃN' },
+    { key: 'inventory', label: 'QUáº¢N LÃ Sáº¢N PHáº¨M' },
+    { key: 'settings', label: 'Há»† THá»NG & CÃ€I Äáº¶T' },
   ];
 
   const renderItem = (item: ProjectSidebarItem) => {
@@ -110,7 +110,7 @@ export function ProjectSidebar({ activeKey, onSelect, collapsed, onToggleCollaps
           </LinearGradient>
           {!collapsed && (
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontWeight: '800', color: colors.text, letterSpacing: 0.8, fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}>DỰ ÁN</Text>
+              <Text style={{ fontSize: 14, fontWeight: '800', color: colors.text, letterSpacing: 0.8, fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}>Dá»° ÃN</Text>
               <Text style={{ fontSize: 10, fontWeight: '600', color: colors.success, letterSpacing: 2, marginTop: 1, fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}>MASTER DATA</Text>
             </View>
           )}

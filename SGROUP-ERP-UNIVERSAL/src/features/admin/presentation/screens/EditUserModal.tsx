@@ -14,9 +14,9 @@ import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { typography, spacing } from '../../../../shared/theme/theme';
 import { useUpdateUser } from '../../hooks/useAdmin';
 import { Save } from 'lucide-react-native';
-import { ROLE_OPTIONS, DEPT_OPTIONS, getRoleStyle } from '../constants/adminConstants';
-import { showAlert } from '../utils/adminUtils';
-import type { AdminUser } from '../types/adminTypes';
+import { ROLE_OPTIONS, DEPT_OPTIONS, getRoleStyle } from '../../constants/adminConstants';
+import { showAlert } from '../../utils/adminUtils';
+import type { AdminUser } from '../../types/adminTypes';
 
 interface Props {
   visible: boolean;

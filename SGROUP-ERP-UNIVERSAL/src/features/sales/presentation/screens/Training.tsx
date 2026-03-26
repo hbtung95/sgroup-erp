@@ -9,7 +9,7 @@ import {
 } from 'lucide-react-native';
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { SGPlanningSectionTitle } from '../../../../shared/ui/components';
-import { useAuthStore } from '../../auth/store/authStore';
+import { useAuthStore } from '../../../auth/store/authStore';
 
 type CourseStatus = 'COMPLETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'LOCKED';
 

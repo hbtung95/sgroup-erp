@@ -5,8 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAppTheme } from '../../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../../shared/theme/theme';
 import { SGButton, SGPlanningSectionTitle } from '../../../../../shared/ui/components';
-import { useInventoryData, type PropertyUnit, type UnitStatus } from '../../hooks/useInventoryData';
-import { SGDepositModal } from '../../components/forms/SGDepositModal';
+import { useInventoryData, type PropertyUnit, type UnitStatus } from '../../../hooks/useInventoryData';
+import { SGDepositModal } from '../../../components/forms/SGDepositModal';
 
 const STATUS_COLORS: Record<UnitStatus, { bg: string, text: string, border: string, label: string }> = {
   AVAILABLE: { bg: '#dcfce7', text: '#16a34a', border: '#bbf7d0', label: 'CÒN TRỐNG' },

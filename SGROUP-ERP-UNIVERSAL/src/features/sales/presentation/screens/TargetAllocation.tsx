@@ -9,7 +9,7 @@ import { Target, ChevronDown, Users, TrendingUp, Edit3, Save } from 'lucide-reac
 import { useAppTheme } from '../../../../shared/theme/useAppTheme';
 import { sgds } from '../../../../shared/theme/theme';
 import { SGCard, SGGradientStatCard, SGTable } from '../../../../shared/ui/components';
-import type { SalesRole } from '../SalesSidebar';
+import type { SalesRole } from '../../SalesSidebar';
 import { useGetTargets, useDistributeTargets } from '../../hooks/useSalesOps';
 import { useGetTeams, useGetStaff } from '../../hooks/useSalesOps';
 

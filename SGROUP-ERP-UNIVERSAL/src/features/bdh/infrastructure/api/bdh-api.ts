@@ -1,4 +1,4 @@
-import { apiClient } from '../../../../shared/infrastructure/network/apiClient';
+import { apiClient } from '../../../../core/api/apiClient';
 
 export const BdhApi = {
   // --- DASHBOARD AGGREGATION ---

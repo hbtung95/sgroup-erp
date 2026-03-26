@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { projectApi, GenerateInventoryParams } from '../api/projectApi';
-import { DimProject, PropertyProduct } from '../types';
+﻿import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { projectApi, GenerateInventoryParams } from '../../infrastructure/api/projectApi';
+import { DimProject, PropertyProduct } from '../../domain/models';
 
 export const projectKeys = {
   all: ['projects'] as const,

@@ -1,1 +1,1 @@
-export { ProjectShell } from './ProjectShell';
+export { ProjectShell } from './presentation/ProjectShell';
