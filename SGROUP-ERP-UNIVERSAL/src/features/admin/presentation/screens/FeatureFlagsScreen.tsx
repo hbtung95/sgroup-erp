@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Switch } , Text } from 'react-native';
+import { View, ScrollView, StyleSheet, Switch , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ToggleRight, AlertTriangle } from 'lucide-react-native';

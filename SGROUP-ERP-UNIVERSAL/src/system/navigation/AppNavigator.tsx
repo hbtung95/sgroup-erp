@@ -31,7 +31,7 @@ const SHomesScreen = React.lazy(() =>
   import('../../features/shomes/screens/SHomesScreen').then(m => ({ default: m.SHomesScreen }))
 );
 const ProjectScreen = React.lazy(() =>
-  import('../../features/project/presentation/screens/ProjectScreen').then(m => ({ default: m.ProjectScreen }))
+  import('../../features/project/presentation/screens/ProjectDashboard').then(m => ({ default: m.ProjectDashboard }))
 );
 const FinanceScreen = React.lazy(() =>
   import('../../features/finance/presentation/screens/FinanceScreen').then(m => ({ default: m.FinanceScreen }))

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } , Text } from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Filter, Home, Lock, Unlock } from 'lucide-react-native';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator } , Text } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useGetAgencyOverview } from '../application/hooks/useAgencyQueries';
 import { Building2, Award, Briefcase } from 'lucide-react-native';

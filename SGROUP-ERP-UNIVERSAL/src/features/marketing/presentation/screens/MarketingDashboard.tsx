@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet } , Text } from 'react-native';
+import { View, ScrollView, StyleSheet , Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Target, Users, Megaphone, TrendingUp } from 'lucide-react-native';
