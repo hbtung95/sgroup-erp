@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Platform, ScrollView, Dimensions } from 'react-native';
 import { BDHSidebar } from './BDHSidebar';
 import { SGTopBar } from '../../shared/ui';
+import { SGAuroraBackground } from '../../shared/ui/components/SGAuroraBackground';
 import { useTheme, typography } from '../../shared/theme/theme';
 import { useThemeStore } from '../../shared/theme/themeStore';
 
@@ -81,45 +82,10 @@ export function BDHShell() {
   );
 
   return (
-    <View style={[styles.shell, { backgroundColor: isDark ? '#05070A' : '#F8FAFC' }]}>
+    <View style={[styles.shell, { backgroundColor: colors.bg }]}>
       
       {/* ── CINEMATIC BACKDROP ── */}
-      {Platform.OS === 'web' && (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <style dangerouslySetInnerHTML={{ __html: `
-            @keyframes sg-aurora-drift-1 {
-              0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
-              33% { transform: translate(5vw, -3vw) scale(1.1) rotate(5deg); }
-              66% { transform: translate(-3vw, 5vw) scale(0.9) rotate(-5deg); }
-            }
-            @keyframes sg-aurora-drift-2 {
-              0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
-              50% { transform: translate(-4vw, 4vw) scale(1.05) rotate(-3deg); }
-            }
-            .sg-grid-bg { 
-              background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
-              background-size: 32px 32px;
-            }
-            .light .sg-grid-bg {
-              background-image: radial-gradient(circle, rgba(0,0,0,0.03) 1px, transparent 1px);
-            }
-          `}} />
-          
-          <View style={[styles.aurora, { 
-            top: '-10%', left: '-5%', width: 1000, height: 1000, 
-            backgroundColor: isDark ? 'rgba(212,32,39,0.12)' : 'rgba(212,32,39,0.06)',
-            filter: 'blur(100px)', animation: 'sg-aurora-drift-1 25s ease-in-out infinite',
-          } as any]} />
-          
-          <View style={[styles.aurora, { 
-            bottom: '-15%', right: '-8%', width: 900, height: 900, 
-            backgroundColor: isDark ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.05)',
-            filter: 'blur(120px)', animation: 'sg-aurora-drift-2 30s ease-in-out infinite',
-          } as any]} />
-
-          <View style={[StyleSheet.absoluteFill, { opacity: isDark ? 0.03 : 0.02 } as any]} />
-        </View>
-      )}
+      <SGAuroraBackground />
 
       {/* ── SIDEBAR ── */}
       <View style={{ zIndex: 1000 }}>

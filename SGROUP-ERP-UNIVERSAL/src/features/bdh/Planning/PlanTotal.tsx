@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity , Text } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Network, Save } from 'lucide-react-native';
+import { View, StyleSheet, Text } from 'react-native';
+import { Network, Save, LayoutGrid } from 'lucide-react-native';
 import { useGetExecPlan, useUpsertExecPlan } from '../application/hooks/useBdhQueries';
+import { useAppTheme } from '../../../shared/theme/useAppTheme';
+import { typography, spacing } from '../../../shared/theme/theme';
+import { SGSection } from '../../../shared/ui/components/SGSection';
+import { SGButton } from '../../../shared/ui/components/SGButton';
+import { SGEmptyState } from '../../../shared/ui/components/SGEmptyState';
+import { SGLoadingOverlay } from '../../../shared/ui/components/SGLoadingOverlay';
 
 export const PlanTotal = () => {
   const [year, setYear] = useState(2026);
   const { data, isLoading } = useGetExecPlan(year, 'BASE', 'TOTAL');
   const upsertPlan = useUpsertExecPlan();
+  const { colors, isDark } = useAppTheme();
 
   const handleSave = () => {
     upsertPlan.mutate({
@@ -20,40 +25,69 @@ export const PlanTotal = () => {
   };
 
   return (
-    <LinearGradient colors={['#312E81', '#1E1B4B']} style={styles.container}>
-       <BlurView intensity={20} tint="dark" style={styles.header}>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
-            <Network color="#818CF8" size={28} />
+    <View style={styles.container}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <View style={[styles.iconBox, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(79, 70, 229, 0.1)' }]}>
+              <Network color={colors.accent} size={32} strokeWidth={1.5} />
+            </View>
             <View>
-              <Text variant="h1" color="#F8FAFC" weight="bold">Unified Business Plan {year}</Text>
-              <Text variant="body2" color="#818CF8">Enterprise Goal Matrix</Text>
+              <Text style={[typography.hero, { color: colors.text }]}>Unified Business Plan {year}</Text>
+              <Text style={[typography.body, { color: colors.accent }]}>Enterprise Goal Matrix</Text>
             </View>
           </View>
           
-          <TouchableOpacity style={styles.btn} onPress={handleSave}>
-             <Save size={16} color="#F8FAFC" />
-             <Text variant="body2" color="#F8FAFC" weight="bold">Commit Plan</Text>
-          </TouchableOpacity>
+          <SGButton
+            title="Commit Plan"
+            icon={<Save size={18} color="#FFFFFF" />}
+            onPress={handleSave}
+            loading={upsertPlan.isPending}
+          />
         </View>
-      </BlurView>
+      </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.matrixContainer}>
-          <Text variant="h3" color="#94A3B8" style={{fontFamily: 'monospace', marginBottom: 16}}>[MATRIX_EMPTY]</Text>
-          <Text variant="body2" color="#64748B">
-            Last Commited: {data?.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'Never'}
-          </Text>
-        </View>
-      </ScrollView>
-    </LinearGradient>
+      <View style={styles.content}>
+        {isLoading ? (
+          <SGLoadingOverlay visible message="Loading Strategic Matrix..." />
+        ) : (
+          <SGSection style={styles.matrixContainer}>
+            <SGEmptyState
+              icon={<LayoutGrid size={48} color={colors.textTertiary} strokeWidth={1} />}
+              title="Strategic Matrix Empty"
+              subtitle={`The tactical grid for ${year} is awaiting input.\nLast Commited: ${data?.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'Never'}`}
+              actionLabel="Initialize Matrix"
+              onAction={() => {}}
+            />
+          </SGSection>
+        )}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { padding: 24, paddingTop: 60, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(129, 140, 248, 0.2)' },
-  content: { padding: 16, flex: 1 },
-  matrixContainer: { flex: 1, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', backgroundColor: 'rgba(0,0,0,0.5)', padding: 24, alignItems: 'center', justifyContent: 'center' },
-  btn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, backgroundColor: '#4F46E5' }
+  header: { 
+    padding: 32, 
+    paddingTop: 40,
+    borderBottomWidth: 1, 
+  },
+  content: { 
+    padding: 32, 
+    flex: 1, 
+  },
+  iconBox: { 
+    width: 56, 
+    height: 56, 
+    borderRadius: 16, 
+    alignItems: 'center', 
+    justifyContent: 'center',
+  },
+  matrixContainer: { 
+    flex: 1, 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingVertical: 60,
+  }
 });

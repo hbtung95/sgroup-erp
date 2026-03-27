@@ -1,34 +1,47 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet , Text } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Building2 } from 'lucide-react-native';
+import { View, StyleSheet, Text } from 'react-native';
+import { Briefcase, Activity } from 'lucide-react-native';
+import { useGetDepartmentPulse } from '../application/hooks/useBdhQueries';
+import { useAppTheme } from '../../../shared/theme/useAppTheme';
+import { typography, spacing } from '../../../shared/theme/theme';
+import { SGSection } from '../../../shared/ui/components/SGSection';
+import { SGEmptyState } from '../../../shared/ui/components/SGEmptyState';
 
 export const OverviewAgency = () => {
+  const { data } = useGetDepartmentPulse('AGENCY');
+  const { colors, isDark } = useAppTheme();
+
   return (
-    <LinearGradient colors={['#1F2937', '#111827']} style={styles.container}>
-       <BlurView intensity={20} tint="dark" style={styles.header}>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
-          <Building2 color="#EAB308" size={28} />
+    <View style={styles.container}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <View style={[styles.iconBox, { backgroundColor: isDark ? 'rgba(168, 85, 247, 0.15)' : 'rgba(147, 51, 234, 0.1)' }]}>
+            <Briefcase color={colors.purple} size={32} strokeWidth={1.5} />
+          </View>
           <View>
-            <Text variant="h1" color="#F8FAFC" weight="bold">Agency Sector Pulse</Text>
-            <Text variant="body2" color="#EAB308">B2B Agency Network Overview</Text>
+            <Text style={[typography.hero, { color: colors.text }]}>Agency Network Pulse</Text>
+            <Text style={[typography.body, { color: colors.purple }]}>Partnerships & Channels</Text>
           </View>
         </View>
-      </BlurView>
+      </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.centerBox}>
-           <Text variant="h2" color="#94A3B8">Agency Stream Initialized</Text>
-        </View>
-      </ScrollView>
-    </LinearGradient>
+      <View style={styles.content}>
+        <SGSection style={styles.pulseCard}>
+          <SGEmptyState
+            icon={<Activity size={48} color={colors.purple} strokeWidth={1} />}
+            title="Live Connection Established"
+            subtitle={`Agency data stream is operational: ${data?.status || 'Active'}\nWaiting for real-time telemetry from engine.`}
+          />
+        </SGSection>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { padding: 24, paddingTop: 60, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(234, 179, 8, 0.2)' },
-  content: { padding: 16, flex: 1, justifyContent: 'center' },
-  centerBox: { alignItems: 'center', opacity: 0.5 }
+  header: { padding: 32, paddingTop: 40, borderBottomWidth: 1 },
+  content: { padding: 32, flex: 1, justifyContent: 'center', alignItems: 'center' },
+  iconBox: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  pulseCard: { width: '100%', maxWidth: 600, paddingVertical: 60 }
 });
