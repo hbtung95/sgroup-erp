@@ -1,130 +1,199 @@
 ---
-description: New team member onboarding from environment setup to first contribution
+description: Workflow setup môi trường phát triển VCT Platform từ đầu cho developer mới
 ---
 
-# Onboarding Workflow
+# /onboarding — Setup Dev Environment
 
-Quy trình onboarding thành viên mới — từ setup môi trường đến first contribution.
+> Sử dụng khi cần setup môi trường dev từ đầu hoặc khi developer mới join project.
 
-## Timeline Overview
+// turbo-all
 
-| Day | Focus | Key Activities |
-|-----|-------|---------------|
-| Day 1 | Setup & Access | Environment setup, accounts, tool access |
-| Day 2-3 | Learn & Explore | Codebase walkthrough, architecture overview |
-| Day 4-5 | First Task | Pair programming, first small PR |
-| Week 2 | Independent | Solo task with buddy support |
-| Week 3-4 | Ramp Up | Full sprint participation |
-| Month 2 | Autonomous | Full velocity, mentor others |
+---
 
-## Steps
+## Bước 1: Prerequisites
 
-### Day 1: Setup & Access
+Kiểm tra các tool đã cài đặt:
 
-1. **Account & Tool Access**
-   - [ ] Git repository access (GitHub/GitLab)
-   - [ ] Project management tool (Jira/Linear)
-   - [ ] Communication channels (Slack/Teams)
-   - [ ] Design files (Figma)
-   - [ ] Database credentials (dev environment)
-   - [ ] Cloud console access (if needed)
+```bash
+# Node.js (20+)
+node --version
 
-2. **Development Environment**
-   - Chạy `/dev-setup` workflow:
-     - [ ] Clone repository
-     - [ ] Install dependencies (frontend + backend)
-     - [ ] Configure environment variables
-     - [ ] Setup database
-     - [ ] Run application locally
-   - Verify: Frontend loads, Backend responds, Database connected
+# Go (1.26+)
+go version
 
-3. **Assign Buddy/Mentor**
-   - Buddy = experienced team member
-   - Responsibilities:
-     - Answer daily questions
-     - Pair on first tasks
-     - Code review first PRs
-     - Cultural integration
+# Docker
+docker --version
+docker compose version
 
-### Day 2-3: Learn & Explore
+# Git
+git --version
+```
 
-4. **Project Overview Presentation (1 hour)**
-   - Business context: SGROUP ERP vision & goals
-   - Product demo: Key features & user flows
-   - Architecture overview: Tech stack, modules, data flow
-   - Team structure: Roles, responsibilities, ceremonies
+### Cần cài nếu thiếu:
+| Tool | Version | Link |
+|------|---------|------|
+| Node.js | 20+ | https://nodejs.org |
+| Go | 1.26+ | https://go.dev/dl |
+| Docker Desktop | latest | https://docker.com |
+| Git | latest | https://git-scm.com |
 
-5. **Codebase Walkthrough (2 hours)**
-   - Project structure:
-     ```
-     SGROUP ERP FULL/
-     ├── SGROUP-ERP-UNIVERSAL/   → Frontend (React Native / Expo)
-     │   ├── src/features/       → Feature modules
-     │   ├── src/shared/         → Shared components
-     │   └── src/stores/         → State management (Zustand)
-     ├── sgroup-erp-backend/     → Backend (NestJS / Prisma)
-     │   ├── src/modules/        → Feature modules
-     │   ├── prisma/             → Database schema & migrations
-     │   └── src/common/         → Shared utilities
-     └── .agents/                → AI agent skills & workflows
-     ```
-   - Coding conventions & patterns
-   - Design system (SGDS) overview
-   - Key skills to read: backend-dev, frontend-dev, code-review
+---
 
-6. **Read Essential Documentation**
-   - [ ] README.md
-   - [ ] Architecture Decision Records (ADRs)
-   - [ ] Coding standards (code-review skill)
-   - [ ] Git branching strategy (devops skill)
-   - [ ] Available workflows (`.agents/workflows/`)
-   - [ ] Design system (ui-ux-design skill)
+## Bước 2: Clone & Install
 
-### Day 4-5: First Contribution
+```bash
+# Clone repository
+git clone <repo-url> vct-platform
+cd vct-platform
 
-7. **Select First Task**
-   - Ideal first task criteria:
-     - ✅ Small scope (1-2 SP)
-     - ✅ Non-critical path
-     - ✅ Good learning opportunity
-     - ✅ Clear acceptance criteria
-   - Suggestions: fix a bug, add a field, update validation, improve UI
+# Install frontend dependencies
+npm install
 
-8. **Pair Programming Session**
-   - Buddy pair programs on first task
-   - Practice the full development cycle:
-     1. Create feature branch
-     2. Implement change → `/feature-development`
-     3. Write tests
-     4. Submit PR
-     5. Address code review feedback → `/code-review`
-     6. Merge & verify
+# Install Go dependencies
+cd backend && go mod download && cd ..
+```
 
-### Week 2: Growing Independence
+---
 
-9. **Solo Task with Support**
-   - Work on a 3-5 SP story independently
-   - Buddy available for questions (not pairing)
-   - First solo PR → detailed code review from buddy
+## Bước 3: Environment Configuration
 
-10. **Participate in Ceremonies**
-    - [ ] Daily standup → share progress
-    - [ ] Sprint planning → ask questions
-    - [ ] Backlog refinement → learn estimation
-    - [ ] Sprint review → observe demos
+### 3.1 Copy environment files
+```bash
+# Root env
+cp .env.example .env
 
-### Week 3-4: Full Ramp Up
+# Backend env
+cp backend/.env.example backend/.env
+```
 
-11. **Assess Progress**
-    | Area | Beginner | Intermediate | Autonomous |
-    |------|----------|-------------|-----------|
-    | Dev setup | Can run app | Can troubleshoot | Can help others |
-    | Frontend | Basic components | Feature screens | Complex features |
-    | Backend | Read code | CRUD modules | Business logic |
-    | Testing | Read tests | Write tests | Design test strategy |
-    | Process | Follow steps | Suggest improvements | Lead ceremonies |
+### 3.2 Cấu hình .env
+Các biến PHẢI cấu hình:
+```env
+# Database
+VCT_POSTGRES_URL=postgres://postgres:postgres@localhost:5432/vct_dev?sslmode=disable
+VCT_STORAGE_DRIVER=postgres  # hoặc "memory" để chạy không cần DB
 
-12. **Feedback Loop**
-    - Week 1 check-in: buddy + new member
-    - Week 2 check-in: tech lead + new member
-    - Month 1 review: full 360° feedback
+# Auth
+VCT_JWT_SECRET=<generate-random-256bit-string>
+VCT_JWT_ACCESS_TTL=15m
+VCT_JWT_REFRESH_TTL=168h
+
+# Server
+VCT_PORT=18080
+VCT_ENV=development
+VCT_DB_AUTO_MIGRATE=true
+```
+
+---
+
+## Bước 4: Infrastructure Services
+
+### Start Docker services
+```bash
+docker compose up -d
+```
+
+### Verify services:
+| Service | Port | Health Check |
+|---------|------|-------------|
+| PostgreSQL | 5432 | `pg_isready -h localhost` |
+| Redis | 6379 | `redis-cli ping` |
+| Meilisearch | 7700 | `curl http://localhost:7700/health` |
+| MinIO | 9000 | `curl http://localhost:9000/minio/health/live` |
+| NATS | 4222 | `nats-server --help` |
+
+---
+
+## Bước 5: Database Setup
+
+```bash
+# Run migrations
+cd backend && go run ./cmd/migrate up
+
+# Seed reference data
+cd backend && go run ./cmd/migrate seed
+```
+
+Verify:
+- [ ] Migration chạy thành công
+- [ ] Seed data loaded (belt levels, provinces, etc.)
+
+---
+
+## Bước 6: Start Development Servers
+
+### Terminal 1 — Backend
+```bash
+npm run dev:backend
+# hoặc: cd backend && go run ./cmd/server
+```
+Backend sẽ chạy tại `http://localhost:18080`
+
+### Terminal 2 — Frontend  
+```bash
+npm run dev:web
+# hoặc: npm run dev --workspace next-app
+```
+Frontend sẽ chạy tại `http://localhost:3000`
+
+### Hoặc chạy cả hai:
+```bash
+npm run dev
+```
+
+---
+
+## Bước 7: Verify Setup
+
+### Build check
+```bash
+cd backend && go build ./...
+npm run typecheck
+```
+
+### Browser check
+1. Mở `http://localhost:3000` — Trang login load thành công
+2. Login với demo account
+3. Sidebar navigation hoạt động
+4. Light/Dark theme toggle hoạt động
+
+### Checklist hoàn thành:
+- [ ] Node.js + Go + Docker installed
+- [ ] Dependencies installed (npm + go mod)
+- [ ] `.env` files configured
+- [ ] Docker services running
+- [ ] Database migrated + seeded
+- [ ] Backend server running (port 18080)
+- [ ] Frontend server running (port 3000)
+- [ ] Build passes (Go + TypeScript)
+- [ ] Browser loads correctly
+
+---
+
+## Project Structure Overview
+
+```
+vct-platform/
+├── apps/
+│   ├── next/          → Next.js 16 web app (App Router)
+│   └── expo/          → Expo mobile app
+├── packages/
+│   ├── app/features/  → Shared feature code (pages, components)
+│   ├── shared-types/  → TypeScript types shared across apps
+│   ├── shared-utils/  → Shared utilities (i18n, helpers)
+│   └── ui/            → @vct/ui component library (VCT_ prefix)
+├── backend/
+│   ├── cmd/           → Entry points (server, migrate)
+│   ├── internal/
+│   │   ├── domain/    → Business logic (Clean Architecture)
+│   │   ├── adapter/   → PostgreSQL repository implementations
+│   │   ├── httpapi/   → HTTP handlers + routing
+│   │   ├── auth/      → JWT authentication
+│   │   └── config/    → Configuration loading
+│   └── migrations/    → SQL migration files
+├── docs/              → Documentation, regulations
+├── .agents/
+│   ├── skills/        → AI agent skills (BA, SA, CTO, PM, etc.)
+│   └── workflows/     → Development workflows (this file!)
+└── docker-compose.yml → Infrastructure services
+```

@@ -1,77 +1,194 @@
 ---
-description: Run full test suite for frontend and backend
+description: Workflow viết tests cho VCT Platform (unit, integration, E2E Playwright)
 ---
 
-# Testing Workflow
+# /testing — Viết Tests
 
-Run all tests, verify the app, and generate coverage reports.
-
-## Steps
+> Sử dụng khi cần viết unit tests, integration tests, hoặc E2E tests cho project.
 
 // turbo-all
 
-1. Run backend unit tests
-```bash
-cd sgroup-erp-backend && npm test
+---
+
+## Bước 1: Xác Định Loại Test
+
+| Loại | Scope | Tool | Khi nào dùng |
+|------|-------|------|-------------|
+| **Unit Test (Go)** | Function/Service | `go test` | Test business logic, validation |
+| **Unit Test (TS)** | Component/Hook | vitest/jest | Test UI components, utilities |
+| **Integration Test** | API endpoint | `go test` + HTTP | Test handler + service + adapter |
+| **E2E Test** | Full user flow | Playwright | Test critical user journeys |
+
+### Chọn test level phù hợp:
+```
+Business logic → Unit test (Go service)
+API contract → Integration test (Go handler)
+UI component → Unit test (React)
+User flow → E2E test (Playwright)
+Bug regression → Unit test at the level of the bug
 ```
 
-2. Run backend tests with coverage
-```bash
-cd sgroup-erp-backend && npm run test:cov
+---
+
+## Bước 2: Go Unit Tests
+
+### File Naming
+```
+backend/internal/domain/{module}/service_test.go
+backend/internal/adapter/{module}_pg_repos_test.go
+backend/internal/httpapi/{module}_handler_test.go
 ```
 
-3. Run backend E2E tests
-```bash
-cd sgroup-erp-backend && npm run test:e2e
+### Table-Driven Tests (preferred)
+```go
+func TestService_Create(t *testing.T) {
+    tests := []struct {
+        name    string
+        input   CreateInput
+        wantErr bool
+        errMsg  string
+    }{
+        {
+            name:    "valid input",
+            input:   CreateInput{Name: "Test"},
+            wantErr: false,
+        },
+        {
+            name:    "empty name",
+            input:   CreateInput{Name: ""},
+            wantErr: true,
+            errMsg:  "name is required",
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            svc := NewService(mockRepo)
+            err := svc.Create(context.Background(), &tt.input)
+            if (err != nil) != tt.wantErr {
+                t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
+            }
+        })
+    }
+}
 ```
 
-4. Run frontend TypeScript check
+### Quy Tắc Go Tests
+- ✅ Table-driven tests preferred
+- ✅ Test file cùng thư mục với source
+- ✅ Test happy path + error cases
+- ✅ Mock external dependencies (database, HTTP)
+- ✅ Context-aware: truyền `context.Background()` hoặc `context.TODO()`
+- ❌ KHÔNG test private functions trực tiếp
+- ❌ KHÔNG skip tests — fix hoặc remove
+
+### Chạy Go tests
 ```bash
-cd SGROUP-ERP-UNIVERSAL && npx tsc --noEmit
+# Tất cả tests
+cd backend && go test ./...
+
+# Specific package
+cd backend && go test ./internal/domain/{module}/...
+
+# Với race detection
+cd backend && go test ./... -race
+
+# Với coverage
+cd backend && go test ./... -coverprofile=coverage.out
 ```
 
-5. Run frontend unit tests (if configured)
-```bash
-cd SGROUP-ERP-UNIVERSAL && npm test -- --ci
+---
+
+## Bước 3: E2E Tests (Playwright)
+
+### File Location
+```
+tests/e2e/{test-name}.spec.ts
 ```
 
-6. Run backend TypeScript check
-```bash
-cd sgroup-erp-backend && npx tsc --noEmit
+### Template
+```typescript
+import { test, expect } from '@playwright/test'
+
+test.describe('{Module} - {Feature}', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login if needed
+    await page.goto('/login')
+    // ... setup
+  })
+
+  test('should {expected behavior}', async ({ page }) => {
+    // Navigate
+    await page.goto('/{module}/{page}')
+    
+    // Assert page loaded
+    await expect(page.locator('h1')).toContainText('Expected Title')
+    
+    // Interact
+    await page.click('[data-testid="action-button"]')
+    
+    // Assert result
+    await expect(page.locator('.result')).toBeVisible()
+  })
+})
 ```
 
-7. Run backend lint
+### Playwright Config
+- Config file: `playwright.config.mjs`
+- Base URL tham chiếu từ config
+
+### Chạy E2E tests
 ```bash
-cd sgroup-erp-backend && npm run lint
+# Tất cả E2E tests
+npx playwright test --config=playwright.config.mjs
+
+# Specific test file
+npx playwright test tests/e2e/{test-name}.spec.ts
+
+# Với UI mode
+npx playwright test --ui
+
+# Với headed browser
+npx playwright test --headed
 ```
 
-## Browser Verification (Manual)
+---
 
-After automated tests pass, verify key flows in browser:
+## Bước 4: Test Coverage Strategy
 
-### Critical Path Checklist
-- [ ] **Login**: Navigate to `http://localhost:8081` → login with valid credentials → dashboard loads
-- [ ] **Sales Dashboard**: Click Sales menu → dashboard renders with KPI cards
-- [ ] **Staff Management**: Click Staff → staff list loads (no crash)
-- [ ] **Team Report**: Click Team Report → report renders correctly
-- [ ] **Booking**: Click Giữ Chỗ → booking form works
-- [ ] **Error states**: Disconnect backend → app shows error state (not white screen)
+### Những gì PHẢI test
+| Area | Coverage Level | Priority |
+|------|---------------|----------|
+| Business logic (Service) | High | 🔴 Must |
+| Input validation | High | 🔴 Must |
+| Error handling paths | Medium | 🟠 Should |
+| HTTP handlers (happy path) | Medium | 🟠 Should |
+| Critical user flows (E2E) | Login, CRUD | 🟠 Should |
+| UI components | Low | 🟡 Could |
 
-### Common Browser Test Issues
-| Issue | What to Check |
-|-------|--------------|
-| White screen / crash | Open DevTools Console → look for `TypeError` |
-| `X.map is not a function` | API response not normalized with `Array.isArray()` |
-| Page loads but empty | Check Network tab → API returning data? |
-| 403 error | Check user role / JWT token |
-| Data stale after edit | Store not refreshing → check `fetchData()` call after mutation |
+### Những gì KHÔNG cần test
+- Generated code
+- Simple getters/setters
+- Third-party library internals
+- Database schema (tested via migrations)
 
-## Interpreting Results
-- **All green**: Safe to merge/deploy
-- **Failed tests**: Fix failures before proceeding
-- **Coverage below targets**: Add missing tests
-  - Services: ≥ 80%
-  - Controllers: ≥ 70%
-  - UI Components: ≥ 60%
-  - Utils: ≥ 90%
-- **TypeScript errors**: Fix type errors before committing
+---
+
+## Bước 5: Verify Tests
+
+```bash
+# Go tests
+cd backend && go test ./... -race
+
+# E2E tests
+npx playwright test --config=playwright.config.mjs
+```
+
+Checklist:
+- [ ] Tests pass trên clean state
+- [ ] Mỗi test case có tên rõ ràng, mô tả behavior
+- [ ] Happy path covered
+- [ ] Error/edge cases covered
+- [ ] Tests không depend vào nhau (independent)
+- [ ] Tests không depend vào external services (mock chúng)
+- [ ] Không có flaky tests (chạy 3 lần đều pass)

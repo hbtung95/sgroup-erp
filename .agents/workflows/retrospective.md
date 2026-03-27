@@ -1,91 +1,135 @@
 ---
-description: Sprint retrospective ceremony with multiple formats, voting, and action items
+description: Workflow retrospective sau khi hoàn thành task — rút kinh nghiệm và cải thiện skills/workflows
 ---
 
-# Retrospective Workflow
+# /retrospective — Retrospective & Tự Cải Thiện
 
-Sprint retrospective — rút kinh nghiệm và cải tiến liên tục sau mỗi sprint.
+> Sử dụng sau khi hoàn thành một feature lớn, sprint, hoặc khi phát hiện pattern lặp lại.
+> Đây là workflow quan trọng nhất cho continuous improvement.
 
-## Schedule
-- **When**: Cuối mỗi sprint, sau Sprint Review/Demo
-- **Duration**: 1 giờ
-- **Participants**: Scrum Master (facilitator), Dev team, PO (optional)
-- **Rule**: Blameless — focus on process, not people
+// turbo-all
 
-## Steps
+---
 
-1. **Set the Stage (5 min)**
-   - SM nhắc lại Sprint Goal & kết quả
-   - Nhắc Prime Directive:
-     > "Regardless of what we discover, we understand and believe that everyone did the best job they could, given what they knew, their skills, and the resources available."
-   - Chọn format cho retro (rotate mỗi sprint)
+## Bước 1: Thu Thập Dữ Liệu
 
-2. **Gather Data — Chọn 1 format (20 min)**
+### Về task vừa hoàn thành:
+```
+□ Task/feature gì? Scope ra sao?
+□ Mất bao lâu? (so với estimate)
+□ Có bug/issue nào phát sinh không?
+□ Có chỗ nào phải làm lại?
+□ User feedback ra sao?
+```
 
-   ### Format A: Start-Stop-Continue
-   | 🟢 Start (Bắt đầu làm) | 🔴 Stop (Ngừng làm) | 🔵 Continue (Tiếp tục) |
-   |--------------------------|---------------------|------------------------|
-   | Pair programming | Skipping code review | Daily standups |
-   | Writing tests first | Late deployments | Sprint demos |
+### Về quy trình:
+```
+□ Workflow nào đã dùng?
+□ Workflow có bị skip bước nào không?
+□ Skill nào hữu ích nhất?
+□ Skill nào thiếu / không đủ chi tiết?
+□ Có bước nào mất thời gian không cần thiết?
+```
 
-   ### Format B: 4Ls
-   | ❤️ Liked | 📚 Learned | 😤 Lacked | 🌟 Longed For |
-   |----------|-----------|---------|--------------|
-   | Team collaboration | Prisma relations | Documentation | CI/CD pipeline |
+---
 
-   ### Format C: Sailboat ⛵
+## Bước 2: Phân Tích — What Went Well / Wrong
+
+### ✅ What Went Well (Giữ lại)
+```markdown
+| # | Gì tốt | Tại sao | Action |
+|---|--------|---------|--------|
+| 1 | [pattern/practice tốt] | [lý do thành công] | Giữ nguyên + document |
+| 2 | ... | ... | ... |
+```
+
+### ❌ What Went Wrong (Cải thiện)
+```markdown
+| # | Vấn đề | Root Cause | Action |
+|---|--------|-----------|--------|
+| 1 | [vấn đề gặp phải] | [nguyên nhân gốc] | [upgrade skill/workflow] |
+| 2 | ... | ... | ... |
+```
+
+### 🔄 What Patterns Repeat (Tự động hóa)
+```markdown
+| # | Pattern lặp lại | Tần suất | Action |
+|---|-----------------|---------|--------|
+| 1 | [thao tác lặp lại] | [mỗi feature / hàng ngày] | [tạo workflow mới] |
+| 2 | ... | ... | ... |
+```
+
+---
+
+## Bước 3: Quyết Định Actions
+
+### Action Types:
+| Action | Workflow dùng | Khi nào |
+|--------|-------------|---------|
+| Upgrade skill đã có | `/upgrade-skill` | Skill thiếu hướng dẫn |
+| Upgrade workflow đã có | `/upgrade-workflow` | Workflow thiếu bước |
+| Tạo skill mới | `/create-skill` | Chuyên môn mới cần |
+| Tạo workflow mới | `/create-workflow` | Pattern lặp lại cần chuẩn hóa |
+| Fix code convention | `/code-review` | Convention sai trong skill |
+| Update documentation | `/documentation` | Docs outdated |
+
+### Ưu tiên actions:
+```
+🔴 Critical: Causes bugs/failures → Fix ngay
+🟠 High: Wastes significant time → Fix trong tuần
+🟡 Medium: Minor inefficiency → Fix khi có thời gian
+🟢 Low: Nice to have → Backlog
+```
+
+---
+
+## Bước 4: Thực Hiện Improvements
+
+### Cho mỗi action item:
+1. Xác định file cần sửa (skill hoặc workflow)
+2. Đọc file hiện tại
+3. Thực hiện thay đổi targeted
+4. Verify thay đổi không break gì
+5. Log thay đổi
+
+### Template thay đổi:
+```markdown
+## Retrospective Update — [Date]
+
+### Trigger: [Feature/Sprint/Issue nào trigger]
+
+### Improvements Made:
+| File | Change | Reason |
+|------|--------|--------|
+| .agents/skills/vct-{name}/SKILL.md | [mô tả] | [lý do] |
+| .agents/workflows/{name}.md | [mô tả] | [lý do] |
+
+### New Files Created:
+| File | Purpose |
+|------|---------|
+| .agents/skills/vct-{name}/SKILL.md | [mục đích] |
+| .agents/workflows/{name}.md | [mục đích] |
+```
+
+---
+
+## Bước 5: Verify & Share
+
+1. Verify các file đã sửa:
+   ```bash
+   # Kiểm tra YAML frontmatter
+   head -5 .agents/skills/*/SKILL.md
+   head -5 .agents/workflows/*.md
    ```
-   🏝️ Island (Mục tiêu): Ship v1.2 with CRM features
-   💨 Wind (Thúc đẩy): Clear requirements, good teamwork
-   ⚓ Anchor (Cản trở): Tech debt, slow CI
-   🪨 Rocks (Rủi ro): Scope creep, missing specs
+
+2. Tạo summary cho user:
+   ```markdown
+   ## 📊 Retrospective Summary
+   
+   ### ✅ Giữ lại: [N] patterns tốt
+   ### 🔧 Cải thiện: [N] skills/workflows updated
+   ### ➕ Tạo mới: [N] skills/workflows created
+   ### 📈 Expected Impact: [mô tả]
    ```
 
-   ### Format D: Happiness Radar
-   | Category | 😊 Happy | 😐 Neutral | 😞 Frustrated |
-   |----------|---------|----------|-------------|
-   | Process | ✓ | | |
-   | Technology | | ✓ | |
-   | Teamwork | ✓ | | |
-   | Learning | | | ✓ |
-
-3. **Vote & Prioritize (5 min)**
-   - Mỗi người 3 dot-votes
-   - Chọn top 3 items theo vote
-   - Focus thảo luận vào top items
-
-4. **Generate Actions (20 min)**
-   - Thảo luận top 3 items
-   - Tạo SMART action items:
-     | # | Action | Owner | Due | Measurable |
-     |---|--------|-------|-----|-----------|
-     | 1 | Setup CI/CD pipeline | DevOps | Sprint S+1 | Pipeline runs on every PR |
-     | 2 | Add test coverage report | TL | Sprint S+1 | Coverage visible in PR |
-     | 3 | Weekly code review sessions | Team | Ongoing | 1 session/week |
-   - Mỗi action phải có **Owner** và **Due date**
-   - Limit: ≤ 3 actions per retro (focus > quantity)
-
-5. **Review Previous Actions (5 min)**
-   - Check status of actions từ retro trước:
-     | # | Previous Action | Status |
-     |---|----------------|--------|
-     | 1 | Setup linting | ✅ Done |
-     | 2 | Create deployment doc | ⏳ In Progress |
-     | 3 | Add error boundaries | ❌ Not Started |
-   - Carry forward incomplete items nếu vẫn relevant
-
-6. **Close & Appreciation (5 min)**
-   - Mỗi người appreciate 1 team member
-   - SM tóm tắt key takeaways
-   - Share retro notes với team
-
-## Sprint Health Metrics
-Track over time:
-- Team happiness: [1-10 scale]
-- Action item completion rate: [%]
-- Sprint goal achievement: [%]
-- Velocity trend: [chart]
-
-## Next Workflow
-→ `/sprint-planning` for the next sprint
-→ `/knowledge-sharing` to share learnings from retro
+3. Set reminder cho next retrospective

@@ -1,129 +1,120 @@
 ---
-description: Emergency hotfix workflow for critical production issues
+description: Workflow sửa lỗi khẩn cấp production cho VCT Platform
 ---
 
-# Hotfix Workflow
+# /hotfix — Sửa Lỗi Khẩn Cấp Production
 
-Quy trình sửa lỗi khẩn cấp trên production — fast-track từ triage đến deploy.
+> Sử dụng khi phát hiện lỗi nghiêm trọng trên production cần fix ngay lập tức.
+> Khác với `/fix-bug`: nhanh hơn, tập trung hơn, có rollback plan.
 
-## When to Trigger
-- 🔴 **P0** — System down, data loss, security breach
-- 🟠 **P1** — Core feature broken, significant user impact
+// turbo-all
 
-## Steps
+---
 
-1. **Triage (≤ 15 min)**
-   - Confirm issue severity:
-     | Severity | Definition | Response Time |
-     |----------|-----------|---------------|
-     | 🔴 P0 | System down / Data loss | Immediate |
-     | 🟠 P1 | Core feature broken | ≤ 1 hour |
-   - Identify affected users & scope of impact
-   - Notify team lead & stakeholders
-   - Decide: Hotfix or Rollback?
+## Bước 1: Đánh Giá Mức Độ & Quyết Định
 
-2. **Create Hotfix Branch**
-   ```bash
-   # Branch from main (production)
-   git checkout main
-   git pull origin main
-   git checkout -b hotfix/fix-critical-bug-description
-   ```
+### Tiêu chí Hotfix (ít nhất 1 điều kiện):
+- 🔴 App crash / không truy cập được
+- 🔴 Data corruption / mất dữ liệu
+- 🔴 Security vulnerability bị exploit
+- 🔴 Feature core hoàn toàn không hoạt động
+- 🔴 Ảnh hưởng > 50% users
 
-3. **Root Cause Analysis (≤ 30 min)**
-   - Check production logs:
-     ```bash
-     docker-compose logs -f backend --tail=100
-     ```
-   - Check error monitoring (Sentry)
-   - Reproduce issue locally if possible
-   - Identify root cause → Chạy `/debug` nếu cần chi tiết
+### KHÔNG phải Hotfix (dùng `/fix-bug`):
+- 🟡 UI hiển thị sai nhưng vẫn dùng được
+- 🟡 Performance chậm nhưng vẫn hoạt động
+- 🟡 Edge case ảnh hưởng < 5% users
+- 🟡 Typo, i18n missing
 
-4. **Implement Fix**
-   - Make minimal, targeted change
-   - Nguyên tắc:
-     - ❌ KHÔNG refactor cùng lúc
-     - ❌ KHÔNG thêm feature mới
-     - ✅ CHỈ fix exact issue
-     - ✅ Thêm test cover bug case
-   - Add comment explaining the fix:
-     ```typescript
-     // HOTFIX: [date] — Fix [issue description]
-     // Root cause: [brief explanation]
-     ```
+---
 
-5. **Fast-Track Review (≤ 15 min)**
-   - Peer review bởi 1 senior dev
-   - Review checklist (abbreviated):
-     - [ ] Fix addresses root cause (not symptom)
-     - [ ] No unrelated changes
-     - [ ] Test added for the bug case
-     - [ ] No new lint/type errors
-   // turbo
-   - Type check: `cd sgroup-erp-backend && npx tsc --noEmit`
-   // turbo
-   - Run tests: `cd sgroup-erp-backend && npm test`
+## Bước 2: Root Cause Analysis (Nhanh)
 
-6. **Deploy Hotfix**
-   ```bash
-   # Merge to main
-   git checkout main
-   git merge hotfix/fix-critical-bug-description
-   git tag -a v1.2.1 -m "Hotfix: [description]"
-   git push origin main --tags
-   
-   # Merge to develop
-   git checkout develop
-   git merge hotfix/fix-critical-bug-description
-   git push origin develop
-   
-   # Delete hotfix branch
-   git branch -d hotfix/fix-critical-bug-description
-   ```
-   - **Backend**: Deploy to production → Chạy `/deployment`
-   - **Frontend (Vercel)**: Auto-deploys on push to main. Verify at https://sgroup-erp.vercel.app
-   - **Frontend rollback**: Revert to previous deployment in Vercel Dashboard → Deployments → "..." → Promote
+**Thời gian tối đa: 15 phút phân tích**
 
-7. **Verify in Production**
-   - Confirm fix resolves the issue
-   - **Frontend checks**:
-     - [ ] Page loads without crash
-     - [ ] No errors in browser console
-     - [ ] Data displays correctly
-     - [ ] Login/auth still works
-   - **Backend checks**:
-     - [ ] API endpoints respond correctly
-     - [ ] Error rates normal
-   - Monitor for 30 minutes
-   - Confirm no regression in related features
-   - Update stakeholders: "Issue resolved"
+1. Xác định error message / symptom chính xác
+2. Trace đến file + function gây lỗi
+3. Xác định root cause (KHÔNG cần hiểu toàn bộ, chỉ cần đủ để fix)
+4. Xác định scope ảnh hưởng (files nào cần sửa)
 
-8. **Post-Mortem (within 48 hours)**
-   ```markdown
-   # Post-Mortem: [Issue Title]
-   **Date**: [date]
-   **Severity**: P0/P1
-   **Duration**: [time from detection to resolution]
-   
-   ## Timeline
-   - HH:MM — Issue detected
-   - HH:MM — Team notified
-   - HH:MM — Root cause identified
-   - HH:MM — Fix deployed
-   - HH:MM — Verified in production
-   
-   ## Root Cause
-   [Detailed explanation]
-   
-   ## Impact
-   - Users affected: [number]
-   - Duration: [time]
-   
-   ## Action Items (Prevent Recurrence)
-   | # | Action | Owner | Due |
-   |---|--------|-------|-----|
-   | 1 | Add monitoring alert | DevOps | 1 week |
-   | 2 | Add regression test | Dev | Next sprint |
-   | 3 | Update documentation | Dev | Next sprint |
-   ```
-   - **Blameless** — Focus on process, not people
+### Quick debugging tools:
+```bash
+# Backend logs
+# Check terminal running backend server
+
+# Frontend errors  
+# Check browser console
+
+# Build errors
+cd backend && go build ./...
+npm run typecheck
+```
+
+---
+
+## Bước 3: Minimal Fix
+
+### Nguyên tắc Hotfix:
+- ✅ **Fix nhỏ nhất có thể** — chỉ sửa bug, không refactor
+- ✅ **1-3 files tối đa** — nếu cần sửa nhiều hơn → re-evaluate
+- ✅ **Backward compatible** — không break API contracts
+- ✅ **Safe to deploy** — không cần database migration nếu có thể tránh
+- ❌ **KHÔNG** thêm tính năng mới
+- ❌ **KHÔNG** refactor code
+- ❌ **KHÔNG** thay đổi database schema (trừ khi bắt buộc)
+- ❌ **KHÔNG** update dependencies
+
+### Nếu cần database change:
+- Chỉ dùng `ALTER TABLE ... ADD COLUMN` (backward compatible)
+- KHÔNG `DROP` hay `RENAME` columns
+- Phải có DOWN migration
+
+---
+
+## Bước 4: Verify (Nhanh)
+
+```bash
+# MUST PASS — không deploy nếu fail
+cd backend && go build ./...
+cd backend && go vet ./...
+npm run typecheck
+```
+
+Quick checklist:
+- [ ] Fix giải quyết đúng root cause
+- [ ] Build pass (Go + TypeScript)
+- [ ] Không break các feature khác
+- [ ] Không có `console.log` / debug code
+
+---
+
+## Bước 5: Rollback Plan
+
+Luôn chuẩn bị rollback TRƯỚC khi deploy:
+
+### Code Rollback
+```bash
+# Git: revert commit nếu cần
+git revert HEAD
+```
+
+### Database Rollback (nếu có migration)
+```bash
+cd backend && go run ./cmd/migrate down
+```
+
+### Document
+```markdown
+## Hotfix Report
+- **Issue**: [mô tả ngắn]
+- **Root Cause**: [nguyên nhân]
+- **Fix**: [thay đổi gì]
+- **Files**: [list files changed]
+- **Rollback**: [cách rollback nếu cần]
+- **Follow-up**: [proper fix / test cần thêm sau]
+```
+
+> ⚠️ Sau hotfix, LUÔN tạo follow-up task để:
+> 1. Viết test cho case gây bug
+> 2. Review code kỹ hơn (dùng `/code-review`)
+> 3. Refactor nếu cần (dùng `/refactor`)
