@@ -95,7 +95,7 @@ grep -rn "\"[A-Za-zÀ-ỹ][a-zà-ỹ]*\s[a-zà-ỹ]" packages/app/features/ --in
 Checklist:
 - [ ] All components: `VCT_` prefix
 - [ ] All text: `useI18n()` / `t('key')`
-- [ ] All icons: `VCT_Icons` only
+- [ ] All icons: `SGROUP_Icons` only
 - [ ] CSS: tokens only (no hardcoded colors)
 - [ ] SQL: snake_case, migration pairs
 

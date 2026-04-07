@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useGetProjects } from '../../application/hooks/useProjectQueries';
-import { SGCard } from '../../../../shared/ui/components/SGCard';
-import { Building, MapPin, Grid, Plus } from 'lucide-react-native';
+import { SGCard, SGBadge } from '../../../../shared/ui/components';
+import { typography, sgds } from '../../../../shared/theme/theme';
+import { useAppTheme } from '../../../../shared/theme/useAppTheme';
+import { MapPin, Grid, Plus, Building2 } from 'lucide-react-native';
 import { ProjectFormModal } from '../components/ProjectFormModal';
 
 export const ProjectListScreen = ({ onNavigateInventory }: { onNavigateInventory?: (id: string) => void }) => {
   const { data: projects, isLoading } = useGetProjects();
+  const { theme, isDark } = useAppTheme();
+  
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
 
@@ -22,72 +26,106 @@ export const ProjectListScreen = ({ onNavigateInventory }: { onNavigateInventory
     setModalVisible(true);
   };
 
+  // Dynamic colors
+  const cText = theme.colors.text;
+  const cSub = theme.colors.textSecondary;
+  const cBrand = theme.colors.brand;
+  
   return (
-    <LinearGradient colors={['#F8FAFC', '#E2E8F0']} style={styles.container}>
-      <BlurView intensity={90} tint="light" style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.colors.bg }]}>
+      <BlurView intensity={isDark ? 30 : 60} tint={isDark ? "dark" : "light"} style={styles.header}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View>
-            <Text variant="h1" weight="bold" color="#0F172A">Danh Sách Dự Án</Text>
-            <Text variant="body2" color="#64748B">Quản lý tổng thể danh mục dự án SGROUP</Text>
+            <Text style={[typography.h1, { color: cText }]}>Danh Sách Dự Án</Text>
+            <Text style={[typography.body, { color: cSub }]}>Quản lý tổng thể danh mục dự án SGROUP</Text>
           </View>
-          <TouchableOpacity style={styles.btnPrimary} onPress={handleAddNew}>
-            <Plus size={16} color="#FFF" />
-            <Text variant="body2" weight="bold" color="#FFF">Thêm Dự Án</Text>
+          <TouchableOpacity 
+            style={[styles.btnPrimary, { backgroundColor: cBrand }]} 
+            onPress={handleAddNew}
+            activeOpacity={0.8}
+          >
+            <Plus size={18} color="#FFF" />
+            <Text style={[typography.bodyBold, { color: '#FFF' }]}>Thêm Dự Án</Text>
           </TouchableOpacity>
         </View>
       </BlurView>
 
-      <ScrollView contentContainerStyle={styles.list}>
+      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {isLoading ? (
-          <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 40 }} />
+          <View style={{ marginTop: 60, alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={cBrand} />
+            <Text style={[typography.body, { color: cSub, marginTop: 12 }]}>Đang tải dữ liệu...</Text>
+          </View>
         ) : projects?.length === 0 ? (
-          <Text style={{ textAlign: 'center', marginTop: 40, color: '#64748B' }}>Chưa có dự án nào.</Text>
+          <View style={styles.emptyState}>
+            <Building2 size={48} color={theme.colors.borderStrong} />
+            <Text style={[typography.h3, { color: cSub, marginTop: 16 }]}>Chưa có dự án nào</Text>
+            <Text style={[typography.small, { color: theme.colors.textTertiary, marginTop: 4 }]}>Hãy bắt đầu bằng cách thêm dự án đầu tiên.</Text>
+          </View>
         ) : (
-          projects?.map((p: any) => (
-            <SGCard key={p.id} style={styles.card}>
-              <View style={styles.cardHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text variant="h3" weight="bold" color="#1E293B">{p.name}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 }}>
-                    <MapPin size={14} color="#64748B" />
-                    <Text variant="caption" color="#64748B">{p.location || 'Chưa cập nhật'}</Text>
+          projects?.map((p: any) => {
+            const isActive = p.status === 'ACTIVE';
+            
+            return (
+              <SGCard 
+                key={p.id} 
+                style={[
+                  styles.card,
+                  { 
+                    backgroundColor: theme.colors.bgCard,
+                    borderColor: theme.colors.border,
+                  }
+                ]}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[typography.h2, { color: cText }]}>{p.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 6 }}>
+                      <MapPin size={14} color={cSub} />
+                      <Text style={[typography.small, { color: cSub }]}>{p.location || 'Chưa cập nhật'}</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.badge, { backgroundColor: isActive ? theme.colors.successBg : theme.colors.warningBg }]}>
+                    <Text style={[typography.micro, { color: isActive ? theme.colors.success : theme.colors.warning }]}>
+                      {p.status}
+                    </Text>
                   </View>
                 </View>
-                <View style={[styles.badge, p.status === 'ACTIVE' ? styles.badgeActive : styles.badgePaused]}>
-                  <Text variant="caption" weight="bold" color={p.status === 'ACTIVE' ? '#10B981' : '#F59E0B'}>{p.status}</Text>
-                </View>
-              </View>
 
-              <View style={styles.statsRow}>
-                <View style={styles.statBox}>
-                  <Text variant="caption" color="#64748B">Loại Hình</Text>
-                  <Text variant="body2" weight="bold">{p.type || 'N/A'}</Text>
+                <View style={[styles.statsRow, { backgroundColor: theme.colors.bgInput }]}>
+                  <View style={styles.statBox}>
+                    <Text style={[typography.caption, { color: cSub, textTransform: 'uppercase' }]}>Loại Hình</Text>
+                    <Text style={[typography.bodyBold, { color: cText, marginTop: 4 }]}>{p.type || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Text style={[typography.caption, { color: cSub, textTransform: 'uppercase' }]}>Tổng SP</Text>
+                    <Text style={[typography.bodyBold, { color: cText, marginTop: 4 }]}>{p.totalUnits || 0}</Text>
+                  </View>
+                  <View style={styles.statBox}>
+                    <Text style={[typography.caption, { color: cSub, textTransform: 'uppercase' }]}>Đã Bán</Text>
+                    <Text style={[typography.bodyBold, { color: theme.colors.success, marginTop: 4 }]}>{p.soldUnits || 0}</Text>
+                  </View>
                 </View>
-                <View style={styles.statBox}>
-                  <Text variant="caption" color="#64748B">Tổng SP</Text>
-                  <Text variant="body2" weight="bold">{p.totalUnits}</Text>
-                </View>
-                <View style={styles.statBox}>
-                  <Text variant="caption" color="#64748B">Đã Bán</Text>
-                  <Text variant="body2" weight="bold" color="#10B981">{p.soldUnits}</Text>
-                </View>
-              </View>
 
-              <View style={styles.actions}>
-                <TouchableOpacity style={styles.btnSecondary} onPress={() => handleEdit(p)}>
-                  <Text variant="body2" weight="bold" color="#475569">Sửa Dự Án</Text>
-                </TouchableOpacity>
+                <View style={styles.actions}>
+                  <TouchableOpacity 
+                    style={[styles.btnSecondary, { backgroundColor: theme.colors.bgInput }]} 
+                    onPress={() => handleEdit(p)}
+                  >
+                    <Text style={[typography.bodyBold, { color: cText }]}>Sửa Dự Án</Text>
+                  </TouchableOpacity>
 
-                <TouchableOpacity 
-                  style={styles.btnPrimary}
-                  onPress={() => onNavigateInventory?.(p.id)}
-                >
-                  <Grid size={16} color="#FFF" />
-                  <Text variant="body2" weight="bold" color="#FFF">Xem Bảng Hàng</Text>
-                </TouchableOpacity>
-              </View>
-            </SGCard>
-          ))
+                  <TouchableOpacity 
+                    style={[styles.btnPrimary, { backgroundColor: theme.colors.success }]}
+                    onPress={() => onNavigateInventory?.(p.id)}
+                  >
+                    <Grid size={16} color="#FFF" />
+                    <Text style={[typography.bodyBold, { color: '#FFF' }]}>Bảng Hàng</Text>
+                  </TouchableOpacity>
+                </View>
+              </SGCard>
+            );
+          })
         )}
       </ScrollView>
 
@@ -96,22 +134,29 @@ export const ProjectListScreen = ({ onNavigateInventory }: { onNavigateInventory
         onClose={() => setModalVisible(false)} 
         editData={editingProject} 
       />
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { padding: 24, paddingTop: 40, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
-  list: { padding: 16, gap: 16 },
-  card: { padding: 20, borderRadius: 16 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
-  badge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12 },
-  badgeActive: { backgroundColor: '#D1FAE5' },
-  badgePaused: { backgroundColor: '#FEF3C7' },
-  statsRow: { flexDirection: 'row', gap: 16, marginBottom: 20, backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12 },
+  header: { 
+    padding: 32, 
+    paddingTop: Platform.OS === 'ios' ? 60 : 40, 
+    paddingBottom: 24, 
+    borderBottomWidth: 1, 
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+    zIndex: 10,
+    ...(Platform.OS === 'web' ? { backdropFilter: 'blur(20px)' } as any : {})
+  },
+  list: { padding: 24, gap: 20, paddingBottom: 60 },
+  emptyState: { alignItems: 'center', marginTop: 60, padding: 40, borderRadius: 24, borderStyle: 'dashed', borderWidth: 2, borderColor: 'rgba(0,0,0,0.1)' },
+  card: { padding: 24, borderRadius: 20, borderWidth: 1 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
+  badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
+  statsRow: { flexDirection: 'row', gap: 16, marginBottom: 24, padding: 16, borderRadius: 16 },
   statBox: { flex: 1 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12 },
-  btnSecondary: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, backgroundColor: '#F1F5F9' },
-  btnPrimary: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, backgroundColor: '#10B981' }
+  btnSecondary: { paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
+  btnPrimary: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }
 });

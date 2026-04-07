@@ -327,7 +327,7 @@ Nếu compiler gây lỗi runtime:
 
 ## Liên Quan
 
-- **Performance deep-dive**: Skill `vct-mobile-performance`
-- **Build troubleshooting**: Skill `vct-mobile-build` → Section 11
+- **Performance deep-dive**: Skill `qa-performance`
+- **Build troubleshooting**: Skill `ops-devops` → Section 11
 - **Test debugging**: Workflow `/mobile-test`
 - **Common web errors**: Workflow `/debug-common-errors`

@@ -145,7 +145,7 @@ Tổng hợp kết quả:
 
 ## Liên Quan
 
-- **Chi tiết test strategy**: Skill `vct-mobile-testing`
-- **Performance testing**: Skill `vct-mobile-performance`
-- **CI test automation**: Skill `vct-mobile-cicd`
+- **Chi tiết test strategy**: Skill `qa-engineer`
+- **Performance testing**: Skill `qa-performance`
+- **CI test automation**: Skill `ops-devops`
 - **Build trước khi test**: Workflow `/build-mobile`

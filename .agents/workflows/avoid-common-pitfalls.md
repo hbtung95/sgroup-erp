@@ -90,4 +90,4 @@ description: Checklists and processes to avoid frequent issues during developmen
 - Chạy thử frontend: `npm run typecheck`
 - **Tự chạy luồng nghiệp vụ trên UI (Happy path + Sad path)** trước khi kết thúc công việc.
 
-> Đọc thêm kỹ năng: `vct-troubleshooting`, `vct-cto`, `vct-error-handling`.
+> Đọc thêm kỹ năng: `vct-troubleshooting`, `meta-cto`, `eng-tech-lead`.

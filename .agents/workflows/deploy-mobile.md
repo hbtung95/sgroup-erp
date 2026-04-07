@@ -180,6 +180,6 @@ git push origin mobile-v{X.Y.Z}
 ## Liên Quan
 
 - **Build configuration**: Workflow `/build-mobile`
-- **Store credentials setup**: Skill `vct-mobile-build` → Section 5
-- **CI/CD automation**: Skill `vct-mobile-cicd`
-- **Release planning**: Skill `vct-release-manager`
+- **Store credentials setup**: Skill `ops-devops` → Section 5
+- **CI/CD automation**: Skill `ops-devops`
+- **Release planning**: Skill `ops-release-manager`

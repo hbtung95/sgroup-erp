@@ -4,7 +4,7 @@ description: How to organize documentation files (.md) in the project
 
 # Documentation Organization Convention
 
-All `.md` documentation files created by the AI agent MUST be placed inside the `docs/` directory at the project root (`d:\VCT PLATFORM\vct-platform\docs\`).
+All `.md` documentation files created by the AI agent MUST be placed inside the `docs/` directory at the project root (`d:\VCT PLATFORM\sgroup-erp\docs\`).
 
 ## Directory Structure
 
@@ -40,7 +40,7 @@ docs/
 ## AI Artifacts Rule
 
 > [!IMPORTANT]
-> **All AI-generated artifacts** (implementation plans, walkthroughs, task lists, analysis reports, critiques, etc.) related to vct-platform **MUST be saved directly in `docs/`** — NOT in the Antigravity brain directory (`~/.gemini/antigravity/brain/`).
+> **All AI-generated artifacts** (implementation plans, walkthroughs, task lists, analysis reports, critiques, etc.) related to sgroup-erp **MUST be saved directly in `docs/`** — NOT in the Antigravity brain directory (`~/.gemini/antigravity/brain/`).
 
 When creating artifacts during a conversation:
 - **Implementation plans** → `docs/plans/<descriptive-name>.md`

@@ -32,7 +32,7 @@ Template page component:
 'use client'
 import { useState, useEffect } from 'react'
 import { VCT_Card, VCT_PageSkeleton } from '@vct/ui'
-import { VCT_Icons } from '../components/vct-icons'
+import { SGROUP_Icons } from '../components/sgroup-icons'
 import { useI18n } from '../i18n'
 
 export function Page_{Module}_{Sub}() {
@@ -58,8 +58,8 @@ export function Page_{Module}_{Sub}() {
 
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <h1 className="text-2xl font-bold text-vct-text">{t('{module}.{sub}.title')}</h1>
-      <p className="text-vct-text-muted">{t('{module}.{sub}.subtitle')}</p>
+      <h1 className="text-2xl font-bold text-sgroup-text">{t('{module}.{sub}.title')}</h1>
+      <p className="text-sgroup-text-muted">{t('{module}.{sub}.subtitle')}</p>
       <VCT_Card>{/* Page content */}</VCT_Card>
     </div>
   )
@@ -69,7 +69,7 @@ export function Page_{Module}_{Sub}() {
 ### Quy tắc QUAN TRỌNG:
 - ✅ Component code ở `packages/app/features/{module}/`
 - ✅ Dùng `VCT_` prefix cho UI components
-- ✅ Dùng `VCT_Icons` cho icons (KHÔNG import lucide-react trực tiếp)
+- ✅ Dùng `SGROUP_Icons` cho icons (KHÔNG import lucide-react trực tiếp)
 - ✅ Dùng `VCT_PageSkeleton` cho loading state
 - ✅ Dùng `t('key')` cho mọi text hiển thị
 - ❌ KHÔNG đặt logic code trong `apps/next/app/`
@@ -124,7 +124,7 @@ Thêm translation keys cho **CẢ 2 ngôn ngữ**:
 
 1. Sử dụng **CSS variable tokens** từ design system
 2. **KHÔNG** dùng Tailwind `dark:` modifier
-3. **KHÔNG** hardcode colors — dùng `var(--vct-color-*)`
+3. **KHÔNG** hardcode colors — dùng `var(--sgroup-color-*)`
 4. Kiểm tra:
    - [ ] Light theme hiển thị đúng
    - [ ] Dark theme hiển thị đúng

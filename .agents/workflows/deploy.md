@@ -63,7 +63,7 @@ Checklist:
 
 ```bash
 # Build backend container
-docker build -t vct-backend ./backend
+docker build -t eng-backend ./backend
 
 # Full stack
 docker compose build

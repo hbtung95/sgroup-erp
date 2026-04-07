@@ -40,7 +40,7 @@ description: Workflow review chất lượng code cho SGROUP ERP Platform (CTO r
 
 ### Frontend Standards
 - [ ] Component prefix: `VCT_` cho tất cả components
-- [ ] Icons: `VCT_Icons` only, KHÔNG import `lucide-react` trực tiếp
+- [ ] Icons: `SGROUP_Icons` only, KHÔNG import `lucide-react` trực tiếp
 - [ ] i18n: mọi text hiển thị dùng `t('key')`
 - [ ] Theme: CSS variable tokens, KHÔNG dùng Tailwind `dark:`
 - [ ] Loading: `VCT_PageSkeleton` khi fetch data

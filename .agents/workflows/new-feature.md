@@ -125,7 +125,7 @@ packages/shared-types/src/{module}/common.ts — TypeScript types khớp Go stru
 packages/app/features/{module}/Page_{module}_{sub}.tsx
 ```
 - Sử dụng `VCT_` prefix cho components
-- Import icons từ `VCT_Icons` only
+- Import icons từ `SGROUP_Icons` only
 - Loading state: `VCT_PageSkeleton`
 - Error handling: try/catch với error state
 - Validation: Zod 4 schemas

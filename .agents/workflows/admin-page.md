@@ -32,7 +32,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { VCT_Card, VCT_Input, VCT_Badge, VCT_Drawer, VCT_Button,
          VCT_PageSkeleton, VCT_InfoGrid, VCT_Timeline,
          VCT_StatBlock } from '@vct/ui'
-import { VCT_Icons } from '../components/vct-icons'
+import { SGROUP_Icons } from '../components/sgroup-icons'
 import { useI18n } from '../i18n'
 
 // Types
@@ -74,10 +74,10 @@ export function Page_admin_{feature}() {
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-vct-text">
+        <h1 className="text-2xl font-bold text-sgroup-text">
           {t('admin.{feature}.title')}
         </h1>
-        <p className="text-vct-text-muted">
+        <p className="text-sgroup-text-muted">
           {t('admin.{feature}.subtitle')}
         </p>
       </div>
@@ -87,7 +87,7 @@ export function Page_admin_{feature}() {
         <VCT_StatBlock
           label={t('admin.stats.total')}
           value={items.length}
-          icon={<VCT_Icons.Database size={18} />}
+          icon={<SGROUP_Icons.Database size={18} />}
         />
         {/* More stats... */}
       </div>
@@ -99,7 +99,7 @@ export function Page_admin_{feature}() {
             placeholder={t('admin.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            icon={<VCT_Icons.Search size={16} />}
+            icon={<SGROUP_Icons.Search size={16} />}
           />
         </div>
 

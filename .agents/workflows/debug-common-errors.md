@@ -68,7 +68,7 @@ rm -rf node_modules/.cache
 # Kiểm tra CORS config
 echo $VCT_CORS_ORIGINS
 # Phải chứa frontend URL, ví dụ:
-# VCT_CORS_ORIGINS=https://vct-platform.vercel.app,http://localhost:3000
+# VCT_CORS_ORIGINS=https://sgroup-erp.vercel.app,http://localhost:3000
 ```
 
 **Fix**:
@@ -201,7 +201,7 @@ psql "$VCT_POSTGRES_URL"
 **Debug**:
 ```bash
 # Build local để test
-docker build -t vct-backend ./backend
+docker build -t eng-backend ./backend
 
 # Common issues:
 # - go.mod/go.sum out of sync → go mod tidy

@@ -14,7 +14,7 @@ description: Workflow tự động commit, push code và cập nhật lên GitHu
 ## Bước 1: Kiểm Tra Trạng Thái
 
 ```bash
-cd d:\VCT PLATFORM\vct-platform
+cd d:\VCT PLATFORM\sgroup-erp
 git status
 git diff --stat
 ```
@@ -174,7 +174,7 @@ Checklist:
 Khi thay đổi nhỏ, rõ ràng, build đã pass:
 
 ```bash
-cd d:\VCT PLATFORM\vct-platform
+cd d:\VCT PLATFORM\sgroup-erp
 git add -A
 git commit -m "<type>(<scope>): <description>"
 git push origin main

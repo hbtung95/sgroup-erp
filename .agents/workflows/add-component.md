@@ -69,8 +69,8 @@ export function VCT_{ComponentName}({ children, className, ...props }: VCT_{Comp
 
 ### Quy Tắc QUAN TRỌNG ⚠️
 - ✅ **`VCT_` prefix** bắt buộc cho tất cả components
-- ✅ **Icons**: chỉ dùng `VCT_Icons`, KHÔNG import `lucide-react` trực tiếp
-- ✅ **CSS variable tokens**: `var(--vct-color-*)`, `var(--vct-spacing-*)`
+- ✅ **Icons**: chỉ dùng `SGROUP_Icons`, KHÔNG import `lucide-react` trực tiếp
+- ✅ **CSS variable tokens**: `var(--sgroup-color-*)`, `var(--sgroup-spacing-*)`
 - ✅ **TypeScript**: Props interface rõ ràng, có doc comments
 - ✅ **Export**: Export function component (không default export)
 - ❌ **KHÔNG** inline styles
@@ -85,21 +85,21 @@ export function VCT_{ComponentName}({ children, className, ...props }: VCT_{Comp
 ### CSS Tokens
 ```css
 /* Sử dụng design system tokens */
-.vct-{component-name} {
+.sgroup-{component-name} {
   /* Colors */
-  color: var(--vct-color-text);
-  background: var(--vct-color-surface);
-  border-color: var(--vct-color-border);
+  color: var(--sgroup-color-text);
+  background: var(--sgroup-color-surface);
+  border-color: var(--sgroup-color-border);
   
   /* Spacing */
-  padding: var(--vct-spacing-md);
-  gap: var(--vct-spacing-sm);
+  padding: var(--sgroup-spacing-md);
+  gap: var(--sgroup-spacing-sm);
   
   /* Typography */
-  font-size: var(--vct-font-size-sm);
+  font-size: var(--sgroup-font-size-sm);
   
   /* Border radius */
-  border-radius: var(--vct-radius-md);
+  border-radius: var(--sgroup-radius-md);
 }
 ```
 
@@ -153,7 +153,7 @@ Checklist:
 - [ ] Light theme: hiển thị đúng
 - [ ] Dark theme: hiển thị đúng
 - [ ] Responsive layout
-- [ ] Icons dùng `VCT_Icons`
+- [ ] Icons dùng `SGROUP_Icons`
 - [ ] Text qua i18n
 - [ ] Export trong index.ts (nếu shared)
 - [ ] No inline styles

@@ -29,14 +29,14 @@ npm run typecheck
 
 ### Vercel (Frontend)
 ```
-□ NEXT_PUBLIC_API_BASE_URL = https://vct-platform-api.fly.dev  (KHÔNG có /api/v1)
+□ NEXT_PUBLIC_API_BASE_URL = https://sgroup-erp-api.fly.dev  (KHÔNG có /api/v1)
 □ Không có secrets lộ ra frontend (chỉ NEXT_PUBLIC_* vars)
 ```
 
 ### Render / Fly.io (Backend)
 ```
 □ VCT_POSTGRES_URL = postgres://...@neon.tech/neondb?sslmode=require
-□ VCT_CORS_ORIGINS = https://vct-platform.vercel.app,http://localhost:3000
+□ VCT_CORS_ORIGINS = https://sgroup-erp.vercel.app,http://localhost:3000
 □ VCT_JWT_SECRET = <strong-random-secret>
 □ VCT_STORAGE_DRIVER = postgres
 □ VCT_DB_AUTO_MIGRATE = true
@@ -103,10 +103,10 @@ flyctl logs --no-tail -n 20
 
 ```bash
 # Health check
-curl -s https://vct-platform-api.fly.dev/healthz
+curl -s https://sgroup-erp-api.fly.dev/healthz
 
 # Auth test (login)
-curl -s -X POST https://vct-platform-api.fly.dev/api/v1/auth/login \
+curl -s -X POST https://sgroup-erp-api.fly.dev/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"<password>"}'
 ```
@@ -135,7 +135,7 @@ Render Dashboard → Manual Deploy → chọn commit trước
 ### Fly.io
 ```bash
 flyctl releases
-flyctl deploy --image registry.fly.io/vct-platform-api:<previous-version>
+flyctl deploy --image registry.fly.io/sgroup-erp-api:<previous-version>
 ```
 
 ### Database
@@ -157,5 +157,5 @@ services:
     name: anti-sleep
     schedule: "*/14 * * * *"
     buildCommand: echo "Ping"
-    startCommand: curl -s https://vct-platform-api.onrender.com/healthz
+    startCommand: curl -s https://sgroup-erp-api.onrender.com/healthz
 ```

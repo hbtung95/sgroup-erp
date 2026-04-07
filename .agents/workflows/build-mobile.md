@@ -53,11 +53,11 @@ Development:
   □ EXPO_PUBLIC_ENV = development
 
 Preview (Staging):
-  □ EXPO_PUBLIC_API_BASE_URL = https://vct-platform-api.onrender.com
+  □ EXPO_PUBLIC_API_BASE_URL = https://sgroup-erp-api.onrender.com
   □ EXPO_PUBLIC_ENV = staging
 
 Production:
-  □ EXPO_PUBLIC_API_BASE_URL = https://vct-platform-api.fly.dev
+  □ EXPO_PUBLIC_API_BASE_URL = https://sgroup-erp-api.fly.dev
   □ EXPO_PUBLIC_ENV = production
 ```
 
@@ -135,7 +135,7 @@ Checklist:
 
 ## Liên Quan
 
-- **Build config chi tiết**: `/build-mobile` → Skill `vct-mobile-build`
+- **Build config chi tiết**: `/build-mobile` → Skill `ops-devops`
 - **Deploy lên Store**: → Workflow `/deploy-mobile`
 - **Debug build errors**: → Workflow `/mobile-debug`
-- **CI/CD automation**: → Skill `vct-mobile-cicd`
+- **CI/CD automation**: → Skill `ops-devops`

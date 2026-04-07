@@ -132,7 +132,7 @@ packages/app/features/{module}/components/{Component}.tsx    — Components
 
 ### 6.2 Conventions
 - `VCT_` prefix cho tất cả UI components
-- `VCT_Icons` cho icons
+- `SGROUP_Icons` cho icons
 - `VCT_PageSkeleton` cho loading
 - `useI18n()` → `t('key')` cho mọi text
 - Try/catch cho API calls

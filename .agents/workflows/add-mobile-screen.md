@@ -230,7 +230,7 @@ Checklist:
 
 ## Liên Quan
 
-- **Design system reference**: Skill `vct-mobile-lead` → Section 4
+- **Design system reference**: Skill `eng-mobile` → Section 4
 - **Mobile UI components**: `packages/app/features/mobile/mobile-ui.tsx`
-- **Offline support**: Skill `vct-mobile-offline`
+- **Offline support**: Skill `eng-mobile`
 - **Testing screen**: Workflow `/mobile-test`

@@ -1,5 +1,5 @@
 ---
-name: vct-qa
+name: qa-engineer
 description: QA Engineer role for SGROUP ERP Platform. Activate when writing test plans, creating test cases, setting up E2E tests with Playwright, designing test automation strategies, performing regression testing, tracking bugs, or defining quality metrics. Covers unit, integration, E2E, and performance testing across Go backend and Next.js frontend.
 ---
 

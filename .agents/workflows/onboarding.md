@@ -43,8 +43,8 @@ git --version
 
 ```bash
 # Clone repository
-git clone <repo-url> vct-platform
-cd vct-platform
+git clone <repo-url> sgroup-erp
+cd sgroup-erp
 
 # Install frontend dependencies
 npm install
@@ -173,7 +173,7 @@ npm run typecheck
 ## Project Structure Overview
 
 ```
-vct-platform/
+sgroup-erp/
 ├── apps/
 │   ├── next/          → Next.js 16 web app (App Router)
 │   └── expo/          → Expo mobile app

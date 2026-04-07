@@ -62,7 +62,7 @@ description: Workflow refactoring code cho SGROUP ERP Platform
 - Text dùng `t('key')` qua `useI18n()`
 - Styles dùng CSS variable tokens
 - Loading states dùng `VCT_PageSkeleton`
-- Icons dùng `VCT_Icons` only
+- Icons dùng `SGROUP_Icons` only
 
 ### Thực hiện từng bước nhỏ:
 1. Rename / Move → update all imports

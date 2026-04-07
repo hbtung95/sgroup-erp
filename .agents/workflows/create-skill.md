@@ -116,7 +116,7 @@ File path: `.agents/skills/{name}/SKILL.md`
 
 ## Bước 5: Đăng Ký trong Orchestrator
 
-Cập nhật `vct-orchestrator/SKILL.md`:
+Cập nhật `meta-orchestrator/SKILL.md`:
 
 1. Thêm skill vào bảng roles tương ứng (Leadership/Specialist/Process/Meta)
 2. Thêm vào Request Classification matrix nếu cần
@@ -126,7 +126,7 @@ Cập nhật `vct-orchestrator/SKILL.md`:
 
 ## Bước 6: Cập Nhật Skill Evolver
 
-Cập nhật `vct-skill-evolver/SKILL.md`:
+Cập nhật `meta-skill-evolver/SKILL.md`:
 - Thêm skill mới vào Skill Health Dashboard
 - Set `Last Updated` = ngày tạo
 - Set `Health` = 🟢

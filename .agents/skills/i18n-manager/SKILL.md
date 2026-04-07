@@ -1,5 +1,5 @@
 ---
-name: vct-i18n-manager
+name: i18n-manager
 description: Internationalization & Localization Manager for SGROUP ERP Platform. Activate when adding i18n keys, translating content, managing locale files, setting up RTL support, configuring number/date/currency formatting, auditing missing translations, or expanding to new languages beyond Vietnamese and English.
 ---
 

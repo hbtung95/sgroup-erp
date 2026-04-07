@@ -1,5 +1,5 @@
 ---
-name: vct-data-analyst
+name: data-analyst
 description: Data Analyst role for SGROUP ERP Platform. Activate when designing analytics dashboards, defining KPIs, creating reporting queries, analyzing tournament/athlete data, building data pipelines, designing ELO/Glicko rating algorithms, or making data-driven product decisions.
 ---
 

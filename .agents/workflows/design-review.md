@@ -5,7 +5,7 @@ description: Workflow review UI/UX design trước khi implementation cho SGROUP
 # /design-review — UI/UX Design Review
 
 > Sử dụng khi cần review thiết kế giao diện trước khi code, hoặc audit UI đang có.
-> Tham chiếu skills: **ui-ux-pro-max**, **vct-ui-ux**, **web-design-guidelines**.
+> Tham chiếu skills: **ui-ux-pro-max**, **arch-ui-ux**, **web-design-guidelines**.
 
 // turbo-all
 
@@ -27,11 +27,11 @@ description: Workflow review UI/UX design trước khi implementation cho SGROUP
 
 ### VCT Design System Checklist
 - [ ] **Components**: Sử dụng `VCT_` prefix components
-- [ ] **Icons**: `VCT_Icons` only (KHÔNG import lucide-react trực tiếp)
-- [ ] **Colors**: CSS variable tokens (`var(--vct-color-*)`)
+- [ ] **Icons**: `SGROUP_Icons` only (KHÔNG import lucide-react trực tiếp)
+- [ ] **Colors**: CSS variable tokens (`var(--sgroup-color-*)`)
 - [ ] **Spacing**: Design system spacing tokens
 - [ ] **Typography**: Font tokens (không custom fonts)
-- [ ] **Borders**: Radius tokens (`var(--vct-radius-*)`)
+- [ ] **Borders**: Radius tokens (`var(--sgroup-radius-*)`)
 - [ ] **No inline styles**: Tất cả styling qua CSS tokens
 - [ ] **No Tailwind dark:**: Theme via CSS variables only
 
