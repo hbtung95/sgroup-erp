@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SGROUP ERP Super-App</title>
+    <script>
+      if (typeof global === 'undefined') {
+        window.global = window;
+      }
+      window.expo = window.expo || {};
+      window.expo.modules = window.expo.modules || {};
+      window.ExpoModules = window.ExpoModules || {};
+      window.ExpoModules.modules = window.ExpoModules.modules || {};
+    </script>
   </head>
   <body>
     <div id="root"></div>
