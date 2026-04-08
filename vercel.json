@@ -1,4 +1,10 @@
 {
   "buildCommand": "turbo run build --filter=@sgroup/web-host",
-  "outputDirectory": "core/web-host/dist"
+  "outputDirectory": "core/web-host/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
