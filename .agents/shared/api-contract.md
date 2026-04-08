@@ -1,4 +1,4 @@
-# VCT Platform — API Contract Convention
+# SGROUP ERP — API Contract Convention
 
 TL;DR: REST, /api/v1/{module}, JSON response { success, data, meta/error }. Pagination via page+limit. Soft delete only.
 
@@ -10,8 +10,8 @@ GET:     GET    /api/v1/{module}/{id}
 CREATE:  POST   /api/v1/{module}
 UPDATE:  PUT    /api/v1/{module}/{id}
 DELETE:  DELETE /api/v1/{module}/{id}        ← soft delete (sets deleted_at)
-NESTED:  GET    /api/v1/clubs/{id}/members   ← parent-child relationships
-ACTION:  POST   /api/v1/members/{id}/transfer ← non-CRUD actions
+NESTED:  GET    /api/v1/projects/{id}/units    ← parent-child relationships
+ACTION:  POST   /api/v1/transactions/{id}/deposit ← non-CRUD actions
 ```
 
 ## Response Schema
@@ -34,7 +34,7 @@ ACTION:  POST   /api/v1/members/{id}/transfer ← non-CRUD actions
 ```json
 {
   "success": false,
-  "error": { "code": "MEMBER_NOT_FOUND", "message": "Member with ID xxx not found", "trace_id": "abc123" }
+  "error": { "code": "CUSTOMER_NOT_FOUND", "message": "Customer with ID xxx not found", "trace_id": "abc123" }
 }
 ```
 
@@ -44,8 +44,8 @@ Pagination:  ?page=1&limit=20        (limit max 100, default 20)
 Sort:        ?sort=name              (ascending)
              ?sort=-created_at       (descending, prefix -)
 Filter:      ?filter[status]=ACTIVE
-             ?filter[club_id]=uuid
-             ?filter[type]=ATHLETE
+             ?filter[project_id]=uuid
+             ?filter[type]=APARTMENT
 Search:      ?q=keyword              (full-text across searchable fields)
 ```
 
@@ -53,10 +53,11 @@ Search:      ?q=keyword              (full-text across searchable fields)
 ```
 {MODULE}_{ACTION}_{REASON}
 Examples:
-  MEMBER_NOT_FOUND
-  CLUB_ALREADY_EXISTS
-  TOURNAMENT_REGISTRATION_CLOSED
-  EXAM_ELIGIBILITY_FAILED
+  CUSTOMER_NOT_FOUND
+  PROJECT_ALREADY_EXISTS
+  BOOKING_UNIT_LOCKED
+  TRANSACTION_INSUFFICIENT_DEPOSIT
+  COMMISSION_ALREADY_APPROVED
   AUTH_TOKEN_EXPIRED
   AUTH_INSUFFICIENT_PERMISSION
   VALIDATION_FAILED (+ field-level details in error.details[])

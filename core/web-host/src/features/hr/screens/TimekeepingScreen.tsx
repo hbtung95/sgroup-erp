@@ -1,49 +1,41 @@
-/**
- * TimekeepingScreen — HR Time & Attendance Management
- * Features: Daily overview, employee attendance list, leave requests
- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Clock, CheckCircle, AlertCircle, Calendar, Users, XCircle, Search, LayoutGrid, List, CalendarDays, ArrowRight, Grid, Eye } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '@sgroup/ui/src/theme/useAppTheme';
-import { sgds } from '@sgroup/ui/src/theme/theme';
-import { SGCard, SGTable } from '@sgroup/ui/src/ui/components';
-import type { HRRole } from '../HRSidebar';
+import { Clock, CheckCircle, AlertCircle, Users, XCircle, Search, LayoutGrid, List, CalendarDays, ArrowRight, X } from 'lucide-react';
 import { useAttendance } from '../hooks/useHR';
-
-const fmt = (n: number) => n.toLocaleString('vi-VN');
-
-// Status config for attendance display
+import type { HRRole } from '../HRSidebar';
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  ON_TIME: { bg: '#dcfce7', text: '#16a34a', label: 'Đúng giờ' },
-  LATE: { bg: '#fef3c7', text: '#d97706', label: 'Đi trễ' },
-  ABSENT: { bg: '#fee2e2', text: '#dc2626', label: 'Vắng mặt' },
+  ON_TIME: { bg: 'bg-green-100 dark:bg-green-500/15', text: 'text-green-600 dark:text-green-400', label: 'Đúng giờ' },
+  LATE: { bg: 'bg-amber-100 dark:bg-amber-500/15', text: 'text-amber-600 dark:text-amber-400', label: 'Đi trễ' },
+  ABSENT: { bg: 'bg-red-100 dark:bg-red-500/15', text: 'text-red-600 dark:text-red-400', label: 'Vắng mặt' },
 };
 
+const SHIFTS = {
+  'S1': { label: 'Sáng', bg: 'bg-blue-50 dark:bg-blue-500/20', color: 'text-blue-500', border: 'border-blue-200 dark:border-blue-500/40' },
+  'S2': { label: 'Chiều', bg: 'bg-amber-50 dark:bg-amber-500/20', color: 'text-amber-500', border: 'border-amber-200 dark:border-amber-500/40' },
+  'S3': { label: 'Tối', bg: 'bg-purple-50 dark:bg-purple-500/20', color: 'text-purple-500', border: 'border-purple-200 dark:border-purple-500/40' }
+};
 
+const WEEK_DAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
+const MOCK_SCHEDULE = [
+  { name: 'Nguyễn Văn A', role: 'Nhân viên kinh doanh', shifts: [ { day: 0, type: 'S1' }, { day: 1, type: 'S1' }, { day: 2, type: 'S2' }, { day: 3, type: 'S1' }, { day: 4, type: 'S3' } ] },
+  { name: 'Trần Thị B', role: 'Trưởng phòng Marketing', shifts: [ { day: 0, type: 'S2' }, { day: 1, type: 'S2' }, { day: 3, type: 'S1' }, { day: 4, type: 'S1' }, { day: 5, type: 'S1' } ] },
+  { name: 'Lê C', role: 'IT Support', shifts: [ { day: 1, type: 'S3' }, { day: 2, type: 'S3' }, { day: 4, type: 'S2' }, { day: 5, type: 'S2' }, { day: 6, type: 'S1' } ] },
+  { name: 'Phạm D', role: 'Kế toán', shifts: [ { day: 0, type: 'S1' }, { day: 1, type: 'S1' }, { day: 2, type: 'S1' }, { day: 3, type: 'S1' }, { day: 4, type: 'S1' } ] },
+  { name: 'Đoàn E', role: 'Dự án', shifts: [ { day: 0, type: 'S3' }, { day: 2, type: 'S2' }, { day: 3, type: 'S2' }, { day: 5, type: 'S1' }, { day: 6, type: 'S2' } ] },
+];
 
 export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
   const [mainTab, setMainTab] = useState<'attendance' | 'schedule'>('attendance');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
-  const { theme, isDark } = useAppTheme();
-  const cText = theme.colors.textPrimary;
-  const cSub = theme.colors.textSecondary;
-  const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
-  const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const [searchQuery, setSearchQuery] = useState('');
 
   const today = new Date();
   const currentDate = today.toLocaleDateString('vi-VN');
   const todayStr = today.toISOString().split('T')[0];
 
-  // Fetch real attendance from API
   const { data: rawAttendance, isLoading } = useAttendance({ date: todayStr });
-
   const safeAttendance = Array.isArray(rawAttendance) ? rawAttendance : (rawAttendance as any)?.data ?? [];
 
-  // Transform API data for table display
   const attendanceData = safeAttendance.map((a: any) => {
     const fmtTime = (d: string | null) => d ? new Date(d).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '—';
     const statusMap: Record<string, string> = { PRESENT: 'ON_TIME', LATE: 'LATE', ABSENT: 'ABSENT', HALF_DAY: 'LATE', DAY_OFF: 'ABSENT' };
@@ -57,363 +49,316 @@ export function TimekeepingScreen({ userRole }: { userRole?: HRRole }) {
       checkOut: fmtTime(a.checkOutTime),
       status: statusMap[a.status] || a.status,
     };
-  });
+  }).filter((a: any) => a.name.toLowerCase().includes(searchQuery.toLowerCase()) || a.code.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const presentCount = attendanceData.filter((a: any) => a.status === 'ON_TIME').length;
   const lateCount = attendanceData.filter((a: any) => a.status === 'LATE').length;
   const absentCount = attendanceData.filter((a: any) => a.status === 'ABSENT').length;
 
-  const MOCK_SCHEDULE = [
-    { name: 'Nguyễn Văn A', role: 'Nhân viên kinh doanh', shifts: [ { day: 0, type: 'S1' }, { day: 1, type: 'S1' }, { day: 2, type: 'S2' }, { day: 3, type: 'S1' }, { day: 4, type: 'S3' } ] },
-    { name: 'Trần Thị B', role: 'Trưởng phòng Marketing', shifts: [ { day: 0, type: 'S2' }, { day: 1, type: 'S2' }, { day: 3, type: 'S1' }, { day: 4, type: 'S1' }, { day: 5, type: 'S1' } ] },
-    { name: 'Lê C', role: 'IT Support', shifts: [ { day: 1, type: 'S3' }, { day: 2, type: 'S3' }, { day: 4, type: 'S2' }, { day: 5, type: 'S2' }, { day: 6, type: 'S1' } ] },
-    { name: 'Phạm D', role: 'Kế toán', shifts: [ { day: 0, type: 'S1' }, { day: 1, type: 'S1' }, { day: 2, type: 'S1' }, { day: 3, type: 'S1' }, { day: 4, type: 'S1' } ] },
-    { name: 'Đoàn E', role: 'Dự án', shifts: [ { day: 0, type: 'S3' }, { day: 2, type: 'S2' }, { day: 3, type: 'S2' }, { day: 5, type: 'S1' }, { day: 6, type: 'S2' } ] },
-  ];
-  const WEEK_DAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
-  
-  const SHIFTS = {
-    'S1': { label: 'Sáng', bg: isDark ? 'rgba(59,130,246,0.2)' : '#eff6ff', color: '#3b82f6', border: 'rgba(59,130,246,0.4)' },
-    'S2': { label: 'Chiều', bg: isDark ? 'rgba(245,158,11,0.2)' : '#fef3c7', color: '#d97706', border: 'rgba(245,158,11,0.4)' },
-    'S3': { label: 'Tối', bg: isDark ? 'rgba(139,92,246,0.2)' : '#f3e8ff', color: '#8b5cf6', border: 'rgba(139,92,246,0.4)' }
-  };
-
-  const COLUMNS: any = [
-    { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
-      <View>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: cText }}>{v}</Text>
-        <Text style={{ fontSize: 11, color: cSub, marginTop: 2 }}>{row.code} • {row.dept}</Text>
-      </View>
-    ) },
-    { key: 'shift', title: 'CA LÀM VIỆC', flex: 1, render: (v: any) => <Text style={{ fontSize: 12, color: cText }}>{v}</Text> },
-    { key: 'checkIn', title: 'CHECK IN', flex: 1, render: (v: any, row: any) => (
-      <Text style={{ fontSize: 13, fontWeight: '800', color: row.status === 'LATE' ? '#d97706' : cText }}>{v}</Text>
-    ) },
-    { key: 'checkOut', title: 'CHECK OUT', flex: 1, render: (v: any) => <Text style={{ fontSize: 13, fontWeight: '600', color: cText }}>{v}</Text> },
-    { key: 'status', title: 'TRẠNG THÁI', flex: 1, align: 'center', render: (v: any) => {
-      const s = STATUS_CONFIG[v];
-      return (
-        <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: s?.bg || '#f1f5f9', alignSelf: 'center' }}>
-          <Text style={{ fontSize: 10, fontWeight: '800', color: s?.text || '#64748b' }}>{s?.label.toUpperCase() || v}</Text>
-        </View>
-      );
-    } },
-  ];
-
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
-      <ScrollView contentContainerStyle={{ padding: 28, gap: 24, paddingBottom: 120 }}>
-        {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <View style={{ width: 52, height: 52, borderRadius: 18, backgroundColor: '#3b82f620', alignItems: 'center', justifyContent: 'center' }}>
-              <Clock size={24} color="#3b82f6" />
-            </View>
-            <View>
-              <Text style={{ ...sgds.typo.h2, color: cText }}>Chấm công & Điểm danh</Text>
-              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>Hôm nay: {currentDate}</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={{
-            backgroundColor: '#3b82f6', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
-            ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {}),
-          }}>
-            <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff' }}>XUẤT BẢNG CÔNG</Text>
-          </TouchableOpacity>
-        </Animated.View>
+    <div className="p-8 pb-32 animate-sg-fade-in flex flex-col gap-6 w-full max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center">
+            <Clock size={28} className="text-blue-500" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-2xl font-black text-sg-heading">Chấm công & Điểm danh</h2>
+            <p className="text-sm font-medium text-sg-subtext mt-1">Hôm nay: {currentDate}</p>
+          </div>
+        </div>
+        <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-sg-portal-bg">
+          XUẤT BẢNG CÔNG
+        </button>
+      </div>
 
-        {/* Main Tabs Segmented Control */}
-        <Animated.View entering={FadeInDown.delay(50).duration(400)} style={{ flexDirection: 'row', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', padding: 6, borderRadius: 16, alignSelf: 'flex-start', marginTop: 8 }}>
-          <TouchableOpacity onPress={() => setMainTab('attendance')} style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: mainTab === 'attendance' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowOpacity: mainTab === 'attendance' ? 0.05 : 0, elevation: mainTab === 'attendance' ? 2 : 0, shadowColor: '#000', shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: mainTab === 'attendance' ? (isDark ? '#fff' : cText) : cSub }}>Điểm danh hôm nay</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setMainTab('schedule')} style={{ paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: mainTab === 'schedule' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowOpacity: mainTab === 'schedule' ? 0.05 : 0, elevation: mainTab === 'schedule' ? 2 : 0, shadowColor: '#000', shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: mainTab === 'schedule' ? (isDark ? '#fff' : cText) : cSub }}>Xếp ca (Gantt Chart)</Text>
-          </TouchableOpacity>
-        </Animated.View>
+      {/* Tabs */}
+      <div className="flex flex-row bg-sg-card border border-sg-border p-1.5 rounded-2xl self-start shadow-sm">
+        <button 
+          onClick={() => setMainTab('attendance')}
+          className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${mainTab === 'attendance' ? 'bg-sg-btn-bg text-sg-heading shadow-sm' : 'text-sg-subtext hover:text-sg-heading'}`}
+        >
+          Điểm danh hôm nay
+        </button>
+        <button 
+          onClick={() => setMainTab('schedule')}
+          className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${mainTab === 'schedule' ? 'bg-sg-btn-bg text-sg-heading shadow-sm' : 'text-sg-subtext hover:text-sg-heading'}`}
+        >
+          Xếp ca (Gantt Chart)
+        </button>
+      </div>
 
-        {mainTab === 'attendance' ? (
-          <>
-            {/* Stats Summary */}
-            <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
-          {[
-            { label: 'TỔNG ĐIỂM DANH', val: attendanceData.length, icon: Users, color: '#3b82f6', gradient: ['#3b82f6', '#2563eb'], shadow: '#3b82f6' },
-            { label: 'ĐÚNG GIỜ', val: presentCount, icon: CheckCircle, color: '#22c55e', gradient: ['#10b981', '#059669'], shadow: '#10b981' },
-            { label: 'ĐI TRỄ', val: lateCount, icon: AlertCircle, color: '#f59e0b', gradient: ['#f59e0b', '#d97706'], shadow: '#f59e0b' },
-            { label: 'VẮNG MẶT', val: absentCount, icon: XCircle, color: '#ef4444', gradient: ['#ef4444', '#dc2626'], shadow: '#ef4444' },
-          ].map((s, i) => (
-            <LinearGradient
-              key={i}
-              colors={isDark ? ['rgba(30,41,59,0.7)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#f8fafc']}
-              style={{
-                flex: 1, minWidth: 200, padding: 24, borderRadius: 24,
-                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.03)',
-                shadowColor: isDark ? '#000' : s.shadow, shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 5,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <LinearGradient
-                  colors={s.gradient as [string, string]} start={{x:0, y:0}} end={{x:1, y:1}}
-                  style={{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', shadowColor: s.shadow, shadowOpacity: 0.4, shadowRadius: 8, shadowOffset: {width:0, height:4} }}
-                >
-                  <s.icon size={22} color="#fff" />
-                </LinearGradient>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, flex: 1, letterSpacing: 0.5 }}>{s.label}</Text>
-              </View>
-              <Text style={{ fontSize: 36, fontWeight: '900', color: cText, letterSpacing: -1 }}>{s.val}</Text>
-            </LinearGradient>
-          ))}
-        </Animated.View>
+      {mainTab === 'attendance' ? (
+        <>
+          {/* Stats Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: 'TỔNG ĐIỂM DANH', val: attendanceData.length, icon: Users, bg: 'bg-blue-50 dark:bg-blue-500/10', color: 'text-blue-500' },
+              { label: 'ĐÚNG GIỜ', val: presentCount, icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-500/10', color: 'text-emerald-500' },
+              { label: 'ĐI TRỄ', val: lateCount, icon: AlertCircle, bg: 'bg-amber-50 dark:bg-amber-500/10', color: 'text-amber-500' },
+              { label: 'VẮNG MẶT', val: absentCount, icon: XCircle, bg: 'bg-red-50 dark:bg-red-500/10', color: 'text-red-500' },
+            ].map((s, i) => (
+              <div key={i} className="bg-sg-card border border-sg-border p-6 rounded-[24px] shadow-sm flex flex-col hover:shadow-md transition-shadow">
+                <div className="flex flex-row items-center gap-3 mb-4">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.bg}`}>
+                    <s.icon size={20} className={s.color} />
+                  </div>
+                  <span className="text-xs font-black text-sg-subtext tracking-wider">{s.label}</span>
+                </div>
+                <span className="text-4xl font-black text-sg-heading">{s.val}</span>
+              </div>
+            ))}
+          </div>
 
-        {/* ═══ Attendance Heatmap (Contribution Graph) ═══ */}
-        <Animated.View entering={FadeInDown.delay(150).duration(400)} style={{ 
-          padding: 24, borderRadius: 28, backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
-          borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
-          shadowColor: '#000', shadowOpacity: isDark ? 0.2 : 0.05, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4,
-          marginTop: 8
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ padding: 8, borderRadius: 10, backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#dcfce7' }}>
-                <CalendarDays size={18} color="#10b981" />
-              </View>
-              <View>
-                <Text style={{ fontSize: 18, fontWeight: '900', color: cText }}>Biểu đồ Chuyên cần (90 ngày)</Text>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: cSub, marginTop: 2 }}>Tỷ lệ đi làm đúng giờ toàn công ty</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#3b82f6' }}>Phân tích chi tiết</Text>
-              <ArrowRight size={14} color="#3b82f6" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
-            <View style={{ gap: 4 }}>
-              {/* Generate 5 rows of 18 cols for ~90 days */}
-              {new Array(5).fill(0).map((_, rIdx) => (
-                <View key={rIdx} style={{ flexDirection: 'row', gap: 4 }}>
-                  {new Array(18).fill(0).map((_, cIdx) => {
-                    const rnd = Math.random();
-                    const status = rnd > 0.95 ? 'absent' : rnd > 0.85 ? 'late' : 'present';
-                    const bg = status === 'present' ? (isDark ? 'rgba(16,185,129,0.8)' : '#22c55e') :
-                               status === 'late' ? (isDark ? 'rgba(245,158,11,0.8)' : '#f59e0b') :
-                               (isDark ? 'rgba(239,68,68,0.8)' : '#ef4444');
-                    return (
-                      <Animated.View 
-                        entering={FadeInDown.delay(300 + cIdx * 10 + rIdx * 20).duration(300)}
-                        key={cIdx} 
-                        style={{ 
-                          width: 16, height: 16, borderRadius: 4, backgroundColor: bg,
-                          opacity: status === 'present' ? (0.4 + Math.random() * 0.6) : 1 // vary green intensity
-                        }} 
-                      />
-                    );
-                  })}
-                </View>
-              ))}
-            </View>
-          </ScrollView>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12, marginTop: 12 }}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: cSub }}>Thấp</Text>
-            <View style={{ flexDirection: 'row', gap: 4 }}>
-               {['rgba(16,185,129,0.2)', 'rgba(16,185,129,0.4)', 'rgba(16,185,129,0.6)', 'rgba(16,185,129,0.8)', '#10b981'].map((c, i) => (
-                 <View key={i} style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: c }} />
-               ))}
-            </View>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: cSub }}>Cao</Text>
-            <View style={{ width: 1, height: 12, backgroundColor: borderColor, marginHorizontal: 4 }} />
-            <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-               <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: '#f59e0b' }} />
-               <Text style={{ fontSize: 12, fontWeight: '600', color: cSub }}>Trễ</Text>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-               <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: '#ef4444' }} />
-               <Text style={{ fontSize: 12, fontWeight: '600', color: cSub }}>Vắng</Text>
-            </View>
-          </View>
-        </Animated.View>
-
-        {/* Table actions */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flexDirection: 'row', gap: 12, alignItems: 'center', marginTop: 8 }}>
-          <View style={{
-            flexDirection: 'row', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
-            borderRadius: 16, padding: 4,
-          }}>
-            <TouchableOpacity onPress={() => setViewMode('table')} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: viewMode === 'table' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowColor: '#000', shadowOpacity: viewMode === 'table' ? 0.05 : 0, shadowRadius: 4, elevation: viewMode === 'table' ? 2 : 0 }}>
-              <List size={18} color={viewMode === 'table' ? (isDark ? '#fff' : cText) : cSub} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setViewMode('grid')} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: viewMode === 'grid' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowColor: '#000', shadowOpacity: viewMode === 'grid' ? 0.05 : 0, shadowRadius: 4, elevation: viewMode === 'grid' ? 2 : 0 }}>
-              <LayoutGrid size={18} color={viewMode === 'grid' ? (isDark ? '#fff' : cText) : cSub} />
-            </TouchableOpacity>
-          </View>
-          <View style={{
-            flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10,
-            backgroundColor: cardBg, borderWidth: 1, borderColor,
-            borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12,
-          }}>
-            <Search size={18} color={cSub} />
-            <Text style={{ color: cSub, fontSize: 14 }}>Tìm nhân viên...</Text>
-          </View>
-          <TouchableOpacity style={{
-            paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
-            backgroundColor: cardBg, borderWidth: 1, borderColor,
-          }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: cText }}>Phòng ban: Tất cả</Text>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Content View */}
-        {isLoading ? (
-          <View style={{ padding: 60, alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#3b82f6" />
-            <Text style={{ color: cSub, marginTop: 16, fontSize: 14, fontWeight: '600' }}>Đang tải dữ liệu chấm công...</Text>
-          </View>
-        ) : viewMode === 'table' ? (
-          <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{
-            backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
-            borderRadius: 28, overflow: 'hidden',
-            borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            ...(Platform.OS === 'web' ? { 
-              backdropFilter: 'blur(32px)', 
-              WebkitBackdropFilter: 'blur(32px)',
-              boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 12px 32px rgba(0,0,0,0.04)' 
-            } : {}),
-          }}>
-            <SGTable 
-              columns={COLUMNS} 
-              data={attendanceData} 
-              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-            />
-          </Animated.View>
-        ) : (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
-            {attendanceData.length === 0 ? (
-              <Text style={{ color: cSub, fontSize: 15, padding: 32, textAlign: 'center', width: '100%' }}>Chưa có người nào chấm công hôm nay.</Text>
-            ) : null}
-            {attendanceData.map((item: any, idx: number) => {
-              const s = STATUS_CONFIG[item.status] || { bg: '#f1f5f9', text: '#64748b', label: item.status };
-              return (
-                <Animated.View
-                  entering={FadeInDown.delay(300 + idx * 40).duration(400).springify()}
-                  key={item.id || idx}
-                  style={{
-                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24,
-                    shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.04, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4,
-                  }}
-                >
-                  <LinearGradient
-                    colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
-                    style={{ flex: 1, padding: 24, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}
-                  >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                    <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', flex: 1 }}>
-                      <LinearGradient
-                        colors={isDark ? ['rgba(59,130,246,0.2)', 'rgba(59,130,246,0.05)'] : ['#eff6ff', '#dbeafe']}
-                        style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(59,130,246,0.1)' }}
-                      >
-                        <Text style={{ fontSize: 18, fontWeight: '900', color: '#3b82f6' }}>{item.name.charAt(0)}</Text>
-                      </LinearGradient>
-                      <View style={{ flex: 1, paddingRight: 8 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: cText }} numberOfLines={1}>{item.name}</Text>
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: cSub, marginTop: 2 }}>{item.code} • {item.dept}</Text>
-                      </View>
-                    </View>
-                    <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: s.bg }}>
-                      <Text style={{ fontSize: 11, fontWeight: '800', color: s.text, letterSpacing: 0.5 }}>
-                        {s.label.toUpperCase()}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  <View style={{ gap: 14, marginBottom: 8, paddingHorizontal: 4, flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <View style={{ alignItems: 'center', flex: 1, padding: 12, backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc', borderRadius: 16, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9' }}>
-                       <Text style={{ fontSize: 12, fontWeight: '700', color: cSub, textTransform: 'uppercase', marginBottom: 4 }}>Check In</Text>
-                       <Text style={{ fontSize: 20, fontWeight: '900', color: item.status === 'LATE' ? '#f59e0b' : cText, fontVariant: ['tabular-nums'] }}>{item.checkIn}</Text>
-                    </View>
-                    <View style={{ alignItems: 'center', flex: 1, padding: 12, backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc', borderRadius: 16, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9' }}>
-                       <Text style={{ fontSize: 12, fontWeight: '700', color: cSub, textTransform: 'uppercase', marginBottom: 4 }}>Check Out</Text>
-                       <Text style={{ fontSize: 20, fontWeight: '900', color: cText, fontVariant: ['tabular-nums'] }}>{item.checkOut}</Text>
-                    </View>
-                  </View>
-                  </LinearGradient>
-                </Animated.View>
-              );
-            })}
-          </View>
-        )}
-          </>
-        ) : (
-          <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flex: 1, marginTop: 12 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <View>
-                <Text style={{ fontSize: 20, fontWeight: '800', color: cText, letterSpacing: -0.5 }}>Điều phối ca làm việc</Text>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: cSub, marginTop: 4 }}>Tuần này (Dựa trên hệ thống gợi ý AI)</Text>
-              </View>
-              <View style={{ flexDirection: 'row', gap: 16 }}>
-                {Object.entries(SHIFTS).map(([k, v]) => (
-                  <View key={k} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: v.bg, borderWidth: 1, borderColor: v.border }} />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: cSub }}>Ca {v.label}</Text>
-                  </View>
+          {/* Contribution Graph (Heatmap) */}
+          <div className="bg-sg-card border border-sg-border rounded-[28px] p-6 shadow-sm">
+            <div className="flex flex-row items-center justify-between mb-6">
+              <div className="flex flex-row items-center gap-4">
+                <div className="p-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-500/15">
+                  <CalendarDays size={20} className="text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="flex flex-col">
+                  <h3 className="text-lg font-black text-sg-heading">Biểu đồ Chuyên cần (90 ngày)</h3>
+                  <p className="text-sm font-medium text-sg-subtext">Tỷ lệ đi làm đúng giờ toàn công ty</p>
+                </div>
+              </div>
+              <button className="flex flex-row items-center gap-2 text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors group">
+                Phân tích chi tiết <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+            
+            <div className="overflow-x-auto pb-4 custom-scrollbar">
+              <div className="flex flex-col gap-1.5 min-w-max">
+                {new Array(5).fill(0).map((_, rIdx) => (
+                  <div key={rIdx} className="flex flex-row gap-1.5">
+                    {new Array(18).fill(0).map((_, cIdx) => {
+                      const rnd = Math.random();
+                      const status = rnd > 0.95 ? 'absent' : rnd > 0.85 ? 'late' : 'present';
+                      const bg = status === 'present' ? 'bg-emerald-500 dark:bg-emerald-400' :
+                                 status === 'late' ? 'bg-amber-400 dark:bg-amber-500' : 'bg-red-500 dark:bg-red-400';
+                      const opacity = status === 'present' ? 0.3 + Math.random() * 0.7 : 1;
+                      return (
+                        <div 
+                          key={cIdx} 
+                          className={`w-4 h-4 rounded-[4px] ${bg} hover:ring-2 hover:ring-sg-border transition-all cursor-crosshair`} 
+                          style={{ opacity }}
+                          title={`${status === 'present' ? 'Đúng giờ' : status === 'late' ? 'Đi trễ' : 'Vắng mặt'} - Ngày ${cIdx + 1}`}
+                        />
+                      );
+                    })}
+                  </div>
                 ))}
-              </View>
-            </View>
+              </div>
+            </div>
 
-            <View style={{ 
-              backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
-              borderRadius: 24, borderWidth: 1, borderColor, 
-              overflow: 'hidden', paddingBottom: 16,
-              ...(Platform.OS === 'web' ? { 
-                backdropFilter: 'blur(32px)', 
-                WebkitBackdropFilter: 'blur(32px)',
-                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 12px 32px rgba(0,0,0,0.04)' 
-              } : {}),
-            }}>
-              {/* Header Row */}
-              <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: borderColor, backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
-                <View style={{ width: 220, padding: 16, justifyContent: 'center', borderRightWidth: 1, borderRightColor: borderColor }}>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, textTransform: 'uppercase', letterSpacing: 0.5 }}>Nhân viên</Text>
-                </View>
-                {WEEK_DAYS.map((day, dIdx) => (
-                  <View key={dIdx} style={{ flex: 1, padding: 16, alignItems: 'center', borderRightWidth: dIdx < 6 ? 1 : 0, borderRightColor: borderColor }}>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: dIdx > 4 ? '#ef4444' : cText }}>{day}</Text>
-                  </View>
-                ))}
-              </View>
+            <div className="flex flex-row items-center justify-end gap-3 mt-2">
+              <span className="text-xs font-bold text-sg-subtext">Thấp</span>
+              <div className="flex flex-row gap-1">
+                 {[0.2, 0.4, 0.6, 0.8, 1].map((op, i) => (
+                   <div key={i} className="w-3 h-3 rounded-[3px] bg-emerald-500" style={{ opacity: op }} />
+                 ))}
+              </div>
+              <span className="text-xs font-bold text-sg-subtext">Cao</span>
+              <div className="w-px h-3 bg-sg-border mx-2" />
+              <div className="w-3 h-3 rounded-[3px] bg-amber-400" />
+              <span className="text-xs font-bold text-sg-subtext">Trễ</span>
+              <div className="w-px h-3 bg-sg-border mx-1" />
+              <div className="w-3 h-3 rounded-[3px] bg-red-500" />
+              <span className="text-xs font-bold text-sg-subtext">Vắng</span>
+            </div>
+          </div>
 
-              {/* Data Rows */}
-              {MOCK_SCHEDULE.map((emp, idx) => (
-                <View key={idx} style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: borderColor, minHeight: 70 }}>
-                  <View style={{ width: 220, padding: 16, justifyContent: 'center', borderRightWidth: 1, borderRightColor: borderColor, backgroundColor: isDark ? 'rgba(255,255,255,0.01)' : '#ffffff' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: cText }}>{emp.name}</Text>
-                    <Text style={{ fontSize: 13, fontWeight: '500', color: cSub, marginTop: 4 }}>{emp.role}</Text>
-                  </View>
-                  {WEEK_DAYS.map((_, dIdx) => {
-                    const shift = emp.shifts.find(s => s.day === dIdx);
-                    return (
-                      <View key={dIdx} style={{ flex: 1, padding: 8, borderRightWidth: dIdx < 6 ? 1 : 0, borderRightColor: borderColor }}>
-                        {shift && (
-                          <Animated.View entering={FadeInDown.delay(100 + idx * 50 + dIdx * 20).springify()} style={{ 
-                            flex: 1, backgroundColor: (SHIFTS as any)[shift.type].bg, 
-                            borderWidth: 1, borderColor: (SHIFTS as any)[shift.type].border,
-                            borderRadius: 10, alignItems: 'center', justifyContent: 'center',
-                            shadowColor: (SHIFTS as any)[shift.type].color, shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2
-                          }}>
-                            <Text style={{ fontSize: 13, fontWeight: '800', color: (SHIFTS as any)[shift.type].color }}>{(SHIFTS as any)[shift.type].label}</Text>
-                          </Animated.View>
-                        )}
-                      </View>
-                    );
-                  })}
-                </View>
+          {/* Action Bar */}
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex flex-row bg-sg-card border border-sg-border p-1 rounded-xl shadow-sm">
+              <button onClick={() => setViewMode('table')} className={`p-2.5 rounded-lg transition-colors ${viewMode === 'table' ? 'bg-sg-btn-bg text-sg-heading shadow-sm' : 'text-sg-subtext hover:text-sg-heading'}`}>
+                <List size={20} />
+              </button>
+              <button onClick={() => setViewMode('grid')} className={`p-2.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-sg-btn-bg text-sg-heading shadow-sm' : 'text-sg-subtext hover:text-sg-heading'}`}>
+                <LayoutGrid size={20} />
+              </button>
+            </div>
+            
+            <div className="flex-1 flex flex-row items-center gap-3 bg-sg-card border border-sg-border rounded-xl px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-sg-red">
+              <Search size={20} className="text-sg-muted" />
+              <input 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Tìm nhân viên..."
+                className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-sg-heading placeholder:text-sg-subtext"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="p-1 rounded-md hover:bg-sg-btn-bg text-sg-subtext">
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+
+            <button className="bg-sg-card border border-sg-border px-5 py-3 rounded-xl shadow-sm text-sm font-bold text-sg-heading hover:bg-sg-btn-bg transition-colors whitespace-nowrap">
+              Phòng ban: Tất cả
+            </button>
+          </div>
+
+          {/* Grid / Table View */}
+          {isLoading ? (
+            <div className="py-20 flex flex-col items-center justify-center">
+              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+              <span className="text-sm font-bold text-sg-subtext">Đang tải dữ liệu chấm công...</span>
+            </div>
+          ) : viewMode === 'table' ? (
+            <div className="bg-sg-card border border-sg-border rounded-2xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-sg-btn-bg/50 border-b border-sg-border">
+                      <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider">Nhân viên</th>
+                      <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider">Ca làm việc</th>
+                      <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider">Check In</th>
+                      <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider">Check Out</th>
+                      <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider text-center">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-sg-border">
+                    {attendanceData.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-12 text-center text-sm font-medium text-sg-subtext">
+                          Không có kết quả nào.
+                        </td>
+                      </tr>
+                    )}
+                    {attendanceData.map((item: any) => {
+                      const s = STATUS_CONFIG[item.status];
+                      return (
+                        <tr key={item.id} className="hover:bg-sg-btn-bg/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-sg-heading">{item.name}</span>
+                              <span className="text-xs font-medium text-sg-subtext mt-0.5">{item.code} • {item.dept}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-medium text-sg-heading">{item.shift}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`text-sm font-black ${item.status === 'LATE' ? 'text-amber-500' : 'text-sg-heading'}`}>{item.checkIn}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-bold text-sg-heading">{item.checkOut}</span>
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black tracking-wide uppercase ${s?.bg} ${s?.text}`}>
+                              {s?.label || item.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {attendanceData.length === 0 && (
+                <div className="col-span-full py-12 text-center text-sm font-medium text-sg-subtext">
+                  Không có kết quả nào.
+                </div>
+              )}
+              {attendanceData.map((item: any) => {
+                const s = STATUS_CONFIG[item.status];
+                return (
+                  <div key={item.id} className="bg-sg-card border border-sg-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div className="flex flex-row justify-between items-start mb-5">
+                      <div className="flex flex-row items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center font-black text-xl text-blue-500 border border-blue-100 dark:border-blue-500/20">
+                          {item.name.charAt(0)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[15px] font-black text-sg-heading">{item.name}</span>
+                          <span className="text-xs font-medium text-sg-subtext mt-1">{item.code} • {item.dept}</span>
+                        </div>
+                      </div>
+                      <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black tracking-wide uppercase ${s?.bg} ${s?.text}`}>
+                        {s?.label || item.status}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-row gap-3">
+                      <div className="flex-1 bg-sg-btn-bg border border-sg-border rounded-xl p-3 flex flex-col items-center">
+                        <span className="text-[11px] font-extrabold text-sg-subtext uppercase tracking-wider mb-1">Check In</span>
+                        <span className={`text-lg font-black ${item.status === 'LATE' ? 'text-amber-500' : 'text-sg-heading'}`}>{item.checkIn}</span>
+                      </div>
+                      <div className="flex-1 bg-sg-btn-bg border border-sg-border rounded-xl p-3 flex flex-col items-center">
+                        <span className="text-[11px] font-extrabold text-sg-subtext uppercase tracking-wider mb-1">Check Out</span>
+                        <span className="text-lg font-black text-sg-heading">{item.checkOut}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex flex-col gap-6 w-full animate-sg-fade-in">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col">
+              <h3 className="text-xl font-black text-sg-heading">Điều phối ca làm việc</h3>
+              <p className="text-sm font-medium text-sg-subtext mt-1">Tuần này (Dựa trên hệ thống gợi ý AI)</p>
+            </div>
+            <div className="flex flex-row flex-wrap gap-4">
+              {Object.entries(SHIFTS).map(([k, v]) => (
+                <div key={k} className="flex flex-row items-center gap-2">
+                  <div className={`w-3.5 h-3.5 rounded-sm border ${v.bg} ${v.border}`} />
+                  <span className="text-sm font-bold text-sg-subtext">Ca {v.label}</span>
+                </div>
               ))}
-            </View>
-          </Animated.View>
-        )}
+            </div>
+          </div>
 
-      </ScrollView>
-    </View>
+          <div className="bg-sg-card border border-sg-border rounded-[24px] shadow-sm overflow-hidden overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="bg-sg-btn-bg/30 border-b border-sg-border">
+                  <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider w-[240px] border-r border-sg-border">Nhân viên</th>
+                  {WEEK_DAYS.map((day, dIdx) => (
+                    <th key={dIdx} className={`px-4 py-4 text-xs font-black uppercase text-center border-r border-sg-border last:border-r-0 ${dIdx > 4 ? 'text-red-500' : 'text-sg-heading'}`}>
+                      {day}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-sg-border">
+                {MOCK_SCHEDULE.map((emp, idx) => (
+                  <tr key={idx} className="hover:bg-sg-btn-bg/10 transition-colors h-[72px]">
+                    <td className="px-6 py-3 border-r border-sg-border">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-sg-heading">{emp.name}</span>
+                        <span className="text-xs font-medium text-sg-subtext mt-1">{emp.role}</span>
+                      </div>
+                    </td>
+                    {WEEK_DAYS.map((_, dIdx) => {
+                      const shift = emp.shifts.find(s => s.day === dIdx);
+                      return (
+                        <td key={dIdx} className="p-2 border-r border-sg-border last:border-r-0 text-center relative pointer-events-none">
+                          {shift && (
+                            <div className={`w-full h-full min-h-[44px] rounded-lg border flex items-center justify-center transition-all ${(SHIFTS as any)[shift.type].bg} ${(SHIFTS as any)[shift.type].border}`}>
+                              <span className={`text-xs font-black ${(SHIFTS as any)[shift.type].color}`}>
+                                {(SHIFTS as any)[shift.type].label}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

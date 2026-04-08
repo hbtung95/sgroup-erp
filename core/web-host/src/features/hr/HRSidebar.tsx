@@ -1,17 +1,10 @@
-import React from 'react';
-import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, Platform,
-} from 'react-native';
-import { useTheme, typography } from '@sgroup/ui/src/theme/theme';
-import { useThemeStore } from '@sgroup/ui/src/theme/themeStore';
-import { useAuthStore } from '../auth/store/authStore';
+import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, UserCog, CalendarCheck, FileText,
   ChevronLeft, ChevronRight, LogOut, Wallet, BookOpen,
-  GraduationCap, TrendingUp, UserCircle, Plus, Briefcase, Building
-} from 'lucide-react-native';
-import { SGThemeToggle } from '@sgroup/ui/src/ui/components/SGThemeToggle';
-import { LinearGradient } from 'expo-linear-gradient';
+  GraduationCap, TrendingUp, UserCircle, Plus, Briefcase
+} from 'lucide-react';
+import { useAuthStore } from '../auth/store/authStore';
 
 export type HRRole = 'hr_staff' | 'hr_manager' | 'hr_director' | 'admin' | 'ceo';
 
@@ -26,30 +19,18 @@ export interface HRSidebarItem {
 const ALL_ROLES: HRRole[] = ['hr_staff', 'hr_manager', 'hr_director', 'admin', 'ceo'];
 
 const SIDEBAR_ITEMS: HRSidebarItem[] = [
-  // Dashboard
-  { key: 'HR_DASHBOARD',     label: 'Tổng quan HR',         icon: LayoutDashboard, section: 'dashboard',  minRole: ALL_ROLES },
-  
-  // DIRECTORY
-  { key: 'HR_DIRECTORY',     label: 'Danh bạ Nhân sự',      icon: Users,           section: 'directory',  minRole: ALL_ROLES },
-  { key: 'HR_PROFILE',       label: 'Hồ sơ Chi tiết',       icon: UserCog,         section: 'directory',  minRole: ALL_ROLES },
-
-  // TIME & ATTENDANCE
-  { key: 'HR_TIMEKEEPING',   label: 'Chấm công',            icon: CalendarCheck,   section: 'time_attendance', minRole: ALL_ROLES },
-  { key: 'HR_LEAVES',        label: 'Nghỉ phép & Đơn từ',   icon: FileText,        section: 'time_attendance', minRole: ALL_ROLES },
-
-  // PAYROLL & C&B
-  { key: 'HR_PAYROLL',       label: 'Bảng lương (Payroll)', icon: Wallet,          section: 'payroll',    minRole: ['hr_manager', 'hr_director', 'admin', 'ceo'] },
-  { key: 'HR_BENEFITS',      label: 'Phúc lợi & BHXH',      icon: Briefcase,       section: 'payroll',    minRole: ['hr_manager', 'hr_director', 'admin', 'ceo'] },
-
-  // RECRUITMENT
-  { key: 'HR_RECRUITMENT',   label: 'Tuyển dụng (ATS)',     icon: UserCog,         section: 'recruitment',minRole: ALL_ROLES },
-
-  // PERFORMANCE & TRAINING
-  { key: 'HR_PERFORMANCE',   label: 'Đánh giá Năng lực',    icon: TrendingUp,      section: 'performance_training', minRole: ALL_ROLES },
-  { key: 'HR_TRAINING',      label: 'Đào tạo & Phát triển', icon: GraduationCap,   section: 'performance_training', minRole: ALL_ROLES },
-
-  // ADMIN / POLICY
-  { key: 'HR_POLICIES',      label: 'Chính sách HR',        icon: BookOpen,        section: 'admin',      minRole: ALL_ROLES },
+  { key: 'HR_DASHBOARD', label: 'Tổng quan HR', icon: LayoutDashboard, section: 'dashboard', minRole: ALL_ROLES },
+  { key: 'HR_DIRECTORY', label: 'Danh bạ Nhân sự', icon: Users, section: 'directory', minRole: ALL_ROLES },
+  { key: 'HR_PROFILE', label: 'Hồ sơ Chi tiết', icon: UserCog, section: 'directory', minRole: ALL_ROLES },
+  { key: 'HR_TIMEKEEPING', label: 'Chấm công', icon: CalendarCheck, section: 'time_attendance', minRole: ALL_ROLES },
+  { key: 'HR_LEAVES', label: 'Nghỉ phép & Đơn từ', icon: FileText, section: 'time_attendance', minRole: ALL_ROLES },
+  { key: 'HR_PAYROLL', label: 'Bảng lương (Payroll)', icon: Wallet, section: 'payroll', minRole: ['hr_manager', 'hr_director', 'admin', 'ceo'] },
+  { key: 'HR_BENEFITS', label: 'Phúc lợi & BHXH', icon: Briefcase, section: 'payroll', minRole: ['hr_manager', 'hr_director', 'admin', 'ceo'] },
+  { key: 'HR_RECRUITMENT', label: 'Tuyển dụng (ATS)', icon: UserCog, section: 'recruitment', minRole: ALL_ROLES },
+  { key: 'HR_PERFORMANCE', label: 'Đánh giá Năng lực', icon: TrendingUp, section: 'performance_training', minRole: ALL_ROLES },
+  { key: 'HR_TRAINING', label: 'Đào tạo & Phát triển', icon: GraduationCap, section: 'performance_training', minRole: ALL_ROLES },
+  { key: 'HR_ORG_CONFIG', label: 'Cơ Cấu Tổ Chức', icon: Users, section: 'admin', minRole: ['admin', 'ceo', 'hr_director'] },
+  { key: 'HR_POLICIES', label: 'Chính sách HR', icon: BookOpen, section: 'admin', minRole: ALL_ROLES },
 ];
 
 interface Props {
@@ -61,191 +42,135 @@ interface Props {
 }
 
 export function HRSidebar({ activeKey, onSelect, collapsed, onToggleCollapse, userRole = 'hr_staff' }: Props) {
-  const colors = useTheme();
-  const { isDark } = useThemeStore();
   const { logout, user } = useAuthStore();
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const visibleItems = SIDEBAR_ITEMS.filter(item => item.minRole.includes(userRole));
   const sections = [
-    { key: 'dashboard',             label: '' },
-    { key: 'directory',             label: 'HỒ SƠ NHÂN SỰ' },
-    { key: 'time_attendance',       label: 'CHẤM CÔNG & NGHỈ PHÉP' },
-    { key: 'payroll',               label: 'LƯƠNG THƯỞNG (C&B)' },
-    { key: 'recruitment',           label: 'TUYỂN DỤNG' },
-    { key: 'performance_training',  label: 'ĐÁNH GIÁ & ĐÀO TẠO' },
-    { key: 'admin',                 label: 'QUẢN TRỊ & HÀNH CHÍNH' },
+    { key: 'dashboard', label: '' },
+    { key: 'directory', label: 'HỒ SƠ NHÂN SỰ' },
+    { key: 'time_attendance', label: 'CHẤM CÔNG & NGHỈ PHÉP' },
+    { key: 'payroll', label: 'LƯƠNG THƯỞNG (C&B)' },
+    { key: 'recruitment', label: 'TUYỂN DỤNG' },
+    { key: 'performance_training', label: 'ĐÁNH GIÁ & ĐÀO TẠO' },
+    { key: 'admin', label: 'QUẢN TRỊ & HÀNH CHÍNH' },
   ];
 
   const renderItem = (item: HRSidebarItem) => {
     const isActive = activeKey === item.key;
     const IconComp = item.icon;
     return (
-      <TouchableOpacity
+      <button
         key={item.key}
-        onPress={() => onSelect(item)}
-        style={[styles.menuItem, {
-          backgroundColor: isActive ? (isDark ? 'rgba(236,72,153,0.15)' : '#fdf2f8') : 'transparent',
-          borderRadius: 16, marginHorizontal: 12, marginBottom: 4, paddingVertical: 12, paddingHorizontal: 12,
-          ...(isActive && !isDark && Platform.OS === 'web' ? { boxShadow: '0 4px 14px rgba(236,72,153,0.12)' } : {}),
-        } as any]}
+        onClick={() => onSelect(item)}
+        className={`w-[calc(100%-24px)] flex items-center mx-3 mb-1 px-3 py-3 rounded-2xl transition-all duration-300 border border-transparent
+          ${isActive ? (isDark ? 'bg-sg-red/15 border-sg-red/20' : 'bg-red-50 shadow-[0_4px_14px_rgba(236,72,153,0.12)] border-red-100') : 'hover:bg-sg-btn-bg'}
+        `}
       >
-        <View style={{ width: 24, alignItems: 'center', justifyContent: 'center' }}>
-          <IconComp size={20} color={isActive ? '#ec4899' : (isDark ? '#94A3B8' : '#64748b')} strokeWidth={isActive ? 2.5 : 2} />
-        </View>
+        <div className="w-6 flex items-center justify-center flex-shrink-0">
+          <IconComp size={20} className={isActive ? 'text-sg-red' : 'text-sg-muted'} strokeWidth={isActive ? 2.5 : 2} />
+        </div>
         {!collapsed && (
-          <Text style={{
-            fontSize: 14, fontWeight: isActive ? '800' : '600',
-            fontFamily: "'Plus Jakarta Sans', 'Inter', 'Segoe UI', system-ui, sans-serif",
-            color: isActive ? '#ec4899' : (isDark ? '#E2E8F0' : '#475569'),
-            marginLeft: 14, flex: 1, letterSpacing: 0.2
-          }} numberOfLines={1}>
+          <span className={`ml-3.5 text-sm truncate flex-1 text-left tracking-[0.2px]
+            ${isActive ? 'font-extrabold text-sg-red' : 'font-semibold text-sg-subtext'}
+          `}>
             {item.label}
-          </Text>
+          </span>
         )}
-      </TouchableOpacity>
+      </button>
     );
   };
 
   return (
-    <View style={[styles.sidebar, {
-      width: collapsed ? 80 : 260,
-      backgroundColor: isDark ? 'rgba(15,20,32,0.8)' : 'rgba(255,255,255,0.9)',
-      borderRightColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-      ...(Platform.OS === 'web' ? { backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } : {}),
-    } as any]}>
+    <aside className={`
+      relative h-screen flex flex-col border-r transition-all duration-300
+      bg-sg-card border-sg-border
+      ${collapsed ? 'w-20' : 'w-[260px]'}
+    `}>
       {/* Header — Premium Brand */}
-      <View style={[styles.header, {
-        borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
-      }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: collapsed ? 0 : 12, flex: collapsed ? 0 : 1 }}>
+      <div className="h-20 flex flex-row justify-between items-center px-4 border-b border-sg-border">
+        <div className={`flex flex-row items-center overflow-hidden ${collapsed ? 'gap-0 flex-none' : 'gap-3 flex-1'}`}>
           {/* Brand Badge with Gradient */}
-          <LinearGradient
-            colors={isDark ? ['#f43f5e', '#ec4899'] : ['#ec4899', '#f43f5e']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              width: 38, height: 38, borderRadius: 12,
-              justifyContent: 'center', alignItems: 'center',
-              ...(Platform.OS === 'web' ? {
-                boxShadow: isDark
-                  ? '0 4px 16px rgba(244,63,94,0.3), 0 0px 8px rgba(236,72,153,0.2)'
-                  : '0 4px 14px rgba(236,72,153,0.25)',
-              } : {
-                shadowColor: '#ec4899', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6,
-              }),
-            } as any}
-          >
-            <Text style={{
-              fontSize: 15, fontWeight: '900', color: '#fff',
-              letterSpacing: 1.5,
-              fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
-            }}>HR</Text>
-          </LinearGradient>
+          <div className="w-[38px] h-[38px] rounded-xl flex justify-center items-center flex-shrink-0 bg-gradient-to-br from-sg-red-light to-sg-red shadow-sg-brand">
+            <span className="text-[15px] font-black text-white tracking-[1.5px]">HR</span>
+          </div>
           {/* Brand Text */}
-          {!collapsed && (
-            <View style={{ flex: 1 }}>
-              <Text style={{
-                fontSize: 14, fontWeight: '800', color: isDark ? '#fff' : '#0f172a',
-                letterSpacing: 0.8,
-                fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
-              }}>NHÂN SỰ</Text>
-              <Text style={{
-                fontSize: 10, fontWeight: '600',
-                color: isDark ? '#f43f5e' : '#ec4899',
-                letterSpacing: 2, marginTop: 1,
-                fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif",
-              }}>HR MODULE</Text>
-            </View>
-          )}
-        </View>
+          <div className={`flex flex-col flex-1 transition-opacity duration-300 ${collapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
+            <span className="text-sm font-extrabold text-sg-heading tracking-[0.8px] truncate">NHÂN SỰ</span>
+            <span className="text-[10px] font-bold text-sg-red tracking-[2px] mt-0.5 whitespace-nowrap">HR MODULE</span>
+          </div>
+        </div>
+
         {/* Collapse Button */}
-        <TouchableOpacity
-          onPress={onToggleCollapse}
-          style={[styles.collapseBtn, {
-            backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            borderWidth: 1,
-            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-          }]}
+        <button
+          onClick={onToggleCollapse}
+          className="w-8 h-8 rounded-lg flex items-center justify-center bg-sg-btn-bg border border-sg-border hover:bg-sg-border transition-colors flex-shrink-0 z-10"
         >
-          {collapsed ? <ChevronRight size={14} color={isDark ? '#94A3B8' : '#64748b'} strokeWidth={2.5} /> : <ChevronLeft size={14} color={isDark ? '#94A3B8' : '#64748b'} strokeWidth={2.5} />}
-        </TouchableOpacity>
-      </View>
+          {collapsed ? <ChevronRight size={14} className="text-sg-muted" strokeWidth={2.5} /> : <ChevronLeft size={14} className="text-sg-muted" strokeWidth={2.5} />}
+        </button>
+      </div>
 
       {/* Quick Action Button */}
-      <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
-        <TouchableOpacity style={{
-          height: 48, borderRadius: 14, backgroundColor: '#ec4899',
-          flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-          shadowColor: '#ec4899', shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4
-        }}>
-          <Plus size={20} color="#fff" strokeWidth={3} />
-          {!collapsed && <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff' }}>Thêm Mới</Text>}
-        </TouchableOpacity>
-      </View>
+      <div className="px-4 py-4">
+        <button className="w-full h-12 rounded-xl bg-sg-red flex flex-row items-center justify-center gap-2 shadow-sg-brand hover:bg-sg-red-light transition-colors hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]">
+          <Plus size={20} className="text-white" strokeWidth={3} />
+          {!collapsed && <span className="text-sm font-extrabold text-white truncate">Thêm Mới</span>}
+        </button>
+      </div>
 
       {/* Menu */}
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 8 }}>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar py-2">
         {sections.map(sec => {
           const sectionItems = visibleItems.filter(i => i.section === sec.key);
           if (sectionItems.length === 0) return null;
           return (
-            <View key={sec.key}>
-              {!collapsed && (
-                <Text style={styles.sectionLabel}>{sec.label}</Text>
+            <div key={sec.key}>
+              {!collapsed && sec.label && (
+                <div className="text-[11px] font-extrabold tracking-[1.8px] uppercase text-sg-muted px-6 mt-4 mb-2.5 truncate">
+                  {sec.label}
+                </div>
               )}
               {sectionItems.map(renderItem)}
-              <View style={[styles.divider, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]} />
-            </View>
+              <div className="h-px mx-6 my-1.5 bg-sg-border" />
+            </div>
           );
         })}
-      </ScrollView>
+      </div>
 
       {/* User Profile & Footer Area */}
-      <View style={{ padding: 12, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}>
-        <TouchableOpacity 
-          onPress={() => onSelect({ key: 'HR_PROFILE', label: 'Hồ sơ Của Tôi', icon: UserCircle, section: 'dashboard', minRole: ALL_ROLES })}
-          style={{ flexDirection: 'row', alignItems: 'center', padding: 8, borderRadius: 14, backgroundColor: activeKey === 'HR_PROFILE' ? (isDark ? 'rgba(236,72,153,0.15)' : '#fdf2f8') : 'transparent' }}
+      <div className="p-3 border-t border-sg-border">
+        <button 
+          onClick={() => onSelect({ key: 'HR_PROFILE', label: 'Hồ sơ Của Tôi', icon: UserCircle, section: 'dashboard', minRole: ALL_ROLES })}
+          className={`w-full flex-row items-center flex p-2 rounded-xl transition-all border border-transparent
+            ${activeKey === 'HR_PROFILE' ? (isDark ? 'bg-sg-red/15 border-sg-red/20' : 'bg-red-50 border-red-100') : 'hover:bg-sg-btn-bg'}
+          `}
         >
-          <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}>
-            <UserCircle size={20} color={isDark ? '#fff' : '#475569'} />
-          </View>
+          <div className="w-9 h-9 rounded-full bg-sg-btn-bg flex items-center justify-center flex-shrink-0 border border-sg-border">
+            <UserCircle size={20} className="text-sg-heading" />
+          </div>
           {!collapsed && (
-            <View style={{ marginLeft: 12, flex: 1 }}>
-              <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#fff' : '#0f172a' }}>{user?.name || 'User'}</Text>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748b', textTransform: 'capitalize' }}>{userRole.replace('_', ' ')}</Text>
-            </View>
+            <div className="ml-3 flex-1 flex flex-col text-left truncate">
+              <span className="text-[13px] font-extrabold text-sg-heading truncate">{user?.name || 'User'}</span>
+              <span className="text-[11px] font-bold text-sg-subtext uppercase tracking-wide truncate">{userRole.replace('_', ' ')}</span>
+            </div>
           )}
-        </TouchableOpacity>
-      </View>
+        </button>
+      </div>
 
-      <View style={[styles.footer, { borderTopWidth: 0, paddingVertical: 12, flexDirection: collapsed ? 'column' : 'row', justifyContent: collapsed ? 'center' : 'space-between' }]}>
-        <SGThemeToggle size="sm" />
-        <TouchableOpacity onPress={logout} style={[styles.logoutBtn, { backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.05)', marginTop: collapsed ? 12 : 0 }]}>
-          <LogOut size={16} color="#EF4444" />
-        </TouchableOpacity>
-      </View>
-    </View>
+      <div className={`border-t border-sg-border py-4 px-5 flex items-center ${collapsed ? 'flex-col gap-3 justify-center' : 'flex-row justify-between'}`}>
+        <span className="text-[10px] font-bold text-sg-muted">v2.0</span>
+        <button onClick={() => window.location.href = '/'} className="w-9 h-9 rounded-xl flex items-center justify-center bg-sg-btn-bg hover:bg-sg-border border border-sg-border transition-colors group" title="Về Workspace">
+          <LayoutDashboard size={16} className="text-sg-muted group-hover:text-sg-heading" />
+        </button>
+      </div>
+    </aside>
   );
 }
-
-const styles = StyleSheet.create({
-  sidebar: { borderRightWidth: 1, height: '100%' },
-  header: {
-    height: 80, flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', paddingHorizontal: 16,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.02)',
-  },
-  collapseBtn: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  menuItem: { flexDirection: 'row', alignItems: 'center' },
-  sectionLabel: {
-    fontSize: 11, fontWeight: '800', letterSpacing: 1.8, textTransform: 'uppercase',
-    color: '#94A3B8', paddingHorizontal: 24, marginTop: 16, marginBottom: 10,
-    fontFamily: "'Plus Jakarta Sans', 'Inter', 'Segoe UI', system-ui, sans-serif",
-  },
-  divider: { height: 1, marginHorizontal: 24, marginVertical: 6 },
-  footer: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 16, paddingHorizontal: 20, borderTopWidth: 1, gap: 8,
-  },
-  logoutBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-});

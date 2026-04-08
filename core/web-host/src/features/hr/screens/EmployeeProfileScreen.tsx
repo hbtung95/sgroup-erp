@@ -1,380 +1,357 @@
 import React, { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import {ArrowLeft, User, Mail, Phone, MapPin, Briefcase, Calendar, ShieldCheck, Award, FileLock2, PenTool, Download, Lock, TrendingUp, CheckCircle, Clock, BookOpen, Star} from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useAppTheme } from '@sgroup/ui/src/theme/useAppTheme';
-import { sgds, typography, radius } from '@sgroup/ui/src/theme/theme';
-import { useResponsive } from '@sgroup/ui/src/hooks/useResponsive';
+import { 
+  ArrowLeft, User, Mail, Phone, MapPin, Briefcase, Calendar, ShieldCheck, 
+  Award, FileLock2, PenTool, Download, Lock, TrendingUp, CheckCircle, Clock, Star 
+} from 'lucide-react';
 import { useAuthStore } from '../../auth/store/authStore';
-import { SGPageContainer, SGSection, SGTag, SGDataGrid, SGAuroraBackground, SGPillSelector, SGGradientStatCard, SGKpiCard, SGProgressBar, SGTimeline } from '@sgroup/ui/src/ui';
+import { useNavigate } from 'react-router-dom';
+import { useEmployees } from '../hooks/useHR';
 
-export function EmployeeProfileScreen() {
-  const navigation = useNavigation<any>();
-  const { theme, colors, isDark } = useAppTheme();
-  const { isMobile } = useResponsive();
+const TABS = [
+  { key: 'overview', label: 'Tổng quan' },
+  { key: 'skills', label: 'Kỹ năng & Hiệu suất' },
+  { key: 'timeline', label: 'Hành trình' },
+];
+
+export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearchParams }) {
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-
   const [activeTab, setActiveTab] = useState('overview');
-
-  const primaryColor = colors.brand; // Use SGDS brand token instead of hardcoded HR color
   
-  const TABS = [
-    { key: 'overview', label: 'Tổng quan' },
-    { key: 'skills', label: 'Kỹ năng & Hiệu suất' },
-    { key: 'timeline', label: 'Hành trình' },
-  ];
+  const employeeId = routeParams?.get('id');
+  const { data: employeesData } = useEmployees({ search: '' });
+  const employeeList = Array.isArray(employeesData?.data) ? employeesData.data : (Array.isArray(employeesData) ? employeesData : []);
+  
+  let displayUser = user;
+  if (employeeId && employeeList.length > 0) {
+    const found = employeeList.find((e: any) => String(e.id) === String(employeeId));
+    if (found) {
+       displayUser = {
+         ...user,
+         id: found.id,
+         name: found.fullName,
+         email: found.email || user?.email,
+         role: found.position?.name || user?.role,
+         ...found
+       };
+    }
+  }
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <Animated.View
-         entering={FadeInDown.duration(400)}
-         style={[
-           styles.topBar,
-           {
-             borderBottomColor: colors.border,
-             backgroundColor: isDark ? 'rgba(12,18,29,0.86)' : 'rgba(255,255,255,0.88)',
-           },
-           Platform.OS === 'web' ? ({ ...sgds.glass } as any) : null,
-         ]}
-       >
-         <TouchableOpacity
-           onPress={() => navigation.goBack()}
-           style={[
-             styles.backButton,
-             { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' },
-             Platform.OS === 'web' ? (sgds.cursor as any) : null,
-           ]}
-         >
-           <ArrowLeft size={16} color={colors.text} />
-         </TouchableOpacity>
- 
-         <View style={styles.topBarTitleWrap}>
-           <Text style={[typography.h4, { color: colors.text }]}>Hồ Sơ Nhân Sự</Text>
-           <Text style={[typography.caption, { color: colors.textTertiary }]}>Thông tin chi tiết và hiệu suất làm việc</Text>
-         </View>
-      </Animated.View>
+    <div className="relative flex flex-col w-full h-full bg-sg-bg overflow-x-hidden text-sg-text custom-scrollbar">
+      {/* Top Navigation Bar with Glassmorphism */}
+      <div className="sticky top-0 z-40 flex items-center px-6 py-4 border-b border-sg-border bg-sg-card/80 backdrop-blur-xl">
+        <button
+          onClick={() => window.history.back()}
+          className="w-10 h-10 rounded-xl flex flex-shrink-0 items-center justify-center bg-sg-btn-bg hover:bg-sg-border border border-sg-border transition-colors mr-4"
+        >
+          <ArrowLeft size={18} className="text-sg-text" />
+        </button>
+        <div className="flex flex-col">
+          <h1 className="text-xl font-extrabold text-sg-heading tracking-[0.5px]">Hồ Sơ Nhân Sự</h1>
+          <p className="text-xs font-bold text-sg-subtext uppercase tracking-[1px] mt-0.5">
+            Thông tin chi tiết và hiệu suất
+          </p>
+        </div>
+      </div>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+      <div className="flex-1 overflow-y-auto pb-12">
         {/* Animated Aurora Cover Background */}
-        <View style={{ height: 180, position: 'absolute', top: 0, left: 0, right: 0 }}>
-          <SGAuroraBackground />
-        </View>
+        <div className="absolute top-0 left-0 right-0 h-56 bg-gradient-to-br from-sg-red/20 to-blue-500/10 blur-3xl opacity-50 pointer-events-none" />
 
-        <SGPageContainer padding={isMobile ? 16 : 24} maxWidth={1000}>
-          <View style={{ gap: isMobile ? 16 : 24 }}>
-            {/* Header Card */}
-            <Animated.View
-              entering={FadeInDown.delay(100).duration(400)}
-              style={[
-                styles.profileHeaderCard,
-                sgds.sectionBase(theme),
-                {
-                  marginTop: 60, // Push down to overlap aurora cover
-                  shadowColor: isDark ? 'rgba(14, 165, 233, 0.12)' : 'rgba(0,0,0,0.05)', // shadowGlow or subtle shadow
-                  elevation: 8,
-                },
-              ]}
-            >
-              <View style={[styles.avatarContainer, { backgroundColor: `${primaryColor}20`, borderColor: colors.brand, borderWidth: 2 }]}>
-                <User size={54} color={primaryColor} />
-              </View>
-              <View style={styles.profileInfo}>
-                <Text style={[typography.h1, { color: colors.text, marginBottom: 4 }]}>
-                  {user?.name || 'Nguyễn Văn A'}
-                </Text>
-                <Text style={[typography.bodyBold, { color: primaryColor, marginBottom: 16 }]}>
-                  {user?.role || 'Chuyên Viên Nhân Sự (HR)'}
-                </Text>
+        <div className="max-w-5xl mx-auto px-6 mt-16 relative z-10 w-full flex flex-col gap-8">
+          
+          {/* Header Card */}
+          <div className="flex flex-col md:flex-row items-center gap-8 p-8 rounded-3xl bg-sg-card border border-sg-border shadow-sg-light">
+            <div className="w-28 h-28 flex-shrink-0 rounded-full flex items-center justify-center bg-sg-red/10 border-4 border-sg-red/20 text-sg-red">
+              <User size={48} strokeWidth={2.5} />
+            </div>
+            <div className="flex flex-col flex-1 items-center md:items-start text-center md:text-left">
+              <h2 className="text-3xl font-black text-sg-heading tracking-tight mb-1">
+                {displayUser?.name || displayUser?.fullName || 'Nguyễn Văn A'}
+              </h2>
+              <p className="text-sm font-extrabold text-sg-red tracking-wide uppercase mb-4">
+                {displayUser?.role || displayUser?.position?.name || 'Chuyên Viên Nhân Sự (HR)'}
+              </p>
+              
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                <span className="px-3 py-1 rounded-lg text-xs font-bold bg-green-500/15 text-green-600 border border-green-500/20">
+                  Đang làm việc
+                </span>
+                <span className="px-3 py-1 rounded-lg text-xs font-bold bg-blue-500/15 text-blue-600 border border-blue-500/20">
+                  S-Group Hội Sở
+                </span>
+                <span className="px-3 py-1 rounded-lg text-xs font-bold bg-sg-btn-bg text-sg-muted border border-sg-border">
+                  Full-time
+                </span>
+              </div>
+            </div>
+          </div>
 
-                <View style={styles.tagsContainer}>
-                  <SGTag label="Đang làm việc" variant="solid" color={colors.success} size="md" />
-                  <SGTag label="S-Group Hội Sở" variant="soft" color={colors.info} size="md" />
-                  <SGTag label="Full-time" variant="soft" color={colors.textSecondary} size="md" />
-                </View>
-              </View>
-            </Animated.View>
+          {/* Tabs */}
+          <div className="flex bg-sg-btn-bg p-1.5 rounded-2xl border border-sg-border self-start">
+            {TABS.map(t => {
+              const isActive = activeTab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setActiveTab(t.key)}
+                  className={`px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all duration-300 ${
+                    isActive ? 'bg-sg-card text-sg-red shadow-sg-light border border-sg-border' : 'text-sg-muted hover:text-sg-text hover:bg-sg-border'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
 
-            <Animated.View entering={FadeInDown.delay(150).duration(400)}>
-              <SGPillSelector
-                options={TABS}
-                activeKey={activeTab}
-                onChange={setActiveTab}
-                style={{ alignSelf: 'flex-start' }}
-              />
-            </Animated.View>
+          {/* Tab Content: Overview */}
+          {activeTab === 'overview' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up">
+              
+              <div className="flex flex-col gap-6">
+                {/* Contact Info */}
+                <div className="p-6 rounded-3xl bg-sg-card border border-sg-border shadow-sg-light flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <User size={18} className="text-sg-red" />
+                    <h3 className="text-base font-extrabold text-sg-red tracking-wide uppercase">Thông tin liên hệ</h3>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <DetailItem icon={Mail} label="Email" value={displayUser?.email || 'nguyenvana@sgroup.vn'} />
+                    <DetailItem icon={Phone} label="Điện thoại" value={displayUser?.phone || "+84 987 654 321"} />
+                    <DetailItem icon={MapPin} label="Địa chỉ" value="Tòa nhà S-Group, Quận 1, TP.HCM" />
+                  </div>
+                </div>
 
-            {/* Tab 1: Overview */}
-            {activeTab === 'overview' && (
-              <View style={[styles.contentRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
-                <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
-                  <SGSection title="Thông tin liên hệ" titleIcon={<User size={18} color={primaryColor} />} titleColor={primaryColor}>
-                    <View style={styles.detailList}>
-                      <DetailItem icon={Mail} label="Email" value={user?.email || 'nguyenvana@sgroup.vn'} colors={colors} />
-                      <DetailItem icon={Phone} label="Điện thoại" value="+84 987 654 321" colors={colors} />
-                      <DetailItem icon={MapPin} label="Địa chỉ" value="Tòa nhà S-Group, Quận 1, TP.HCM" colors={colors} />
-                    </View>
-                  </SGSection>
+                {/* Job Info */}
+                <div className="p-6 rounded-3xl bg-sg-card border border-sg-border shadow-sg-light flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <Briefcase size={18} className="text-sg-red" />
+                    <h3 className="text-base font-extrabold text-sg-red tracking-wide uppercase">Thông tin công việc</h3>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <DetailItem icon={Briefcase} label="Phòng ban" value={displayUser?.department?.name || "Phòng Nhân Sự (HR)"} />
+                    <DetailItem icon={Calendar} label="Ngày gia nhập" value="15/03/2023" />
+                    <DetailItem icon={ShieldCheck} label="Mã nhân viên" value={displayUser?.employeeCode || "SG-HR-0042"} />
+                  </div>
+                </div>
+              </div>
 
-                  <SGSection title="Thông tin công việc" titleIcon={<Briefcase size={18} color={primaryColor} />} titleColor={primaryColor}>
-                    <View style={styles.detailList}>
-                      <DetailItem icon={Briefcase} label="Phòng ban" value="Phòng Nhân Sự (HR)" colors={colors} />
-                      <DetailItem icon={Calendar} label="Ngày gia nhập" value="15/03/2023" colors={colors} />
-                      <DetailItem icon={ShieldCheck} label="Mã nhân viên" value="SG-HR-0042" colors={colors} />
-                    </View>
-                  </SGSection>
-                </Animated.View>
+              <div className="flex flex-col gap-6">
+                {/* Quick Stats Grid */}
+                <div className="p-6 rounded-3xl bg-sg-card border border-sg-border shadow-sg-light flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <TrendingUp size={18} className="text-green-500" />
+                    <h3 className="text-base font-extrabold text-green-500 tracking-wide uppercase">Tổng quan nhanh</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 border border-blue-500/20 to-transparent flex flex-col gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                        <Award size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-bold text-sg-subtext uppercase tracking-widest mb-1">KPI Hiện Tại</span>
+                        <div className="flex items-end gap-2">
+                          <span className="text-2xl font-black text-sg-heading">95%</span>
+                          <span className="text-xs font-bold text-green-500 mb-1">+5%</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 border border-amber-500/20 to-transparent flex flex-col gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+                        <CheckCircle size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-bold text-sg-subtext uppercase tracking-widest mb-1">Nhiệm vụ Hoàn thành</span>
+                        <span className="text-2xl font-black text-sg-heading mt-0.5">142</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
-                  <SGSection title="Tổng quan nhanh" titleIcon={<TrendingUp size={18} color={colors.success} />} titleColor={colors.success}>
-                    <SGDataGrid gap={12} minItemWidth={140}>
-                      <SGGradientStatCard 
-                        label="KPI Hiện Tại" 
-                        value="95%" 
-                        change={5} 
-                        icon={<Award size={16} color="#fff" />} 
-                        color="#0ea5e9"
-                      />
-                      <SGGradientStatCard 
-                        label="Nhiệm vụ Hoàn thành" 
-                        value="142" 
-                        icon={<CheckCircle size={16} color="#fff" />} 
-                        color="#F59E0B"
-                      />
-                    </SGDataGrid>
-                  </SGSection>
-                  
-                  {/* Self-Service (ESS) Widgets */}
-                  <SGSection title="Tài liệu & Chứng từ (ESS)" titleIcon={<FileLock2 size={18} color="#ec4899" />} titleColor="#ec4899">
-                    <View style={{ gap: 16 }}>
-                      {/* Secure Payslip */}
-                      <TouchableOpacity style={[
-                        styles.essCard,
-                        {
-                          backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-                          borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'
-                        },
-                        Platform.OS === 'web' ? { ...sgds.transition.fast, ...(sgds.cursor as any) } : {}
-                      ]}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                          <View style={[styles.essIconWrapper, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
-                            <FileLock2 size={20} color="#10b981" />
-                          </View>
-                          <View>
-                            <Text style={[typography.h4, { color: colors.text }]}>Phiếu lương Tháng 02/2026</Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                              <Lock size={12} color={colors.textSecondary} />
-                              <Text style={[typography.caption, { color: colors.textSecondary }]}>Yêu cầu mật khẩu để mở</Text>
-                            </View>
-                          </View>
-                        </View>
-                        <View style={[styles.essActionIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0' }]}>
-                          <Download size={16} color={colors.textSecondary} />
-                        </View>
-                      </TouchableOpacity>
+                {/* ESS Widgets */}
+                <div className="p-6 rounded-3xl bg-sg-card border border-sg-border shadow-sg-light flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <FileLock2 size={18} className="text-pink-500" />
+                    <h3 className="text-base font-extrabold text-pink-500 tracking-wide uppercase">Tài liệu & Chứng từ</h3>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    {/* Payslip Card */}
+                    <div className="flex items-center justify-between p-4 rounded-2xl border border-sg-border bg-sg-btn-bg hover:bg-sg-border cursor-pointer transition-colors group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center border border-emerald-500/20 text-emerald-500 group-hover:scale-105 transition-transform">
+                          <FileLock2 size={20} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-extrabold text-sg-heading">Phiếu lương Tháng 02/2026</span>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <Lock size={12} className="text-sg-muted" />
+                            <span className="text-[11px] font-bold text-sg-muted">Yêu cầu mật khẩu để mở</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-10 h-10 rounded-xl bg-sg-card flex items-center justify-center text-sg-muted border border-sg-border group-hover:text-sg-text transition-colors">
+                        <Download size={16} />
+                      </div>
+                    </div>
 
-                      {/* E-Signature Pending */}
-                      <TouchableOpacity style={[
-                        styles.essCard,
-                        {
-                          backgroundColor: 'rgba(59,130,246,0.05)',
-                          borderColor: 'rgba(59,130,246,0.2)'
-                        },
-                        Platform.OS === 'web' ? { ...sgds.transition.fast, ...(sgds.cursor as any) } : {}
-                      ]}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                          <View style={[styles.essIconWrapper, { backgroundColor: '#3b82f6', shadowColor: '#3b82f6', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }]}>
-                            <PenTool size={20} color="#fff" />
-                          </View>
-                          <View>
-                            <Text style={[typography.h4, { color: '#3b82f6' }]}>Phụ lục HĐLĐ 2026</Text>
-                            <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 4 }]}>Cần chữ ký số (e-Signature) của bạn</Text>
-                          </View>
-                        </View>
-                        <Text style={[typography.smallBold, { color: '#3b82f6' }]}>KÝ NGAY</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </SGSection>
-                </Animated.View>
-              </View>
-            )}
+                    {/* e-Signature Card */}
+                    <div className="flex items-center justify-between p-4 rounded-2xl border border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10 cursor-pointer transition-colors group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-blue-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform">
+                          <PenTool size={20} />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-extrabold text-blue-500">Phụ lục HĐLĐ 2026</span>
+                          <span className="text-[11px] font-bold text-sg-subtext mt-1">Cần chữ ký số (e-Signature) của bạn</span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-black text-blue-500 group-hover:text-blue-600 tracking-wide uppercase px-3">Ký ngay</span>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Tab 2: Skills & Performance */}
-            {activeTab === 'skills' && (
-               <View style={[styles.contentRow, { flexDirection: isMobile ? 'column' : 'row' }]}>
-                  <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
-                    <SGSection title="Chỉ số KPIs cốt lõi" titleIcon={<Star size={18} color={colors.warning} />} titleColor={colors.warning}>
-                        <View style={{ gap: 16 }}>
-                           <SGKpiCard title="Chăm sóc nhân viên" value="85%" trend={12} />
-                           <SGKpiCard title="Tuyển dụng" value="7" trend={-2} />
-                           <SGKpiCard title="Đào tạo hội nhập" value="4" trend={0} />
-                        </View>
-                    </SGSection>
-                  </Animated.View>
-                  <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ flex: 1, gap: isMobile ? 16 : 24 }}>
-                     <SGSection title="Kỹ năng chuyên môn" titleIcon={<Award size={18} color={primaryColor} />} titleColor={primaryColor}>
-                        <View style={{ gap: 20 }}>
-                           <View>
-                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                                 <Text style={[typography.bodyBold, { color: colors.text }]}>Luật Lao Động</Text>
-                                 <Text style={[typography.body, { color: colors.textSecondary }]}>90%</Text>
-                              </View>
-                              <SGProgressBar progress={90} color={colors.success} size="md" />
-                           </View>
-                           <View>
-                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                                 <Text style={[typography.bodyBold, { color: colors.text }]}>Đánh giá Năng lực</Text>
-                                 <Text style={[typography.body, { color: colors.textSecondary }]}>75%</Text>
-                              </View>
-                              <SGProgressBar progress={75} color={colors.brand} size="md" />
-                           </View>
-                           <View>
-                              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                                 <Text style={[typography.bodyBold, { color: colors.text }]}>Data Analytics HR</Text>
-                                 <Text style={[typography.body, { color: colors.textSecondary }]}>50%</Text>
-                              </View>
-                              <SGProgressBar progress={50} color={colors.warning} size="md" />
-                           </View>
-                        </View>
-                     </SGSection>
-                  </Animated.View>
-               </View>
-            )}
+              </div>
+            </div>
+          )}
 
-            {/* Tab 3: Timeline */}
-            {activeTab === 'timeline' && (
-              <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-                <SGSection title="Hành trình phát triển" titleIcon={<Clock size={18} color={colors.textSecondary} />}>
-                  <SGTimeline 
-                    items={[
-                      {
-                        title: 'Đánh giá xuất sắc (Q1/2026)',
-                        description: 'Đạt danh hiệu nhân viên xuất sắc quý 1.',
-                        time: '15/03/2026',
-                        icon: <Star size={14} color="#F59E0B" />
-                      },
-                      {
-                        title: 'Thăng tiến',
-                        description: 'Chuyên viên Nhân sự (HR)',
-                        time: '01/01/2025',
-                        icon: <TrendingUp size={14} color="#10B981" />
-                      },
-                      {
-                        title: 'Hoàn thành thử việc',
-                        description: 'Chính thức gia nhập S-Group',
-                        time: '15/05/2023',
-                      },
-                      {
-                        title: 'Gia nhập S-Group',
-                        description: 'Vị trí Thực tập sinh Nhân sự',
-                        time: '15/03/2023',
-                        icon: <CheckCircle size={14} color="#3B82F6" />
-                      }
-                    ]} 
-                  />
-                </SGSection>
-              </Animated.View>
-            )}
-            
-          </View>
-        </SGPageContainer>
-      </ScrollView>
-    </View>
+          {/* Tab Content: Skills */}
+          {activeTab === 'skills' && (
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up">
+                {/* KPIs Core */}
+                <div className="p-6 rounded-3xl bg-sg-card border border-sg-border shadow-sg-light flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <Star size={18} className="text-amber-500" />
+                    <h3 className="text-base font-extrabold text-amber-500 tracking-wide uppercase">Chỉ số KPIs cốt lõi</h3>
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <KpiRow title="Chăm sóc nhân viên" value="85%" trend={12} />
+                    <KpiRow title="Tuyển dụng" value="7" trend={-2} />
+                    <KpiRow title="Đào tạo hội nhập" value="4" trend={0} />
+                  </div>
+                </div>
+
+                {/* Professional Skills */}
+                <div className="p-6 rounded-3xl bg-sg-card border border-sg-border shadow-sg-light flex flex-col gap-6">
+                  <div className="flex items-center gap-3">
+                    <Award size={18} className="text-sg-red" />
+                    <h3 className="text-base font-extrabold text-sg-red tracking-wide uppercase">Kỹ năng chuyên môn</h3>
+                  </div>
+                  <div className="flex flex-col gap-6">
+                    <SkillRow title="Luật Lao Động" percent={90} colorClass="bg-green-500" />
+                    <SkillRow title="Đánh giá Năng lực" percent={75} colorClass="bg-sg-red" />
+                    <SkillRow title="Data Analytics HR" percent={50} colorClass="bg-amber-500" />
+                  </div>
+                </div>
+             </div>
+          )}
+
+          {/* Tab Content: Timeline */}
+          {activeTab === 'timeline' && (
+             <div className="w-full max-w-3xl animate-fade-in-up pb-6">
+               <div className="p-8 rounded-3xl bg-sg-card border border-sg-border shadow-sg-light flex flex-col gap-8">
+                  <div className="flex items-center gap-3">
+                    <Clock size={18} className="text-sg-muted" />
+                    <h3 className="text-base font-extrabold text-sg-text tracking-wide uppercase">Hành trình phát triển</h3>
+                  </div>
+
+                  <div className="relative pl-6 border-l-2 border-sg-border flex flex-col gap-10">
+                    <TimelineItem 
+                      title="Đánh giá xuất sắc (Q1/2026)"
+                      desc="Đạt danh hiệu nhân viên xuất sắc quý 1."
+                      date="15/03/2026"
+                      icon={<Star size={14} className="text-amber-500" />}
+                      iconBg="bg-amber-500/15 border-amber-500/30"
+                    />
+                    <TimelineItem 
+                      title="Thăng tiến"
+                      desc="Chuyên viên Nhân sự (HR)"
+                      date="01/01/2025"
+                      icon={<TrendingUp size={14} className="text-green-500" />}
+                      iconBg="bg-green-500/15 border-green-500/30"
+                    />
+                    <TimelineItem 
+                      title="Hoàn thành thử việc"
+                      desc="Chính thức gia nhập S-Group"
+                      date="15/05/2023"
+                    />
+                    <TimelineItem 
+                      title="Gia nhập S-Group"
+                      desc="Vị trí Thực tập sinh Nhân sự"
+                      date="15/03/2023"
+                      icon={<CheckCircle size={14} className="text-blue-500" />}
+                      iconBg="bg-blue-500/15 border-blue-500/30"
+                    />
+                  </div>
+               </div>
+             </div>
+          )}
+
+        </div>
+      </div>
+    </div>
   );
 }
 
-const DetailItem = ({ icon: Icon, label, value, colors }: any) => (
-  <View style={styles.detailItem}>
-    <View style={[styles.detailIcon, { backgroundColor: colors.bgCard }]}>
-      <Icon size={16} color={colors.textSecondary} />
-    </View>
-    <View style={{ flex: 1 }}>
-      <Text style={[typography.caption, { color: colors.textTertiary, marginBottom: 2 }]}>{label}</Text>
-      <Text style={[typography.body, { color: colors.text }]}>{value}</Text>
-    </View>
-  </View>
-);
+function DetailItem({ icon: Icon, label, value }: { icon: any, label: string, value: string }) {
+  return (
+    <div className="flex items-center gap-4">
+      <div className="w-10 h-10 rounded-xl bg-sg-btn-bg border border-sg-border flex items-center justify-center flex-shrink-0 text-sg-muted">
+        <Icon size={16} />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-[11px] font-bold text-sg-muted uppercase tracking-wider mb-0.5">{label}</span>
+        <span className="text-sm font-semibold text-sg-text">{value}</span>
+      </div>
+    </div>
+  );
+}
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    gap: 12,
-    zIndex: 10,
-  },
-  backButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topBarTitleWrap: { flex: 1, gap: 2 },
-  profileHeaderCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 24,
-    gap: 24,
-    zIndex: 2,
-  },
-  avatarContainer: {
-    width: 108,
-    height: 108,
-    borderRadius: 54,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  contentRow: {
-    gap: 24,
-  },
-  detailList: {
-    gap: 16,
-    paddingVertical: 8,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  detailIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  essCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-  },
-  essIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  essActionIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  }
-});
+function KpiRow({ title, value, trend }: { title: string, value: string, trend: number }) {
+  const isUp = trend > 0;
+  const isDown = trend < 0;
+  return (
+    <div className="flex items-center justify-between p-4 rounded-2xl bg-sg-btn-bg border border-sg-border">
+      <span className="text-sm font-extrabold text-sg-text">{title}</span>
+      <div className="flex items-center gap-3">
+        <span className="text-lg font-black text-sg-heading">{value}</span>
+        {trend !== 0 && (
+          <span className={`text-[11px] font-black px-2 py-1 rounded-lg ${isUp ? 'bg-green-500/15 text-green-500' : 'bg-red-500/15 text-red-500'}`}>
+            {isUp ? '+' : ''}{trend}%
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SkillRow({ title, percent, colorClass }: { title: string, percent: number, colorClass: string }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-extrabold text-sg-text">{title}</span>
+        <span className="text-sm font-bold text-sg-subtext">{percent}%</span>
+      </div>
+      <div className="h-2 w-full bg-sg-border rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function TimelineItem({ title, desc, date, icon, iconBg }: { title: string, desc: string, date: string, icon?: React.ReactNode, iconBg?: string }) {
+  return (
+    <div className="relative">
+      <div className={`absolute -left-[37px] w-6 h-6 rounded-full border-2 flex items-center justify-center bg-sg-card ${iconBg || 'border-sg-border'}`}>
+        {icon || <div className="w-1.5 h-1.5 rounded-full bg-sg-subtext" />}
+      </div>
+      <div className="flex flex-col">
+        <span className="text-xs font-bold text-sg-muted uppercase tracking-widest mb-1">{date}</span>
+        <h4 className="text-sm font-black text-sg-heading mb-1.5">{title}</h4>
+        <p className="text-sm font-medium text-sg-subtext">{desc}</p>
+      </div>
+    </div>
+  );
+}

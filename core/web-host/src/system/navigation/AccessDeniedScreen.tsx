@@ -1,44 +1,23 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme, sgds } from '@sgroup/ui/src/theme/theme';
-import { ShieldAlert } from 'lucide-react-native';
+import { useNavigate } from 'react-router-dom'
+import { ShieldAlert } from 'lucide-react'
 
-export function AccessDeniedScreen({ navigation }: any) {
-  const colors = useTheme();
+export default function AccessDeniedScreen() {
+  const navigate = useNavigate()
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      <ShieldAlert size={64} color={colors.danger} />
-      <Text style={[sgds.typo.h2, { color: colors.text, marginTop: 24 }]}>
-        Truy cập bị từ chối
-      </Text>
-      <Text style={[sgds.typo.body, { color: colors.textSecondary, marginTop: 8, textAlign: 'center' }]}>
-        Bạn không có quyền truy cập vào phân hệ này.{'\n'}
+    <div className="min-h-screen flex flex-col items-center justify-center px-8 bg-slate-50">
+      <ShieldAlert size={64} className="text-red-500 mb-6" />
+      <h2 className="text-2xl font-black text-slate-900">Truy cập bị từ chối</h2>
+      <p className="text-base text-slate-500 mt-2 text-center leading-relaxed max-w-md">
+        Bạn không có quyền truy cập vào phân hệ này.<br />
         Hãy liên hệ quản trị viên để được cấp quyền.
-      </Text>
-      <TouchableOpacity
-        onPress={() => navigation.navigate('Workspace')}
-        style={[styles.btn, { backgroundColor: colors.brand }]}
+      </p>
+      <button
+        onClick={() => navigate('/')}
+        className="mt-6 px-6 py-3 rounded-xl bg-sg-red text-white font-bold cursor-pointer hover:bg-sg-red-dark transition-colors"
       >
-        <Text style={[sgds.typo.bodyBold, { color: colors.textOnBrand }]}>
-          Quay về trang chủ
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+        Quay về trang chủ
+      </button>
+    </div>
+  )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  btn: {
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-});

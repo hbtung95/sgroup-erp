@@ -1,45 +1,25 @@
-/**
- * RecruitmentScreen — HR Applicant Tracking System (ATS)
- * Features: Job postings, Premium Kanban pipeline, interview scheduling
- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator, Modal, Pressable } from 'react-native';
-import { UserPlus, Briefcase, Clock, CheckCircle, Search, Filter, MoreHorizontal, UserCog, Users, MapPin, Star, Sparkles, Bot, X } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '@sgroup/ui/src/theme/useAppTheme';
-import { sgds } from '@sgroup/ui/src/theme/theme';
-import { SGCard } from '@sgroup/ui/src/ui/components';
-import type { HRRole } from '../HRSidebar';
+import { UserPlus, Briefcase, Clock, CheckCircle, Search, MapPin, Sparkles, Bot, X, Users, Star } from 'lucide-react';
 import { useJobs, useCandidates } from '../hooks/useHR';
-
-// Data from API
+import type { HRRole } from '../HRSidebar';
 
 const STAGES = ['NEW', 'INTERVIEW', 'OFFERRED', 'REJECTED'];
 
 const STAGE_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  NEW: { bg: '#eff6ff', text: '#3b82f6', label: 'MỚI ỨNG TUYỂN' },
-  INTERVIEW: { bg: '#fef3c7', text: '#d97706', label: 'PHỎNG VẤN' },
-  OFFERRED: { bg: '#dcfce7', text: '#16a34a', label: 'ĐÃ OFFER' },
-  REJECTED: { bg: '#fee2e2', text: '#dc2626', label: 'TỪ CHỐI' },
+  NEW: { bg: 'bg-blue-50 dark:bg-blue-500/15', text: 'text-blue-500 dark:text-blue-400', label: 'MỚI ỨNG TUYỂN' },
+  INTERVIEW: { bg: 'bg-amber-50 dark:bg-amber-500/15', text: 'text-amber-500 dark:text-amber-400', label: 'PHỎNG VẤN' },
+  OFFERRED: { bg: 'bg-emerald-50 dark:bg-emerald-500/15', text: 'text-emerald-500 dark:text-emerald-400', label: 'ĐÃ OFFER' },
+  REJECTED: { bg: 'bg-red-50 dark:bg-red-500/15', text: 'text-red-500 dark:text-red-400', label: 'TỪ CHỐI' },
 };
 
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
-
 export function RecruitmentScreen({ userRole }: { userRole?: HRRole }) {
-  const { theme, isDark } = useAppTheme();
-  const cText = theme.colors.textPrimary;
-  const cSub = theme.colors.textSecondary;
-  const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
-  const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-
   const { data: rawJobs, isLoading: loadingJobs } = useJobs();
   const { data: rawCandidates, isLoading: loadingCandidates } = useCandidates();
+  
+  const [aiModalCandidate, setAiModalCandidate] = useState<any>(null);
 
   const safeJobs = Array.isArray(rawJobs) ? rawJobs : (rawJobs as any)?.data ?? [];
   const safeCandidates = Array.isArray(rawCandidates) ? rawCandidates : (rawCandidates as any)?.data ?? [];
-
-  const [aiModalCandidate, setAiModalCandidate] = useState<any>(null);
 
   const allJobs = safeJobs.map((j: any) => ({
     id: j.id,
@@ -59,277 +39,231 @@ export function RecruitmentScreen({ userRole }: { userRole?: HRRole }) {
     date: new Date(c.createdAt).toLocaleDateString('vi-VN'),
     stage: c.stage,
     rating: c.rating || '-',
-    fitScore: Math.floor(Math.random() * 20) + 75, // Mock AI Fit Score 75-95%
+    fitScore: Math.floor(Math.random() * 20) + 75, // Mock AI Fit Score
   }));
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
-      {/* ── AI Screening Modal ── */}
-      <Modal visible={!!aiModalCandidate} transparent animationType="slide" onRequestClose={() => setAiModalCandidate(null)}>
-        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }} onPress={() => setAiModalCandidate(null)}>
-          <Pressable style={{ width: '100%', maxWidth: 500, backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: 32, padding: 32, ...(Platform.OS === 'web' ? { boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' } : {}) }} onPress={() => {}}>
-            {aiModalCandidate && (
-              <View>
-                {/* Header */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-                  <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-                    <LinearGradient colors={['#8b5cf6', '#6366f1']} style={{ width: 56, height: 56, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
-                      <Bot size={28} color="#fff" />
-                    </LinearGradient>
-                    <View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Sparkles size={16} color="#8b5cf6" />
-                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: 0.5 }}>AI Resume Parsing</Text>
-                      </View>
-                      <Text style={{ fontSize: 24, fontWeight: '900', color: cText, marginTop: 4 }}>{aiModalCandidate.name}</Text>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: cSub, marginTop: 2 }}>Ứng tuyển: {aiModalCandidate.job}</Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity onPress={() => setAiModalCandidate(null)} style={{ padding: 8, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: 12 }}>
-                    <X size={20} color={cSub} />
-                  </TouchableOpacity>
-                </View>
+    <div className="p-8 pb-32 animate-sg-fade-in flex flex-col gap-8 w-full max-w-7xl mx-auto">
+      
+      {/* AI Screening Modal Overlay */}
+      {aiModalCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-sg-fade-in">
+          <div className="absolute inset-0" onClick={() => setAiModalCandidate(null)} />
+          <div className="relative w-full max-w-xl bg-sg-card border border-sg-border rounded-[32px] p-8 shadow-2xl animate-sg-slide-up">
+            
+            {/* Header */}
+            <div className="flex flex-row justify-between items-start mb-6">
+              <div className="flex flex-row gap-4 items-center">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                  <Bot size={28} className="text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex flex-row items-center gap-1.5 mb-1">
+                    <Sparkles size={14} className="text-indigo-500" />
+                    <span className="text-[11px] font-black tracking-widest text-indigo-500 uppercase">AI Resume Parsing</span>
+                  </div>
+                  <h2 className="text-[22px] font-black text-sg-heading tracking-tight leading-none">{aiModalCandidate.name}</h2>
+                  <p className="text-[13px] font-bold text-sg-subtext mt-1.5">Ứng tuyển: {aiModalCandidate.job}</p>
+                </div>
+              </div>
+              <button onClick={() => setAiModalCandidate(null)} className="p-2 rounded-xl bg-sg-btn-bg text-sg-subtext hover:text-sg-heading transition-colors">
+                <X size={20} />
+              </button>
+            </div>
 
-                {/* Score Circular Display Mock */}
-                <View style={{ padding: 24, borderRadius: 24, backgroundColor: isDark ? 'rgba(139,92,246,0.1)' : '#f3f0ff', borderWidth: 1, borderColor: isDark ? 'rgba(139,92,246,0.2)' : '#ede9fe', flexDirection: 'row', alignItems: 'center', gap: 24, marginBottom: 24 }}>
-                  <View style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 6, borderColor: '#8b5cf6', alignItems: 'center', justifyContent: 'center', backgroundColor: isDark ? '#1e293b' : '#fff' }}>
-                    <Text style={{ fontSize: 20, fontWeight: '900', color: '#8b5cf6' }}>{aiModalCandidate.fitScore}%</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: cText, marginBottom: 4 }}>Mức độ Phù hợp: RẤT CAO</Text>
-                    <Text style={{ fontSize: 13, fontWeight: '500', color: cSub, lineHeight: 20 }}>
-                      Kinh nghiệm của ứng viên rất khớp với yêu cầu của vị trí {aiModalCandidate.job}. Kỹ năng chuyên môn đạt yêu cầu 90%.
-                    </Text>
-                  </View>
-                </View>
+            {/* Score Circular Display Mock */}
+            <div className="p-6 rounded-[24px] bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 flex flex-row items-center gap-6 mb-6">
+              <div className="w-20 h-20 rounded-full border-[6px] border-indigo-500 bg-sg-card flex items-center justify-center shrink-0">
+                <span className="text-[22px] font-black text-indigo-500">{aiModalCandidate.fitScore}%</span>
+              </div>
+              <div className="flex-col">
+                <h3 className="text-[16px] font-black text-sg-heading mb-1.5">Mức độ Phù hợp: RẤT CAO</h3>
+                <p className="text-[13px] font-medium text-sg-subtext leading-relaxed">
+                  Kinh nghiệm của ứng viên rất khớp với yêu cầu của vị trí {aiModalCandidate.job}. Kỹ năng chuyên môn đạt yêu cầu 90%.
+                </p>
+              </div>
+            </div>
 
-                {/* Key Insights */}
-                <View style={{ gap: 16 }}>
-                  <View style={{ gap: 8 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: cText, textTransform: 'uppercase' }}>Điểm mạnh nổi bật</Text>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                      {['3 năm kinh nghiệm', 'Kỹ năng giao tiếp tốt', 'Phù hợp văn hóa'].map(t => (
-                        <View key={t} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: isDark ? 'rgba(34,197,94,0.15)' : '#dcfce7', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <CheckCircle size={14} color="#16a34a" />
-                          <Text style={{ fontSize: 13, fontWeight: '700', color: '#16a34a' }}>{t}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                  <View style={{ gap: 8, marginTop: 8 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: cText, textTransform: 'uppercase' }}>Cần lưu ý</Text>
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                      <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#fef3c7', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                         <Text style={{ fontSize: 13, fontWeight: '700', color: '#d97706' }}>Thiếu kinh nghiệm quản lý nhóm lớn</Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
+            {/* Insights */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <span className="text-[12px] font-black text-sg-heading uppercase tracking-wider">Điểm mạnh nổi bật</span>
+                <div className="flex flex-row flex-wrap gap-2">
+                  {['3 năm kinh nghiệm', 'Kỹ năng giao tiếp', 'Phù hợp văn hóa'].map(t => (
+                    <div key={t} className="px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex flex-row items-center gap-1.5 border border-emerald-100 dark:border-emerald-500/20">
+                      <CheckCircle size={14} className="text-emerald-500" />
+                      <span className="text-[12px] font-bold text-emerald-600 dark:text-emerald-400">{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 mt-2">
+                <span className="text-[12px] font-black text-sg-heading uppercase tracking-wider">Cần lưu ý</span>
+                <div className="flex flex-row flex-wrap gap-2">
+                  <div className="px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex flex-row items-center gap-1.5 border border-amber-100 dark:border-amber-500/20">
+                    <span className="text-[12px] font-bold text-amber-600 dark:text-amber-400">Thiếu kinh nghiệm quản lý nhóm</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                {/* Actions */}
-                <View style={{ flexDirection: 'row', gap: 12, marginTop: 32 }}>
-                  <TouchableOpacity onPress={() => setAiModalCandidate(null)} style={{ flex: 1, paddingVertical: 14, borderRadius: 16, alignItems: 'center', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: cSub }}>Đóng</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setAiModalCandidate(null)} style={{ flex: 1, paddingVertical: 14, borderRadius: 16, alignItems: 'center', backgroundColor: '#8b5cf6', flexDirection: 'row', justifyContent: 'center', gap: 8, shadowColor: '#8b5cf6', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }}>
-                    <CheckCircle size={16} color="#fff" />
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff' }}>Duyệt CV Này</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </Pressable>
-        </Pressable>
-      </Modal>
+            {/* Actions */}
+            <div className="flex flex-row gap-3 mt-8">
+              <button onClick={() => setAiModalCandidate(null)} className="flex-1 py-3.5 rounded-xl bg-sg-btn-bg hover:bg-sg-border border border-sg-border transition-colors font-black text-[13px] text-sg-subtext">
+                ĐÓNG
+              </button>
+              <button onClick={() => setAiModalCandidate(null)} className="flex-1 py-3.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/30 text-white transition-all font-black text-[13px] flex items-center justify-center gap-2">
+                <CheckCircle size={16} />
+                <span>DUYỆT CV NÀY</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <ScrollView contentContainerStyle={{ padding: 32, gap: 32, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-        
-        {/* Premium Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <LinearGradient 
-              colors={['#f59e0b', '#d97706']} start={{x:0,y:0}} end={{x:1,y:1}}
-              style={{ width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', 
-                     shadowColor: '#f59e0b', shadowOpacity: 0.5, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}
-            >
-              <UserPlus size={28} color="#fff" />
-            </LinearGradient>
-            <View>
-              <Text style={{ fontSize: 32, fontWeight: '900', color: cText, letterSpacing: -1 }}>Tuyển Dụng (ATS)</Text>
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#94a3b8', marginTop: 4 }}>Quản lý Quy trình & Hồ sơ ứng viên</Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <TouchableOpacity style={{
-              backgroundColor: '#f59e0b', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16,
-              shadowColor: '#f59e0b', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
-              ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {}),
-            }}>
-              <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff', letterSpacing: 0.5 }}>TẠO TIN TUYỂN DỤNG</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex flex-row items-center gap-4">
+          <div className="w-16 h-16 rounded-[20px] bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+            <UserPlus size={28} className="text-white" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-[32px] font-black text-sg-heading tracking-tight leading-none">Tuyển Dụng (ATS)</h2>
+            <p className="text-[15px] font-medium text-sg-subtext mt-1.5">Quản lý Quy trình & Hồ sơ ứng viên</p>
+          </div>
+        </div>
+        <button className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3.5 rounded-xl shadow-lg shadow-amber-500/30 transition-all text-[13px] font-black uppercase tracking-wider">
+          TẠO TIN TUYỂN DỤNG
+        </button>
+      </div>
 
-        {/* Stats Summary */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap' }}>
-          {[
-            { label: 'VỊ TRÍ ĐANG TUYỂN', val: '3', unit: 'jobs', icon: Briefcase, color: '#f59e0b', shadow: '#f59e0b' },
-            { label: 'TỔNG CV MỚI (Tháng)', val: '89', unit: 'CVs', icon: UserPlus, color: '#3b82f6', shadow: '#3b82f6' },
-            { label: 'ĐANG PHỎNG VẤN', val: '14', unit: 'người', icon: Clock, color: '#8b5cf6', shadow: '#8b5cf6' },
-            { label: 'NHẬN VIỆC (Tháng)', val: '5', unit: 'người', icon: CheckCircle, color: '#10b981', shadow: '#10b981' },
-          ].map((s, i) => (
-            <LinearGradient
-              key={i}
-              colors={isDark ? ['rgba(30,41,59,0.7)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
-              style={{
-                flex: 1, minWidth: 200, padding: 24, borderRadius: 24,
-                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.03)',
-                shadowColor: isDark ? '#000' : s.shadow, shadowOpacity: isDark ? 0.5 : 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${s.color}15`, alignItems: 'center', justifyContent: 'center' }}>
-                  <s.icon size={22} color={s.color} />
-                </View>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, flex: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-                <Text style={{ fontSize: 36, fontWeight: '900', color: cText, letterSpacing: -1 }}>{s.val}</Text>
-                {s.unit ? <Text style={{ fontSize: 15, fontWeight: '700', color: cSub }}>{s.unit}</Text> : null}
-              </View>
-            </LinearGradient>
-          ))}
-        </Animated.View>
+      {/* Stats Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'VỊ TRÍ ĐANG TUYỂN', val: '3', unit: 'jobs', icon: Briefcase, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+          { label: 'TỔNG CV MỚI', val: '89', unit: 'CVs', icon: UserPlus, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+          { label: 'ĐANG PHỎNG VẤN', val: '14', unit: 'người', icon: Clock, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+          { label: 'NHẬN VIỆC', val: '5', unit: 'người', icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+        ].map((s, i) => (
+          <div key={i} className="bg-sg-card border border-sg-border p-6 rounded-[24px] shadow-sm flex flex-col hover:shadow-md transition-shadow">
+            <div className="flex flex-row items-center gap-3 mb-4">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.bg}`}>
+                <s.icon size={20} className={s.color} />
+              </div>
+              <span className="text-[11px] font-black text-sg-subtext uppercase tracking-wider">{s.label}</span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[36px] font-black text-sg-heading tracking-tight leading-none">{s.val}</span>
+              <span className="text-[14px] font-bold text-sg-subtext">{s.unit}</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
-        {/* Active Jobs Horizon List */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-          <Text style={{ fontSize: 20, fontWeight: '900', color: cText, marginBottom: 20 }}>Vị trí Đang mở</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20 }}>
-            {loadingJobs ? (
-              <View style={{ padding: 40, alignItems: 'center' }}><ActivityIndicator size="large" color="#f59e0b" /></View>
-            ) : allJobs.map((job: any, idx: number) => (
-              <Animated.View entering={FadeInDown.delay(300 + idx * 50).duration(400).springify()} key={job.id} style={{
-                width: 300, padding: 24, borderRadius: 24,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#ffffff', 
-                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
-                shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.04, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4,
-              }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: job.status === 'OPEN' ? 'rgba(34,197,94,0.15)' : job.status === 'URGENT' ? 'rgba(220,38,38,0.15)' : 'rgba(100,116,139,0.15)' }}>
-                    <Text style={{ fontSize: 11, fontWeight: '900', color: job.status === 'OPEN' ? '#16a34a' : job.status === 'URGENT' ? '#dc2626' : '#64748b' }}>
-                      {job.status}
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <MapPin size={14} color={cSub} />
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: cSub }}>{job.location}</Text>
-                  </View>
-                </View>
-                <Text style={{ fontSize: 18, fontWeight: '900', color: cText, marginBottom: 6 }}>{job.title}</Text>
-                <Text style={{ fontSize: 14, fontWeight: '600', color: cSub, marginBottom: 24 }}>{job.dept} • {job.type}</Text>
-                
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(59,130,246,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-                      <Users size={16} color="#3b82f6" />
-                    </View>
-                    <Text style={{ fontSize: 15, fontWeight: '800', color: cText }}>{job.candidates} <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>CVs</Text></Text>
-                  </View>
-                  <TouchableOpacity>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#f59e0b' }}>Chi tiết</Text>
-                  </TouchableOpacity>
-                </View>
-              </Animated.View>
-            ))}
-          </ScrollView>
-        </Animated.View>
-
-        {/* KANBAN BOARD for Candidates */}
-        <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ marginTop: 12 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <View>
-              <Text style={{ fontSize: 20, fontWeight: '900', color: cText }}>Pipeline Ứng viên</Text>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: cSub, marginTop: 4 }}>Kéo thả ứng viên để thay đổi trạng thái (Web)</Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#f8fafc', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor }}>
-              <Search size={18} color={cSub} />
-              <Text style={{ color: cSub, fontSize: 14, fontWeight: '600' }}>Tìm kiếm ứng viên...</Text>
-            </View>
-          </View>
-          
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 24 }}>
-            {STAGES.map((stage, sIdx) => {
-              const conf = STAGE_CONFIG[stage];
-              const stageCandidates = allCandidates.filter((c: any) => c.stage === stage);
+      {/* Active Jobs */}
+      <div className="flex flex-col gap-4">
+        <h3 className="text-xl font-black text-sg-heading">Vị trí Đang mở</h3>
+        <div className="flex overflow-x-auto pb-4 gap-5 custom-scrollbar">
+          {loadingJobs ? (
+            <div className="p-8"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
+          ) : allJobs.map((job: any) => (
+            <div key={job.id} className="min-w-[300px] w-[300px] bg-sg-card border border-sg-border p-6 rounded-[24px] shadow-sm hover:shadow-md transition-all shrink-0 flex flex-col">
+              <div className="flex flex-row justify-between items-center mb-4">
+                <span className={`px-2.5 py-1 rounded-[8px] text-[10px] font-black uppercase tracking-wider ${
+                  job.status === 'OPEN' ? 'bg-emerald-500/15 text-emerald-500' :
+                  job.status === 'URGENT' ? 'bg-red-500/15 text-red-500' : 'bg-sg-btn-bg text-sg-subtext'
+                }`}>
+                  {job.status}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <MapPin size={14} className="text-sg-subtext" />
+                  <span className="text-[12px] font-bold text-sg-subtext">{job.location}</span>
+                </div>
+              </div>
+              <h4 className="text-[18px] font-black text-sg-heading mb-1">{job.title}</h4>
+              <p className="text-[13px] font-bold text-sg-subtext mb-5">{job.dept} • {job.type}</p>
               
-              return (
-                <Animated.View entering={FadeInDown.delay(400 + sIdx * 50).duration(400).springify()} key={stage} style={{ 
-                  width: 320, 
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc', 
-                  borderRadius: 24, 
-                  padding: 16,
-                  borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.04)' : '#f1f5f9',
-                }}>
-                  {/* Column Header */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, paddingHorizontal: 4 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: conf.text }} />
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{conf.label}</Text>
-                    </View>
-                    <View style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
-                      <Text style={{ fontSize: 12, fontWeight: '800', color: cText }}>{stageCandidates.length}</Text>
-                    </View>
-                  </View>
+              <div className="mt-auto pt-4 border-t border-sg-border flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                    <Users size={16} className="text-blue-500" />
+                  </div>
+                  <span className="text-[15px] font-black text-sg-heading tracking-tight">{job.candidates} <span className="text-[12px] font-bold text-sg-subtext">CVs</span></span>
+                </div>
+                <button className="text-[13px] font-black text-amber-500 hover:text-amber-600">
+                  CHI TIẾT
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-                  {/* Candidate Cards */}
-                  <View style={{ gap: 16 }}>
-                    {loadingCandidates ? (
-                       <ActivityIndicator color={conf.text} style={{ padding: 20 }} />
-                    ) : stageCandidates.length === 0 ? (
-                      <View style={{ padding: 30, alignItems: 'center', borderWidth: 2, borderStyle: 'dashed', borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#cbd5e1', borderRadius: 16 }}>
-                        <Text style={{ color: cSub, fontSize: 13, fontWeight: '600' }}>Trống</Text>
-                      </View>
-                    ) : stageCandidates.map((c: any, cIdx: number) => (
-                      <AnimatedTouchableOpacity 
-                        entering={FadeInDown.delay(500 + sIdx * 50 + cIdx * 30).duration(300).springify()}
-                        key={c.id} 
-                        style={{
-                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
-                        borderRadius: 16, padding: 16,
-                        borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
-                        shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2,
-                        ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {}),
-                      }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={{ fontSize: 15, fontWeight: '800', color: cText, marginBottom: 2 }}>{c.name}</Text>
-                            <Text style={{ fontSize: 12, fontWeight: '600', color: '#3b82f6' }}>{c.job}</Text>
-                          </View>
-                          <TouchableOpacity onPress={() => setAiModalCandidate(c)} style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: 'rgba(139,92,246,0.15)', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                            <Sparkles size={12} color="#8b5cf6" />
-                            <Text style={{ fontSize: 11, fontWeight: '800', color: '#8b5cf6' }}>{c.fitScore}% FIT</Text>
-                          </TouchableOpacity>
-                        </View>
-                        
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <Star size={14} color={c.rating.startsWith('9') || c.rating.startsWith('8') ? '#10b981' : '#f59e0b'} fill={c.rating.startsWith('9') || c.rating.startsWith('8') ? '#10b981' : '#f59e0b'} />
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: cSub }}>
-                              {c.rating !== '-' ? `${c.rating}/10` : 'Chưa đánh giá'}
-                            </Text>
-                          </View>
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#94a3b8' }}>{c.date}</Text>
-                        </View>
-                      </AnimatedTouchableOpacity>
-                    ))}
-                  </View>
-                </Animated.View>
-              );
-            })}
-          </ScrollView>
-        </Animated.View>
+      {/* Kanban Board */}
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col">
+            <h3 className="text-[22px] font-black text-sg-heading tracking-tight">Pipeline Ứng viên</h3>
+            <p className="text-[14px] font-medium text-sg-subtext mt-1">Kéo thả ứng viên để thay đổi trạng thái (Web)</p>
+          </div>
+          <div className="flex items-center gap-2 bg-sg-card border border-sg-border p-3 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
+            <Search size={18} className="text-sg-subtext ml-1" />
+            <input type="text" placeholder="Tìm kiếm ứng viên..." className="bg-transparent border-none outline-none text-[14px] font-medium text-sg-heading w-48 placeholder:text-sg-subtext" />
+          </div>
+        </div>
 
-      </ScrollView>
-    </View>
+        <div className="flex overflow-x-auto pb-4 gap-6 custom-scrollbar items-start">
+          {STAGES.map((stage) => {
+            const conf = STAGE_CONFIG[stage];
+            const stageCandidates = allCandidates.filter((c: any) => c.stage === stage);
+            
+            return (
+              <div key={stage} className="min-w-[320px] w-[320px] bg-sg-btn-bg/30 border border-sg-border p-4 rounded-[28px] shrink-0">
+                <div className="flex flex-row items-center justify-between px-2 mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-3 h-3 rounded-full ${conf.text.replace('text-', 'bg-').split(' ')[0]}`} />
+                    <span className="text-[13px] font-black text-sg-heading tracking-wider">{conf.label}</span>
+                  </div>
+                  <div className="px-2.5 py-1 rounded-[8px] bg-sg-btn-bg">
+                    <span className="text-[12px] font-black text-sg-heading">{stageCandidates.length}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {loadingCandidates ? (
+                    <div className="py-8 flex justify-center"><div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
+                  ) : stageCandidates.length === 0 ? (
+                    <div className="py-8 border-2 border-dashed border-sg-border rounded-[20px] flex items-center justify-center">
+                      <span className="text-[13px] font-bold text-sg-subtext">Trống</span>
+                    </div>
+                  ) : stageCandidates.map((c: any) => (
+                    <div key={c.id} className="bg-sg-card border border-sg-border p-4 rounded-[20px] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-grab active:cursor-grabbing">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex flex-col pr-2">
+                          <span className="text-[15px] font-black text-sg-heading leading-tight">{c.name}</span>
+                          <span className="text-[12px] font-bold text-blue-500 mt-1">{c.job}</span>
+                        </div>
+                        <button onClick={() => setAiModalCandidate(c)} className="shrink-0 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 flex items-center gap-1.5 hover:bg-indigo-500/20 transition-colors">
+                          <Sparkles size={12} className="text-indigo-500" />
+                          <span className="text-[11px] font-black text-indigo-500">{c.fitScore}%</span>
+                        </button>
+                      </div>
+
+                      <div className="flex justify-between items-center mt-4">
+                        <div className="flex items-center gap-1.5">
+                          <Star size={14} className={c.rating.startsWith('9') || c.rating.startsWith('8') ? 'text-emerald-500 fill-emerald-500' : 'text-amber-500 fill-amber-500'} />
+                          <span className="text-[12px] font-black text-sg-subtext">{c.rating !== '-' ? `${c.rating}/10` : 'Chưa ĐG'}</span>
+                        </div>
+                        <span className="text-[11px] font-bold text-sg-muted">{c.date}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }

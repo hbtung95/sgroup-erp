@@ -1,21 +1,10 @@
-/**
- * PerformanceScreen — HR Performance & Evaluation Management
- * Features: View employee KPIs, review cycles, and performance ratings
- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { TrendingUp, Target, Award, Star, Search, CheckCircle, Clock, LayoutGrid, List, Medal, Crown } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '@sgroup/ui/src/theme/useAppTheme';
-import { sgds } from '@sgroup/ui/src/theme/theme';
-import { SGCard, SGTable } from '@sgroup/ui/src/ui/components';
-import type { HRRole } from '../HRSidebar';
+import { TrendingUp, Target, Award, Star, Search, CheckCircle, Clock, LayoutGrid, List, Medal, Crown } from 'lucide-react';
 import { usePerformance } from '../hooks/useHR';
+import type { HRRole } from '../HRSidebar';
 
 const currentYear = new Date().getFullYear();
 
-// Data comes from API now
 function scoreToRating(score: number): string {
   if (score >= 90) return 'A';
   if (score >= 80) return 'A-';
@@ -25,23 +14,17 @@ function scoreToRating(score: number): string {
 }
 
 const RATING_COLORS: Record<string, string> = {
-  'A': '#8b5cf6',
-  'A-': '#3b82f6',
-  'B+': '#10b981',
-  'B': '#f59e0b',
-  'C': '#ef4444',
-  '-': '#64748b',
+  'A': 'text-purple-500',
+  'A-': 'text-blue-500',
+  'B+': 'text-emerald-500',
+  'B': 'text-amber-500',
+  'C': 'text-red-500',
+  '-': 'text-slate-400',
 };
-
-
 
 export function PerformanceScreen({ userRole }: { userRole?: HRRole }) {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
-  const { theme, isDark } = useAppTheme();
-  const cText = theme.colors.textPrimary;
-  const cSub = theme.colors.textSecondary;
-  const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
-  const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const [searchQuery, setSearchQuery] = useState('');
 
   const currentQuarter = `Q${Math.ceil((new Date().getMonth() + 1) / 3)}-${currentYear}`;
   const { data: rawPerformance, isLoading } = usePerformance({ period: currentQuarter });
@@ -54,303 +37,236 @@ export function PerformanceScreen({ userRole }: { userRole?: HRRole }) {
       id: p.id,
       code: p.employee?.employeeCode || '',
       name: p.employee?.fullName || '',
-      dept: '',
-      role: '',
+      dept: p.employee?.department?.name || 'Vận Hành',
+      role: 'Chuyên viên',
       target: 100,
       actual: Math.round(score),
       rating: score > 0 ? scoreToRating(score) : '-',
       status: statusMap[p.status] || p.status,
     };
-  });
+  }).filter((p: any) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.code.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const completedCount = perfData.filter((r: any) => r.status === 'COMPLETED').length;
   const inProgressCount = perfData.filter((r: any) => r.status === 'IN_PROGRESS').length;
   const highPerformers = perfData.filter((r: any) => ['A', 'A-'].includes(r.rating)).length;
   const completePct = perfData.length > 0 ? Math.round(completedCount / perfData.length * 100) : 0;
 
-  const COLUMNS: any = [
-    { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
-      <View>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: cText }}>{v}</Text>
-        <Text style={{ fontSize: 11, color: cSub, marginTop: 2 }}>{row.code} • {row.dept}</Text>
-      </View>
-    ) },
-    { key: 'role', title: 'CHỨC DANH', flex: 1, render: (v: any) => <Text style={{ fontSize: 12, color: cText }}>{v}</Text> },
-    { key: 'actual', title: 'HOÀN THÀNH (%)', flex: 1, align: 'center', render: (v: any, row: any) => (
-      <View style={{ alignItems: 'center' }}>
-        <Text style={{ fontSize: 13, fontWeight: '800', color: v >= 100 ? '#10b981' : v >= 80 ? '#f59e0b' : '#ef4444' }}>{v}%</Text>
-        <View style={{ width: '100%', height: 4, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9', borderRadius: 2, marginTop: 4 }}>
-          <View style={{ width: `${Math.min(v, 100)}%`, height: '100%', backgroundColor: v >= 100 ? '#10b981' : v >= 80 ? '#f59e0b' : '#ef4444', borderRadius: 2 }} />
-        </View>
-      </View>
-    ) },
-    { key: 'rating', title: 'XẾP LOẠI', flex: 0.8, align: 'center', render: (v: any) => (
-      <Text style={{ fontSize: 14, fontWeight: '900', color: RATING_COLORS[v] || cText }}>{v}</Text>
-    ) },
-    { key: 'status', title: 'TRẠNG THÁI Đ.GIÁ', flex: 1, align: 'center', render: (v: any) => {
-      let bg = '#f1f5f9', text = '#64748b', label = 'CHƯA BẮT ĐẦU';
-      if (v === 'COMPLETED') { bg = '#dcfce7'; text = '#16a34a'; label = 'ĐÃ HOÀN TẤT'; }
-      if (v === 'IN_PROGRESS') { bg = '#fef3c7'; text = '#d97706'; label = 'ĐANG ĐÁNH GIÁ'; }
-      
-      return (
-        <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: bg, alignSelf: 'center' }}>
-          <Text style={{ fontSize: 10, fontWeight: '800', color: text }}>{label}</Text>
-        </View>
-      );
-    } },
-    { key: 'actions', title: '', flex: 0.5, align: 'right', render: () => (
-      <TouchableOpacity style={{ padding: 6 }}>
-        <Text style={{ fontSize: 12, fontWeight: '700', color: '#3b82f6' }}>Chi tiết</Text>
-      </TouchableOpacity>
-    ) }
-  ];
-
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
-      <ScrollView contentContainerStyle={{ padding: 28, gap: 24, paddingBottom: 120 }}>
-        {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <View style={{ width: 52, height: 52, borderRadius: 18, backgroundColor: '#10b98120', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={24} color="#10b981" />
-            </View>
-            <View>
-              <Text style={{ ...sgds.typo.h2, color: cText }}>Đánh giá Hiệu suất (KPIs)</Text>
-              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>Kỳ đánh giá: Q1 - {currentYear}</Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <TouchableOpacity style={{
-              backgroundColor: '#10b981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
-              ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {}),
-            }}>
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff' }}>TẠO KỲ ĐÁNH GIÁ MỚI</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
+    <div className="p-8 pb-32 animate-sg-fade-in flex flex-col gap-6 w-full max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex flex-row items-center gap-4">
+          <div className="w-16 h-16 rounded-[20px] bg-emerald-500/10 flex items-center justify-center shadow-sm">
+            <TrendingUp size={28} className="text-emerald-500" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-[32px] font-black text-sg-heading tracking-tight leading-none">Đánh giá Hiệu suất (KPIs)</h2>
+            <p className="text-[15px] font-medium text-sg-subtext mt-1.5">Kỳ đánh giá: {currentQuarter}</p>
+          </div>
+        </div>
+        <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3.5 rounded-xl shadow-lg shadow-emerald-500/30 transition-all text-[13px] font-black uppercase tracking-wider">
+          TẠO KỲ ĐÁNH GIÁ MỚI
+        </button>
+      </div>
 
-        {/* Stats Summary */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
+      {/* Stats Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'TỔNG NHẬN ĐÁNH GIÁ', val: String(perfData.length), unit: 'người', icon: Target, bg: 'bg-blue-50 dark:bg-blue-500/10', color: 'text-blue-500' },
+          { label: 'TỈ LỆ HOÀN TẤT', val: String(completePct), unit: '%', icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-500/10', color: 'text-emerald-500' },
+          { label: 'XẾP LOẠI A & A-', val: String(highPerformers), unit: 'người', icon: Star, bg: 'bg-purple-50 dark:bg-purple-500/10', color: 'text-purple-500' },
+          { label: 'ĐANG ĐÁNH GIÁ', val: String(inProgressCount), unit: 'người', icon: Clock, bg: 'bg-amber-50 dark:bg-amber-500/10', color: 'text-amber-500' },
+        ].map((s, i) => (
+          <div key={i} className="bg-sg-card border border-sg-border p-6 rounded-[24px] shadow-sm hover:shadow-md transition-shadow flex flex-col">
+            <div className="flex flex-row items-center gap-3 mb-4">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.bg}`}>
+                <s.icon size={20} className={s.color} />
+              </div>
+              <span className="text-[11px] font-black text-sg-subtext uppercase tracking-wider">{s.label}</span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[36px] font-black text-sg-heading tracking-tight leading-none">{s.val}</span>
+              <span className="text-[14px] font-bold text-sg-subtext">{s.unit}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Gamification Leaderboard */}
+      <div className="bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-sg-portal-bg border border-amber-200 dark:border-amber-500/20 rounded-[28px] p-8 shadow-sm flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col justify-center min-w-[200px]">
+          <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center mb-4">
+            <Crown size={28} className="text-amber-500" />
+          </div>
+          <h3 className="text-[22px] font-black text-sg-heading tracking-tight">Bảng Vàng Thành Tích</h3>
+          <p className="text-[13px] font-bold text-sg-subtext mt-1.5">Top 3 cá nhân xuất sắc nhất Quý</p>
+        </div>
+        
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { label: 'TỔNG NHẬN ĐÁNH GIÁ', val: String(perfData.length), unit: 'người', icon: Target, color: '#3b82f6', gradient: ['#3b82f6', '#2563eb'], shadow: '#3b82f6' },
-            { label: 'TỈ LỆ HOÀN TẤT', val: String(completePct), unit: '%', icon: CheckCircle, color: '#10b981', gradient: ['#10b981', '#059669'], shadow: '#10b981' },
-            { label: 'XẾP LOẠI A & A-', val: String(highPerformers), unit: 'người', icon: Star, color: '#8b5cf6', gradient: ['#8b5cf6', '#6366f1'], shadow: '#8b5cf6' },
-            { label: 'ĐANG ĐÁNH GIÁ', val: String(inProgressCount), unit: '', icon: Clock, color: '#f59e0b', gradient: ['#f59e0b', '#d97706'], shadow: '#f59e0b' },
-          ].map((s, i) => (
-            <LinearGradient
-              key={i}
-              colors={isDark ? ['rgba(30,41,59,0.7)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#f8fafc']}
-              style={{
-                flex: 1, minWidth: 200, padding: 24, borderRadius: 24,
-                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.03)',
-                shadowColor: isDark ? '#000' : s.shadow, shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 5,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <LinearGradient
-                  colors={s.gradient as [string, string]} start={{x:0, y:0}} end={{x:1, y:1}}
-                  style={{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', shadowColor: s.shadow, shadowOpacity: 0.4, shadowRadius: 8, shadowOffset: {width:0, height:4} }}
-                >
-                  <s.icon size={22} color="#fff" />
-                </LinearGradient>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, flex: 1, letterSpacing: 0.5 }}>{s.label}</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-                <Text style={{ fontSize: 36, fontWeight: '900', color: cText, letterSpacing: -1 }}>{s.val}</Text>
-                {s.unit ? <Text style={{ fontSize: 16, fontWeight: '700', color: cSub }}>{s.unit}</Text> : null}
-              </View>
-            </LinearGradient>
+            { name: 'Nguyễn Văn A', role: 'Trưởng phòng Kinh Doanh', score: 98, badge: 'Vua Doanh Số', color: 'text-amber-500', bgBadge: 'bg-amber-500/15' },
+            { name: 'Trần Thị B', role: 'Chuyên viên Marketing', score: 95, badge: 'Sáng tạo', color: 'text-slate-500 dark:text-slate-400', bgBadge: 'bg-slate-500/15' },
+            { name: 'Lê Văn C', role: 'Dev Lead', score: 92, badge: 'Bug Hunter', color: 'text-orange-600 dark:text-orange-500', bgBadge: 'bg-orange-500/15' },
+          ].map((lb, idx) => (
+            <div key={idx} className="bg-sg-card/80 backdrop-blur-md border border-sg-border rounded-[20px] p-5 flex flex-col gap-3 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[15px] font-black ${lb.color}`}>#{idx + 1}</span>
+                  {idx === 0 ? <Crown size={16} className={lb.color} /> : <Medal size={16} className={lb.color} />}
+                </div>
+                <span className={`px-2.5 py-1 rounded-[8px] text-[10px] font-black uppercase tracking-wider ${lb.bgBadge} ${lb.color}`}>
+                  {lb.badge}
+                </span>
+              </div>
+              <div className="flex flex-col pt-1">
+                <span className="text-[16px] font-black text-sg-heading leading-tight truncate">{lb.name}</span>
+                <span className="text-[12px] font-bold text-sg-subtext uppercase tracking-wider mt-1 truncate">{lb.role}</span>
+              </div>
+              <div className="mt-auto pt-2 flex items-baseline gap-1">
+                <span className={`text-[28px] font-black tracking-tight ${lb.color}`}>{lb.score}</span>
+                <span className={`text-[14px] font-bold ${lb.color}`}>% KPI</span>
+              </div>
+            </div>
           ))}
-        </Animated.View>
+        </div>
+      </div>
 
-        {/* ═══ Gamification Leaderboard ═══ */}
-        <Animated.View entering={FadeInDown.delay(150).duration(400)} style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap', marginTop: 8 }}>
-          <LinearGradient
-            colors={isDark ? ['rgba(245,158,11,0.15)', 'rgba(30,41,59,0.5)'] : ['#fffbeb', '#ffffff']}
-            style={{
-              flex: 1, minWidth: 320, padding: 24, borderRadius: 28,
-              borderWidth: 1, borderColor: isDark ? 'rgba(245,158,11,0.2)' : '#fde68a',
-              shadowColor: '#f59e0b', shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 5,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                 <View style={{ padding: 8, borderRadius: 12, backgroundColor: '#fef3c7' }}>
-                   <Crown size={20} color="#f59e0b" />
-                 </View>
-                 <View>
-                   <Text style={{ fontSize: 18, fontWeight: '900', color: cText }}>Bảng Vàng Thành Tích</Text>
-                   <Text style={{ fontSize: 13, fontWeight: '600', color: cSub, marginTop: 2 }}>Top 3 cá nhân xuất sắc nhất Quý</Text>
-                 </View>
-              </View>
-            </View>
-            <View style={{ gap: 12 }}>
-              {[
-                { name: 'Nguyễn Văn A', role: 'Trưởng nhóm KD', score: 98, rank: 1, color: '#f59e0b', badge: 'Vua Doanh Số' },
-                { name: 'Trần Thị B', role: 'Chuyên viên Marketing', score: 95, rank: 2, color: '#94a3b8', badge: 'Sáng tạo' },
-                { name: 'Lê Văn C', role: 'Dev Lead', score: 92, rank: 3, color: '#b45309', badge: 'Bug Hunter' },
-              ].map((lb, idx) => (
-                <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 16, backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9' }}>
-                   <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: `${lb.color}20`, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                     {lb.rank === 1 ? <Crown size={16} color={lb.color} /> : <Medal size={16} color={lb.color} />}
-                   </View>
-                   <View style={{ flex: 1 }}>
-                     <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{lb.name}</Text>
-                     <Text style={{ fontSize: 12, fontWeight: '600', color: cSub, marginTop: 2 }}>{lb.role}</Text>
-                   </View>
-                   <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: 'rgba(59,130,246,0.1)', marginRight: 12 }}>
-                     <Text style={{ fontSize: 11, fontWeight: '800', color: '#3b82f6' }}>{lb.badge}</Text>
-                   </View>
-                   <Text style={{ fontSize: 16, fontWeight: '900', color: lb.color }}>{lb.score}%</Text>
-                </View>
-              ))}
-            </View>
-          </LinearGradient>
-        </Animated.View>
+      {/* Action Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className="flex flex-row bg-sg-card border border-sg-border p-1 rounded-xl shadow-sm">
+          <button onClick={() => setViewMode('table')} className={`p-2.5 rounded-lg transition-colors ${viewMode === 'table' ? 'bg-sg-btn-bg text-sg-heading shadow-sm' : 'text-sg-subtext hover:text-sg-heading'}`}>
+            <List size={20} />
+          </button>
+          <button onClick={() => setViewMode('grid')} className={`p-2.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-sg-btn-bg text-sg-heading shadow-sm' : 'text-sg-subtext hover:text-sg-heading'}`}>
+            <LayoutGrid size={20} />
+          </button>
+        </div>
+        
+        <div className="flex-1 flex flex-row items-center gap-3 bg-sg-card border border-sg-border rounded-xl px-5 py-3.5 shadow-sm focus-within:ring-2 focus-within:ring-emerald-500">
+          <Search size={20} className="text-sg-muted" />
+          <input 
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Tìm nhân viên, phòng ban..."
+            className="flex-1 bg-transparent border-none outline-none text-[14px] font-medium text-sg-heading placeholder:text-sg-subtext"
+          />
+        </div>
+      </div>
 
-        {/* Filters */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flexDirection: 'row', gap: 12, alignItems: 'center', marginTop: 8 }}>
-          <View style={{
-            flexDirection: 'row', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
-            borderRadius: 16, padding: 4,
-          }}>
-            <TouchableOpacity onPress={() => setViewMode('table')} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: viewMode === 'table' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowColor: '#000', shadowOpacity: viewMode === 'table' ? 0.05 : 0, shadowRadius: 4, elevation: viewMode === 'table' ? 2 : 0 }}>
-              <List size={18} color={viewMode === 'table' ? (isDark ? '#fff' : cText) : cSub} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setViewMode('grid')} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: viewMode === 'grid' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowColor: '#000', shadowOpacity: viewMode === 'grid' ? 0.05 : 0, shadowRadius: 4, elevation: viewMode === 'grid' ? 2 : 0 }}>
-              <LayoutGrid size={18} color={viewMode === 'grid' ? (isDark ? '#fff' : cText) : cSub} />
-            </TouchableOpacity>
-          </View>
-          <View style={{
-            flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10,
-            backgroundColor: cardBg, borderWidth: 1, borderColor,
-            borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12,
-          }}>
-            <Search size={18} color={cSub} />
-            <Text style={{ color: cSub, fontSize: 14 }}>Tìm nhân viên, phòng ban...</Text>
-          </View>
-          <TouchableOpacity style={{
-            paddingHorizontal: 20, paddingVertical: 12, borderRadius: 14,
-            backgroundColor: cardBg, borderWidth: 1, borderColor,
-          }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: cText }}>Kỳ đánh giá: Q1 - 2026</Text>
-          </TouchableOpacity>
-        </Animated.View>
-
-        {/* Content View */}
-        {isLoading ? (
-          <View style={{ padding: 60, alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#10b981" />
-            <Text style={{ color: cSub, marginTop: 16, fontSize: 14, fontWeight: '600' }}>Đang tải dữ liệu...</Text>
-          </View>
-        ) : viewMode === 'table' ? (
-          <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{
-            backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
-            borderRadius: 28, overflow: 'hidden',
-            borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            ...(Platform.OS === 'web' ? { 
-              backdropFilter: 'blur(32px)', 
-              WebkitBackdropFilter: 'blur(32px)',
-              boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 12px 32px rgba(0,0,0,0.04)' 
-            } : {}),
-          }}>
-            <SGTable 
-              columns={COLUMNS} 
-              data={perfData} 
-              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-            />
-          </Animated.View>
-        ) : (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
-            {perfData.length === 0 ? (
-              <Text style={{ color: cSub, fontSize: 15, padding: 32, textAlign: 'center', width: '100%' }}>Không có dữ liệu đánh giá nào trong kỳ này.</Text>
-            ) : null}
-            {perfData.map((item: any, idx: number) => {
-              let bg = '#f1f5f9', text = '#64748b', label = 'CHƯA BẮT ĐẦU';
-              if (item.status === 'COMPLETED') { bg = '#dcfce7'; text = '#16a34a'; label = 'ĐÃ HOÀN TẤT'; }
-              if (item.status === 'IN_PROGRESS') { bg = '#fef3c7'; text = '#d97706'; label = 'ĐANG ĐÁNH GIÁ'; }
-              
-              const isHigh = ['A', 'A-'].includes(item.rating);
-
-              return (
-                <Animated.View
-                  entering={FadeInDown.delay(300 + idx * 40).duration(400).springify()}
-                  key={item.id || idx}
-                  style={{
-                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24,
-                    shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.04, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4,
-                  }}
-                >
-                  <LinearGradient
-                    colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
-                    style={{ flex: 1, padding: 24, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}
-                  >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                    <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', flex: 1 }}>
-                      <LinearGradient
-                        colors={isDark ? ['rgba(16,185,129,0.2)', 'rgba(16,185,129,0.05)'] : ['#d1fae5', '#a7f3d0']}
-                        style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(16,185,129,0.1)' }}
-                      >
-                        <Target size={20} color="#10b981" />
-                      </LinearGradient>
-                      <View style={{ flex: 1, paddingRight: 8 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: cText }} numberOfLines={1}>{item.name}</Text>
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: cSub, marginTop: 2 }}>{item.code} • {item.dept || 'Nhân sự'}</Text>
-                      </View>
-                    </View>
-                    <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: bg }}>
-                      <Text style={{ fontSize: 11, fontWeight: '800', color: text, letterSpacing: 0.5 }}>
-                        {label}
-                      </Text>
-                    </View>
-                  </View>
+      {/* Content View */}
+      {isLoading ? (
+        <div className="py-20 flex flex-col items-center justify-center">
+          <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <span className="text-sm font-bold text-sg-subtext">Đang tải dữ liệu OKR/KPIs...</span>
+        </div>
+      ) : viewMode === 'table' ? (
+        <div className="bg-sg-card border border-sg-border rounded-[28px] overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[900px]">
+              <thead>
+                <tr className="bg-sg-btn-bg/50 border-b border-sg-border">
+                  <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider">Nhân viên</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider">Chức vụ</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider w-[240px]">Tiến độ KPIs</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider text-center">Xếp loại</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider text-center">Trạng thái</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider text-right"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-sg-border">
+                {perfData.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-16 text-center text-[15px] font-medium text-sg-subtext">Không có dữ liệu đánh giá nào trong khoảng này.</td>
+                  </tr>
+                )}
+                {perfData.map((item: any) => {
+                  let bg = 'bg-sg-btn-bg/50', text = 'text-sg-subtext', label = 'CHƯA BẮT ĐẦU';
+                  if (item.status === 'COMPLETED') { bg = 'bg-emerald-500/15'; text = 'text-emerald-500'; label = 'ĐÃ HOÀN TẤT'; }
+                  if (item.status === 'IN_PROGRESS') { bg = 'bg-amber-500/15'; text = 'text-amber-500'; label = 'ĐANG ĐÁNH GIÁ'; }
                   
-                  {isHigh && (
-                    <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 4, marginBottom: 16 }}>
-                       <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: 'rgba(245,158,11,0.15)', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                         <Award size={12} color="#d97706" />
-                         <Text style={{ fontSize: 11, fontWeight: '800', color: '#d97706' }}>Xuất Sắc</Text>
-                       </View>
-                       {item.actual >= 95 && (
-                         <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: 'rgba(139,92,246,0.15)', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                           <Star size={12} color="#8b5cf6" />
-                           <Text style={{ fontSize: 11, fontWeight: '800', color: '#8b5cf6' }}>Ngôi Sao</Text>
-                         </View>
-                       )}
-                    </View>
-                  )}
-                  
-                  <View style={{ paddingHorizontal: 4, marginBottom: 24 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 8 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Tiến độ KPIs</Text>
-                      <Text style={{ fontSize: 20, fontWeight: '900', color: item.actual >= 100 ? '#10b981' : item.actual >= 80 ? '#f59e0b' : '#ef4444' }}>{item.actual}%</Text>
-                    </View>
-                    <View style={{ width: '100%', height: 6, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                      <LinearGradient 
-                         colors={item.actual >= 100 ? ['#10b981', '#34d399'] : item.actual >= 80 ? ['#f59e0b', '#fbbf24'] : ['#ef4444', '#f87171']}
-                         start={{x:0, y:0}} end={{x:1, y:0}}
-                         style={{ width: `${Math.min(item.actual, 100)}%`, height: '100%', borderRadius: 3 }} 
-                      />
-                    </View>
-                  </View>
+                  return (
+                    <tr key={item.id} className="hover:bg-sg-btn-bg/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-[14px] font-bold text-sg-heading">{item.name}</span>
+                          <span className="text-[12px] font-medium text-sg-subtext mt-0.5">{item.code} • {item.dept}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[13px] font-medium text-sg-heading">{item.role}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-2">
+                          <div className="flex justify-between items-center">
+                            <span className={`text-[12px] font-black ${item.actual >= 100 ? 'text-emerald-500' : item.actual >= 80 ? 'text-amber-500' : 'text-red-500'}`}>{item.actual}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-sg-btn-bg rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${item.actual >= 100 ? 'bg-emerald-500' : item.actual >= 80 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min(item.actual, 100)}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`text-[18px] font-black ${RATING_COLORS[item.rating] || 'text-sg-heading'}`}>{item.rating}</span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex px-3 py-1.5 rounded-[8px] text-[10px] font-black tracking-wider uppercase ${bg} ${text}`}>{label}</span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button className="text-[13px] font-bold text-blue-500 hover:text-blue-600">Chi tiết</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {perfData.map((item: any) => {
+            let bg = 'bg-sg-btn-bg', text = 'text-sg-subtext', label = 'CHƯA BẮT ĐẦU';
+            if (item.status === 'COMPLETED') { bg = 'bg-emerald-500/15'; text = 'text-emerald-500'; label = 'HOÀN TẤT'; }
+            if (item.status === 'IN_PROGRESS') { bg = 'bg-amber-500/15'; text = 'text-amber-500'; label = 'ĐANG ĐG'; }
+            
+            return (
+              <div key={item.id} className="bg-sg-card border border-sg-border p-6 rounded-[28px] shadow-sm hover:shadow-md transition-all flex flex-col">
+                <div className="flex justify-between items-start mb-5">
+                  <div className="flex items-center gap-3 w-full pr-4">
+                    <div className="w-12 h-12 rounded-full border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <Target size={20} className="text-emerald-500" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[16px] font-black text-sg-heading truncate w-full">{item.name}</span>
+                      <span className="text-[12px] font-bold text-sg-subtext mt-1 truncate">{item.code} • {item.dept}</span>
+                    </div>
+                  </div>
+                  <span className={`shrink-0 px-2.5 py-1 rounded-[8px] text-[10px] font-black uppercase tracking-wider ${bg} ${text}`}>{label}</span>
+                </div>
 
-                  <View style={{ borderTopWidth: 1, borderTopColor: borderColor, paddingTop: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <View>
-                       <Text style={{ fontSize: 12, fontWeight: '700', color: cSub, textTransform: 'uppercase' }}>Xếp loại</Text>
-                       <Text style={{ fontSize: 24, fontWeight: '900', color: RATING_COLORS[item.rating] || cText }}>{item.rating}</Text>
-                    </View>
-                    <TouchableOpacity style={{ paddingHorizontal: 20, paddingVertical: 10, backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#eff6ff', borderRadius: 12 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#3b82f6' }}>CHI TIẾT KẾT QUẢ</Text>
-                    </TouchableOpacity>
-                  </View>
-                  </LinearGradient>
-                </Animated.View>
-              );
-            })}
-          </View>
-        )}
+                <div className="flex flex-col gap-2 mb-6 px-1">
+                  <div className="flex justify-between items-end mb-1">
+                    <span className="text-[12px] font-black uppercase tracking-wider text-sg-subtext">Tiến độ KPIs</span>
+                    <span className={`text-[20px] font-black leading-none ${item.actual >= 100 ? 'text-emerald-500' : item.actual >= 80 ? 'text-amber-500' : 'text-red-500'}`}>{item.actual}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-sg-btn-bg rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${item.actual >= 100 ? 'bg-emerald-500' : item.actual >= 80 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min(item.actual, 100)}%` }} />
+                  </div>
+                </div>
 
-      </ScrollView>
-    </View>
+                <div className="mt-auto pt-5 border-t border-sg-border flex justify-between items-center">
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-black text-sg-subtext uppercase tracking-wider mb-0.5">XẾP LOẠI</span>
+                    <span className={`text-[24px] font-black leading-none ${RATING_COLORS[item.rating] || 'text-sg-heading'}`}>{item.rating}</span>
+                  </div>
+                  <button className="px-5 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 font-black text-[12px] uppercase tracking-wider hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors">
+                    Chi tiết
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

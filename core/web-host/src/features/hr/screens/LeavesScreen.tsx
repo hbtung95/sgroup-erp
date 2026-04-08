@@ -1,17 +1,8 @@
-/**
- * LeavesScreen — HR Leave Requests Management
- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator, Modal, Pressable } from 'react-native';
-import { Calendar, Search, CheckCircle, Clock, XCircle, FileText, LayoutGrid, List, X, Check } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '@sgroup/ui/src/theme/useAppTheme';
-import { sgds } from '@sgroup/ui/src/theme/theme';
-import { SGCard, SGTable } from '@sgroup/ui/src/ui/components';
+import { FileText, Clock, CheckCircle, XCircle, Search, LayoutGrid, List, X, Check } from 'lucide-react';
 import { useLeaves, useLeaveBalance } from '../hooks/useHR';
+import type { HRRole } from '../HRSidebar';
 
-// Leave type display map
 const LEAVE_TYPE_LABELS: Record<string, string> = {
   ANNUAL: 'Nghỉ phép năm',
   SICK: 'Nghỉ ốm',
@@ -20,339 +11,331 @@ const LEAVE_TYPE_LABELS: Record<string, string> = {
 };
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  APPROVED: { bg: '#dcfce7', text: '#16a34a', label: 'ĐÃ DUYỆT' },
-  PENDING: { bg: '#fef3c7', text: '#d97706', label: 'CHỜ DUYỆT' },
-  REJECTED: { bg: '#fee2e2', text: '#dc2626', label: 'TỪ CHỐI' },
+  APPROVED: { bg: 'bg-emerald-100 dark:bg-emerald-500/15', text: 'text-emerald-600 dark:text-emerald-400', label: 'ĐÃ DUYỆT' },
+  PENDING: { bg: 'bg-amber-100 dark:bg-amber-500/15', text: 'text-amber-600 dark:text-amber-400', label: 'CHỜ DUYỆT' },
+  REJECTED: { bg: 'bg-red-100 dark:bg-red-500/15', text: 'text-red-600 dark:text-red-400', label: 'TỪ CHỐI' },
 };
 
+const WORKFLOW_STEPS = [
+  { id: 1, label: 'Trưởng Nhóm', status: 'approved', role: 'Leader' },
+  { id: 2, label: 'Trưởng Phòng', status: 'pending', role: 'Manager' },
+  { id: 3, label: 'Giám Đốc HR', status: 'waiting', role: 'HR Director' },
+];
 
-
-export function LeavesScreen() {
+export function LeavesScreen({ userRole }: { userRole?: HRRole }) {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [selectedLeave, setSelectedLeave] = useState<any>(null);
-  const { theme, isDark } = useAppTheme();
-  const cText = theme.colors.textPrimary;
-  const cSub = theme.colors.textSecondary;
-  const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
-  const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch real leaves from API
   const { data: rawLeaves, isLoading } = useLeaves();
   const fmtDate = (d: string) => new Date(d).toLocaleDateString('vi-VN');
-
   const safeLeaves = Array.isArray(rawLeaves) ? rawLeaves : (rawLeaves as any)?.data ?? [];
 
   const currentYear = new Date().getFullYear();
   const { data: rawLeaveBalance, isLoading: loadingBalance } = useLeaveBalance(selectedLeave?.employeeId || '', currentYear);
   const leaveBalance = (rawLeaveBalance as any)?.data ?? rawLeaveBalance;
 
-  // Transform for table display
   const leavesData = safeLeaves.map((l: any) => ({
     id: l.id,
     employeeId: l.employeeId,
     code: l.employee?.employeeCode || '',
     name: l.employee?.fullName || '',
-    dept: '',
+    dept: l.employee?.department?.name || '',
     type: LEAVE_TYPE_LABELS[l.leaveType] || l.leaveType,
     from: fmtDate(l.startDate),
     to: fmtDate(l.endDate),
     days: l.totalDays,
     status: l.status,
-  }));
+  })).filter((l: any) => l.name.toLowerCase().includes(searchQuery.toLowerCase()) || l.code.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const pendingCount = leavesData.filter((l: any) => l.status === 'PENDING').length;
   const approvedCount = leavesData.filter((l: any) => l.status === 'APPROVED').length;
   const rejectedCount = leavesData.filter((l: any) => l.status === 'REJECTED').length;
 
-  const COLUMNS: any = [
-    { key: 'name', title: 'NHÂN VIÊN', flex: 1.5, render: (v: any, row: any) => (
-      <View>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: cText }}>{v}</Text>
-        <Text style={{ fontSize: 11, color: cSub, marginTop: 2 }}>{row.dept}</Text>
-      </View>
-    ) },
-    { key: 'type', title: 'LOẠI ĐƠN', flex: 1.2, render: (v: any) => <Text style={{ fontSize: 12, fontWeight: '600', color: cText }}>{v}</Text> },
-    { key: 'time', title: 'THỜI GIAN', flex: 1.5, render: (_: any, row: any) => (
-      <View>
-        <Text style={{ fontSize: 12, color: cText }}>{row.from} - {row.to}</Text>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: '#f59e0b', marginTop: 2 }}>{row.days} ngày</Text>
-      </View>
-    ) },
-    { key: 'status', title: 'TRẠNG THÁI', flex: 1, align: 'center', render: (v: any) => {
-      const s = STATUS_CONFIG[v];
-      return (
-        <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: s.bg, alignSelf: 'center' }}>
-          <Text style={{ fontSize: 10, fontWeight: '800', color: s.text }}>{s.label}</Text>
-        </View>
-      );
-    } },
-    { key: 'actions', title: '', flex: 0.5, align: 'right', render: (_: any, row: any) => (
-      <TouchableOpacity onPress={() => setSelectedLeave(row)} style={{ padding: 6 }}>
-        <Text style={{ fontSize: 12, fontWeight: '700', color: '#3b82f6' }}>Duyệt</Text>
-      </TouchableOpacity>
-    ) }
-  ];
-
-  const workflowSteps = [
-    { id: 1, label: 'Trưởng Nhóm', status: 'approved', role: 'Leader' },
-    { id: 2, label: 'Trưởng Phòng', status: 'pending', role: 'Manager' },
-    { id: 3, label: 'Giám Đốc HR', status: 'waiting', role: 'HR Director' },
-  ];
-
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
-      {/* ── Approval Workflow Modal ── */}
-      <Modal visible={!!selectedLeave} transparent animationType="slide" onRequestClose={() => setSelectedLeave(null)}>
-        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 }} onPress={() => setSelectedLeave(null)}>
-          <Pressable style={{ width: '100%', maxWidth: 540, backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: 32, padding: 32, ...(Platform.OS === 'web' ? { boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' } : {}) }} onPress={() => {}}>
-            {selectedLeave && (
-              <View>
-                {/* Header */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-                  <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-                    <LinearGradient colors={['#3b82f6', '#2563eb']} style={{ width: 56, height: 56, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
-                      <FileText size={28} color="#fff" />
-                    </LinearGradient>
-                    <View>
-                      <Text style={{ fontSize: 24, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>Duyệt Đơn Nghỉ</Text>
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: cSub, marginTop: 4 }}>{selectedLeave.name} • {selectedLeave.code}</Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity onPress={() => setSelectedLeave(null)} style={{ padding: 8, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: 12 }}>
-                    <X size={20} color={cSub} />
-                  </TouchableOpacity>
-                </View>
+    <div className="p-8 pb-32 animate-sg-fade-in flex flex-col gap-6 w-full max-w-7xl mx-auto">
+      
+      {/* Modal overlays are created using absolute/fixed elements in Tailwind */}
+      {selectedLeave && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-sg-fade-in">
+          <div className="absolute inset-0" onClick={() => setSelectedLeave(null)} />
+          <div className="relative w-full max-w-lg bg-sg-card border border-sg-border rounded-[32px] p-8 shadow-2xl animate-sg-slide-up">
+            
+            {/* Modal Header */}
+            <div className="flex flex-row justify-between items-start mb-6">
+              <div className="flex flex-row gap-4 items-center">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg">
+                  <FileText size={28} className="text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <h2 className="text-2xl font-black text-sg-heading tracking-tight">Duyệt Đơn Nghỉ</h2>
+                  <p className="text-sm font-bold text-sg-subtext mt-1">{selectedLeave.name} • {selectedLeave.code}</p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedLeave(null)} className="p-2 rounded-xl bg-sg-btn-bg text-sg-subtext hover:text-sg-heading transition-colors">
+                <X size={20} />
+              </button>
+            </div>
 
-                {/* Info Card */}
-                <View style={{ padding: 20, borderRadius: 20, backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0', marginBottom: 24 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Loại đơn</Text>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{selectedLeave.type}</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Thời gian</Text>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{selectedLeave.from} - {selectedLeave.to}</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Tổng cộng</Text>
-                    <Text style={{ fontSize: 14, fontWeight: '900', color: '#f59e0b' }}>{selectedLeave.days} ngày</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: cText }}>Quỹ phép năm còn lại ({currentYear})</Text>
-                    {loadingBalance ? (
-                      <ActivityIndicator size="small" color="#3b82f6" />
-                    ) : (
-                      <Text style={{ fontSize: 15, fontWeight: '900', color: (leaveBalance?.remaining || 0) >= selectedLeave.days ? '#10b981' : '#ef4444' }}>
-                        {leaveBalance?.remaining ?? '?'} ngày
-                      </Text>
-                    )}
-                  </View>
-                </View>
+            {/* Info Card */}
+            <div className="p-5 rounded-2xl border border-sg-border bg-sg-btn-bg/30 mb-8 flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[13px] font-bold text-sg-subtext">Loại đơn</span>
+                <span className="text-[15px] font-black text-sg-heading">{selectedLeave.type}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[13px] font-bold text-sg-subtext">Thời gian</span>
+                <span className="text-[15px] font-black text-sg-heading">{selectedLeave.from} - {selectedLeave.to}</span>
+              </div>
+              <div className="flex justify-between items-center pb-4 border-b border-sg-border">
+                <span className="text-[13px] font-bold text-sg-subtext">Tổng cộng</span>
+                <span className="text-[15px] font-black text-amber-500">{selectedLeave.days} ngày</span>
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-[13px] font-black text-sg-heading">Quỹ phép năm còn lại ({currentYear})</span>
+                {loadingBalance ? (
+                  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className={`text-[15px] font-black ${(leaveBalance?.remaining || 0) >= selectedLeave.days ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {leaveBalance?.remaining ?? '?'} ngày
+                  </span>
+                )}
+              </div>
+            </div>
 
-                {/* Workflow Stepper */}
-                <Text style={{ fontSize: 16, fontWeight: '900', color: cText, marginBottom: 16 }}>Tiến trình Phê duyệt</Text>
-                <View style={{ gap: 0, paddingLeft: 8, marginBottom: 32 }}>
-                  {workflowSteps.map((step, idx) => {
-                    const isLast = idx === workflowSteps.length - 1;
-                    const isApproved = step.status === 'approved';
-                    const isPending = step.status === 'pending';
-                    const iconColor = isApproved ? '#10b981' : isPending ? '#f59e0b' : '#94a3b8';
-                    const bgCircle = isApproved ? 'rgba(16,185,129,0.15)' : isPending ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.1)';
-                    
-                    return (
-                      <View key={step.id} style={{ flexDirection: 'row', gap: 16 }}>
-                        {/* Timeline Graphic */}
-                        <View style={{ alignItems: 'center', width: 24 }}>
-                          <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: bgCircle, alignItems: 'center', justifyContent: 'center' }}>
-                            {isApproved ? <Check size={14} color={iconColor} /> : <Clock size={14} color={iconColor} />}
-                          </View>
-                          {!isLast && <View style={{ width: 2, height: 32, backgroundColor: isApproved ? '#10b981' : isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0', marginVertical: 4 }} />}
-                        </View>
-                        {/* Step Info */}
-                        <View style={{ flex: 1, paddingBottom: isLast ? 0 : 20, paddingTop: 2 }}>
-                          <Text style={{ fontSize: 15, fontWeight: '800', color: isApproved ? cText : isPending ? cText : cSub }}>{step.label}</Text>
-                          <Text style={{ fontSize: 12, fontWeight: '600', color: cSub, marginTop: 4 }}>{step.role} • {isApproved ? 'Đã duyệt' : isPending ? 'Đang chờ duyệt' : 'Chưa đến lượt'}</Text>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
+            {/* Workflow Stepper */}
+            <h3 className="text-[17px] font-black text-sg-heading mb-4">Tiến trình Phê duyệt</h3>
+            <div className="pl-2 mb-8 flex flex-col">
+              {WORKFLOW_STEPS.map((step, idx) => {
+                const isLast = idx === WORKFLOW_STEPS.length - 1;
+                const isApproved = step.status === 'approved';
+                const isPending = step.status === 'pending';
+                const iconColor = isApproved ? 'text-emerald-500' : isPending ? 'text-amber-500' : 'text-slate-400';
+                const bgCircle = isApproved ? 'bg-emerald-500/15' : isPending ? 'bg-amber-500/15' : 'bg-slate-500/10';
+                
+                return (
+                  <div key={step.id} className="flex flex-row gap-4">
+                    {/* Timeline Graphic */}
+                    <div className="flex flex-col items-center w-6">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${bgCircle}`}>
+                        {isApproved ? <Check size={14} className={iconColor} /> : <Clock size={14} className={iconColor} />}
+                      </div>
+                      {!isLast && (
+                        <div className={`w-0.5 h-8 my-1 ${isApproved ? 'bg-emerald-500' : 'bg-sg-border'}`} />
+                      )}
+                    </div>
+                    {/* Details */}
+                    <div className={`flex-1 flex flex-col ${!isLast ? 'pb-5' : ''}`}>
+                      <span className={`text-[15px] font-black ${isApproved || isPending ? 'text-sg-heading' : 'text-sg-subtext'}`}>
+                        {step.label}
+                      </span>
+                      <span className="text-xs font-bold text-sg-subtext mt-1">
+                        {step.role} • {isApproved ? 'Đã duyệt' : isPending ? 'Đang chờ duyệt' : 'Chưa đến lượt'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
-                {/* Actions */}
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <TouchableOpacity onPress={() => setSelectedLeave(null)} style={{ flex: 1, paddingVertical: 14, borderRadius: 16, alignItems: 'center', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: cSub }}>Tính Hợp Lệ</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setSelectedLeave(null)} style={{ flex: 1, paddingVertical: 14, borderRadius: 16, alignItems: 'center', backgroundColor: 'rgba(239,68,68,0.1)' }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#ef4444' }}>Từ Chối</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setSelectedLeave(null)} style={{ flex: 1, paddingVertical: 14, borderRadius: 16, alignItems: 'center', backgroundColor: '#10b981', shadowColor: '#10b981', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff' }}>Phê Duyệt</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </Pressable>
-        </Pressable>
-      </Modal>
+            {/* Action Buttons */}
+            <div className="flex flex-row gap-3">
+              <button 
+                onClick={() => setSelectedLeave(null)}
+                className="flex-1 py-3.5 rounded-xl bg-sg-btn-bg hover:bg-sg-border border border-sg-border transition-colors font-black text-[13px] text-sg-subtext"
+              >
+                TÍNH HỢP LỆ
+              </button>
+              <button 
+                onClick={() => setSelectedLeave(null)}
+                className="flex-1 py-3.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors font-black text-[13px]"
+              >
+                TỪ CHỐI
+              </button>
+              <button 
+                onClick={() => setSelectedLeave(null)}
+                className="flex-1 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all font-black text-[13px]"
+              >
+                PHÊ DUYỆT
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <ScrollView contentContainerStyle={{ padding: 28, gap: 24, paddingBottom: 120 }}>
-        {/* Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <View style={{ width: 52, height: 52, borderRadius: 18, backgroundColor: '#f59e0b20', alignItems: 'center', justifyContent: 'center' }}>
-              <FileText size={24} color="#f59e0b" />
-            </View>
-            <View>
-              <Text style={{ ...sgds.typo.h2, color: cText }}>Quản lý Đơn từ</Text>
-              <Text style={{ ...sgds.typo.body, color: cSub, marginTop: 2 }}>Duyệt đơn xin phép, thai sản, công tác</Text>
-            </View>
-          </View>
-        </Animated.View>
+      {/* Header */}
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+            <FileText size={28} className="text-amber-500" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-2xl font-black text-sg-heading">Quản lý Đơn từ</h2>
+            <p className="text-sm font-medium text-sg-subtext mt-1">Duyệt đơn xin phép, thai sản, công tác</p>
+          </div>
+        </div>
+      </div>
 
-        {/* Stats Summary */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap' }}>
-          {[
-            { label: 'CHỜ DUYỆT', val: String(pendingCount), icon: Clock, color: '#f59e0b', gradient: ['#f59e0b', '#d97706'], shadow: '#f59e0b' },
-            { label: 'ĐÃ DUYỆT', val: String(approvedCount), icon: CheckCircle, color: '#10b981', gradient: ['#10b981', '#059669'], shadow: '#10b981' },
-            { label: 'TỪ CHỐI', val: String(rejectedCount), icon: XCircle, color: '#ef4444', gradient: ['#ef4444', '#dc2626'], shadow: '#ef4444' },
-          ].map((s, i) => (
-            <LinearGradient
-              key={i}
-              colors={isDark ? ['rgba(30,41,59,0.7)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#f8fafc']}
-              style={{
-                flex: 1, minWidth: 200, padding: 24, borderRadius: 24,
-                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.03)',
-                shadowColor: isDark ? '#000' : s.shadow, shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 5,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <LinearGradient
-                  colors={s.gradient as [string, string]} start={{x:0, y:0}} end={{x:1, y:1}}
-                  style={{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', shadowColor: s.shadow, shadowOpacity: 0.4, shadowRadius: 8, shadowOffset: {width:0, height:4} }}
-                >
-                  <s.icon size={22} color="#fff" />
-                </LinearGradient>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, flex: 1, letterSpacing: 0.5 }}>{s.label}</Text>
-              </View>
-              <Text style={{ fontSize: 36, fontWeight: '900', color: cText, letterSpacing: -1 }}>{s.val}</Text>
-            </LinearGradient>
-          ))}
-        </Animated.View>
+      {/* Stats Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          { label: 'CHỜ DUYỆT', val: pendingCount, icon: Clock, bg: 'bg-amber-50 dark:bg-amber-500/10', color: 'text-amber-500' },
+          { label: 'ĐÃ DUYỆT', val: approvedCount, icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-500/10', color: 'text-emerald-500' },
+          { label: 'TỪ CHỐI', val: rejectedCount, icon: XCircle, bg: 'bg-red-50 dark:bg-red-500/10', color: 'text-red-500' },
+        ].map((s, i) => (
+          <div key={i} className="bg-sg-card border border-sg-border p-6 rounded-[24px] shadow-sm flex flex-col hover:shadow-md transition-shadow">
+            <div className="flex flex-row items-center gap-3 mb-4">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.bg}`}>
+                <s.icon size={20} className={s.color} />
+              </div>
+              <span className="text-xs font-black text-sg-subtext tracking-wider">{s.label}</span>
+            </div>
+            <span className="text-4xl font-black text-sg-heading">{s.val}</span>
+          </div>
+        ))}
+      </div>
 
-        {/* Table actions */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ flexDirection: 'row', gap: 12, alignItems: 'center', marginTop: 8 }}>
-          <View style={{
-            flexDirection: 'row', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
-            borderRadius: 16, padding: 4,
-          }}>
-            <TouchableOpacity onPress={() => setViewMode('table')} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: viewMode === 'table' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowColor: '#000', shadowOpacity: viewMode === 'table' ? 0.05 : 0, shadowRadius: 4, elevation: viewMode === 'table' ? 2 : 0 }}>
-              <List size={18} color={viewMode === 'table' ? (isDark ? '#fff' : cText) : cSub} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setViewMode('grid')} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: viewMode === 'grid' ? (isDark ? '#3b82f6' : '#fff') : 'transparent', shadowColor: '#000', shadowOpacity: viewMode === 'grid' ? 0.05 : 0, shadowRadius: 4, elevation: viewMode === 'grid' ? 2 : 0 }}>
-              <LayoutGrid size={18} color={viewMode === 'grid' ? (isDark ? '#fff' : cText) : cSub} />
-            </TouchableOpacity>
-          </View>
-          <View style={{
-            flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10,
-            backgroundColor: cardBg, borderWidth: 1, borderColor,
-            borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12,
-          }}>
-            <Search size={18} color={cSub} />
-            <Text style={{ color: cSub, fontSize: 14 }}>Tìm nhân viên...</Text>
-          </View>
-        </Animated.View>
+      {/* Action Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className="flex flex-row bg-sg-card border border-sg-border p-1 rounded-xl shadow-sm">
+          <button onClick={() => setViewMode('table')} className={`p-2.5 rounded-lg transition-colors ${viewMode === 'table' ? 'bg-sg-btn-bg text-sg-heading shadow-sm' : 'text-sg-subtext hover:text-sg-heading'}`}>
+            <List size={20} />
+          </button>
+          <button onClick={() => setViewMode('grid')} className={`p-2.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-sg-btn-bg text-sg-heading shadow-sm' : 'text-sg-subtext hover:text-sg-heading'}`}>
+            <LayoutGrid size={20} />
+          </button>
+        </div>
+        
+        <div className="flex-1 flex flex-row items-center gap-3 bg-sg-card border border-sg-border rounded-xl px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-sg-red">
+          <Search size={20} className="text-sg-muted" />
+          <input 
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Tìm nhân viên..."
+            className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-sg-heading placeholder:text-sg-subtext"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="p-1 rounded-md hover:bg-sg-btn-bg text-sg-subtext">
+              <X size={16} />
+            </button>
+          )}
+        </div>
+      </div>
 
-        {/* Content View */}
-        {isLoading ? (
-          <View style={{ padding: 60, alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#f59e0b" />
-            <Text style={{ color: cSub, marginTop: 16, fontSize: 14, fontWeight: '600' }}>Đang tải đơn từ...</Text>
-          </View>
-        ) : viewMode === 'table' ? (
-          <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{
-            backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
-            borderRadius: 28, overflow: 'hidden',
-            borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            ...(Platform.OS === 'web' ? { 
-              backdropFilter: 'blur(32px)', 
-              WebkitBackdropFilter: 'blur(32px)',
-              boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 12px 32px rgba(0,0,0,0.04)' 
-            } : {}),
-          }}>
-            <SGTable 
-              columns={COLUMNS} 
-              data={leavesData} 
-              style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-            />
-          </Animated.View>
-        ) : (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
-            {leavesData.length === 0 ? (
-              <Text style={{ color: cSub, fontSize: 15, padding: 32, textAlign: 'center', width: '100%' }}>Không có đơn từ nào.</Text>
-            ) : null}
-            {leavesData.map((item: any, idx: number) => {
-              const s = STATUS_CONFIG[item.status] || STATUS_CONFIG.PENDING;
-              return (
-                <Animated.View
-                  entering={FadeInDown.delay(300 + idx * 40).duration(400).springify()}
-                  key={item.id || idx}
-                  style={{
-                    flex: 1, minWidth: 320, maxWidth: Platform.OS === 'web' ? '48%' : '100%', borderRadius: 24,
-                    shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.04, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4,
-                  }}
-                >
-                  <LinearGradient
-                    colors={isDark ? ['rgba(30,41,59,0.5)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
-                    style={{ flex: 1, padding: 24, borderRadius: 24, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }}
-                  >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                    <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', flex: 1 }}>
-                      <LinearGradient
-                        colors={isDark ? ['rgba(245,158,11,0.2)', 'rgba(245,158,11,0.05)'] : ['#fef3c7', '#fde68a']}
-                        style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(245,158,11,0.1)' }}
-                      >
-                        <FileText size={20} color="#f59e0b" />
-                      </LinearGradient>
-                      <View style={{ flex: 1, paddingRight: 8 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: cText }} numberOfLines={1}>{item.name}</Text>
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: cSub, marginTop: 2 }}>{item.code}</Text>
-                      </View>
-                    </View>
-                    <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: s.bg }}>
-                      <Text style={{ fontSize: 11, fontWeight: '800', color: s.text, letterSpacing: 0.5 }}>
-                        {s.label}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  <View style={{ gap: 12, marginBottom: 24, paddingHorizontal: 4 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Loại đơn</Text>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>{item.type}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Thời gian</Text>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: cText }}>{item.from} - {item.to}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>Tổng số ngày</Text>
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#f59e0b' }}>{item.days} ngày</Text>
-                    </View>
-                  </View>
+      {/* View Logic */}
+      {isLoading ? (
+        <div className="py-20 flex flex-col items-center justify-center">
+          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <span className="text-sm font-bold text-sg-subtext">Đang tải đơn từ...</span>
+        </div>
+      ) : viewMode === 'table' ? (
+        <div className="bg-sg-card border border-sg-border rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[700px]">
+              <thead>
+                <tr className="bg-sg-btn-bg/50 border-b border-sg-border">
+                  <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider">Nhân viên</th>
+                  <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider">Loại đơn</th>
+                  <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider">Thời gian</th>
+                  <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider text-center">Trạng thái</th>
+                  <th className="px-6 py-4 text-xs font-black text-sg-subtext uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-sg-border">
+                {leavesData.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center text-sm font-medium text-sg-subtext">
+                      Không có đơn từ nào.
+                    </td>
+                  </tr>
+                )}
+                {leavesData.map((item: any) => {
+                  const s = STATUS_CONFIG[item.status] || STATUS_CONFIG.PENDING;
+                  return (
+                    <tr key={item.id} className="hover:bg-sg-btn-bg/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-[14px] font-bold text-sg-heading">{item.name}</span>
+                          <span className="text-xs font-medium text-sg-subtext mt-0.5">{item.dept}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[13px] font-bold text-sg-heading">{item.type}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-[13px] font-medium text-sg-heading">{item.from} - {item.to}</span>
+                          <span className="text-xs font-black text-amber-500 mt-1">{item.days} ngày</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black tracking-wide uppercase ${s.bg} ${s.text}`}>
+                          {s.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button onClick={() => setSelectedLeave(item)} className="text-sm font-bold text-blue-500 hover:text-blue-600 focus:outline-none focus:underline px-2 py-1">
+                          Duyệt
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {leavesData.length === 0 && (
+            <div className="col-span-full py-12 text-center text-sm font-medium text-sg-subtext">
+              Không có đơn từ nào.
+            </div>
+          )}
+          {leavesData.map((item: any) => {
+            const s = STATUS_CONFIG[item.status] || STATUS_CONFIG.PENDING;
+            return (
+              <div key={item.id} className="bg-sg-card border border-sg-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                <div className="flex flex-row justify-between items-start mb-5">
+                  <div className="flex flex-row items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center border border-amber-200/50 dark:border-amber-500/20">
+                      <FileText size={20} className="text-amber-500" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[15px] font-black text-sg-heading leading-tight truncate max-w-[150px]">{item.name}</span>
+                      <span className="text-xs font-bold text-sg-subtext mt-1">{item.code}</span>
+                    </div>
+                  </div>
+                  <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-black tracking-wide uppercase ${s.bg} ${s.text}`}>
+                    {s.label}
+                  </span>
+                </div>
 
-                  <View style={{ borderTopWidth: 1, borderTopColor: borderColor, paddingTop: 18, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
-                    <TouchableOpacity onPress={() => setSelectedLeave(item)} style={{ paddingHorizontal: 20, paddingVertical: 10, backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#eff6ff', borderRadius: 12 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#3b82f6' }}>XEM & DUYỆT</Text>
-                    </TouchableOpacity>
-                  </View>
-                  </LinearGradient>
-                </Animated.View>
-              );
-            })}
-          </View>
-        )}
-      </ScrollView>
-    </View>
+                <div className="flex flex-col gap-3 mb-5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] font-bold text-sg-subtext">Loại đơn</span>
+                    <span className="text-[14px] font-black text-sg-heading">{item.type}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] font-bold text-sg-subtext">Thời gian</span>
+                    <span className="text-[14px] font-black text-sg-heading">{item.from} - {item.to}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] font-bold text-sg-subtext">Tổng số ngày</span>
+                    <span className="text-[14px] font-black text-amber-500">{item.days} ngày</span>
+                  </div>
+                </div>
+
+                <div className="mt-auto pt-4 border-t border-sg-border flex justify-end">
+                  <button onClick={() => setSelectedLeave(item)} className="px-5 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 hover:bg-blue-100 transition-colors text-[13px] font-black uppercase tracking-wide">
+                    XEM & DUYỆT
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

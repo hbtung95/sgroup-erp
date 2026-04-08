@@ -1,10 +1,197 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════
+   SGROUP ERP — Design System v2
+   Tailwind v4.2 + CSS Custom Properties
+   Neo-Corporate Premium Light Theme
+   ═══════════════════════════════════════════════════════ */
+
+@theme {
+  /* Brand Colors */
+  --color-sg-red: #D42027;
+  --color-sg-red-dark: #9F1219;
+  --color-sg-red-light: #F87171;
+  --color-sg-red-50: oklch(0.97 0.01 25);
+  --color-sg-red-100: oklch(0.93 0.03 25);
+
+  /* Surface */
+  --color-sg-bg: #F4F7FB;
+  --color-sg-surface: #FFFFFF;
+  --color-sg-glass: rgba(255, 255, 255, 0.7);
+
+  /* Semantic Portal Colors (Light/Dark mode) */
+  --color-sg-portal-bg: var(--portal-bg);
+  --color-sg-header: var(--header-bg);
+  --color-sg-border: var(--border-color);
+  --color-sg-card: var(--card-bg);
+  --color-sg-card-hover: var(--card-hover);
+  --color-sg-heading: var(--heading-color);
+  --color-sg-subtext: var(--subtext-color);
+  --color-sg-muted: var(--muted-color);
+  --color-sg-btn-bg: var(--btn-bg);
+
+  /* Text */
+  --color-sg-text: #0F172A;
+  --color-sg-text-secondary: #475569;
+  --color-sg-text-tertiary: #94A3B8;
+
+  /* Status */
+  --color-sg-success: #10B981;
+  --color-sg-warning: #F59E0B;
+  --color-sg-danger: #EF4444;
+  --color-sg-info: #3B82F6;
+
+  /* Shadows */
+  --shadow-sg-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-sg-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-sg-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-sg-xl: 0 25px 70px -10px rgba(0, 0, 0, 0.1);
+  --shadow-sg-brand: 0 8px 32px rgba(212, 32, 39, 0.2);
+  --shadow-sg-card-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
+
+  /* Radii */
+  --radius-sg-sm: 8px;
+  --radius-sg-md: 12px;
+  --radius-sg-lg: 16px;
+  --radius-sg-xl: 24px;
+  --radius-sg-2xl: 32px;
+  --radius-sg-pill: 100px;
+
+  /* Animation */
+  --ease-sg-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-sg-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Font */
+  --font-sg: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ── Semantic Light/Dark Tokens ── */
+:root {
+  --portal-bg: #F8FAFC;
+  --header-bg: rgba(255, 255, 255, 0.7);
+  --border-color: rgba(0, 0, 0, 0.05);
+  --card-bg: rgba(255, 255, 255, 0.6);
+  --card-hover: #FFFFFF;
+  --heading-color: #0F172A;
+  --subtext-color: #64748B;
+  --muted-color: #94A3B8;
+  --btn-bg: rgba(0, 0, 0, 0.03);
+}
+
+.dark {
+  --portal-bg: #09090B;
+  --header-bg: rgba(9, 9, 11, 0.7);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --card-bg: rgba(24, 24, 27, 0.5);
+  --card-hover: #18181B;
+  --heading-color: #FAFAFA;
+  --subtext-color: #A1A1AA;
+  --muted-color: #71717A;
+  --btn-bg: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Base ── */
 @layer base {
   body {
-    @apply antialiased text-slate-800 bg-slate-50;
-    margin: 0;
-    padding: 0;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    @apply font-[--font-sg] bg-sg-bg text-sg-text antialiased;
+    overflow-x: hidden;
   }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-200 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+}
+
+/* ── Keyframe Animations ── */
+@keyframes sg-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes sg-pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes sg-fade-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sg-fade-in-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sg-stagger {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sg-glow {
+  0%, 100% { box-shadow: 0 0 40px rgba(212, 32, 39, 0.3); }
+  50% { box-shadow: 0 0 80px rgba(212, 32, 39, 0.5); }
+}
+
+@keyframes sg-aurora-1 {
+  0%, 100% { transform: translate(-10%, -10%); }
+  50% { transform: translate(20%, 30%); }
+}
+
+@keyframes sg-aurora-2 {
+  0%, 100% { transform: translate(10%, 10%); }
+  50% { transform: translate(-15%, 40%); }
+}
+
+@keyframes sg-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Utility Animations ── */
+@utility animate-sg-float {
+  animation: sg-float 6s ease-in-out infinite;
+}
+
+@utility animate-sg-pulse {
+  animation: sg-pulse-scale 8s ease-in-out infinite;
+}
+
+@utility animate-sg-glow {
+  animation: sg-glow 4s ease-in-out infinite;
+}
+
+@utility animate-sg-fade-in {
+  animation: sg-fade-in 0.6s var(--ease-sg-smooth) both;
+}
+
+@utility animate-sg-fade-in-up {
+  animation: sg-fade-in-up 0.8s var(--ease-sg-smooth) both;
+}
+
+@utility animate-sg-spin {
+  animation: sg-spin 0.8s linear infinite;
+}
+
+/* Stagger utilities */
+@utility sg-stagger-1 {
+  animation: sg-stagger 0.5s var(--ease-sg-spring) 0.1s both;
+}
+
+@utility sg-stagger-2 {
+  animation: sg-stagger 0.5s var(--ease-sg-spring) 0.25s both;
+}
+
+@utility sg-stagger-3 {
+  animation: sg-stagger 0.5s var(--ease-sg-spring) 0.4s both;
+}
+
+@utility sg-stagger-4 {
+  animation: sg-stagger 0.5s var(--ease-sg-spring) 0.55s both;
+}
+
+/* ── Glass Morphism ── */
+@utility sg-glass {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }

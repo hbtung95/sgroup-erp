@@ -1,34 +1,37 @@
-/**
- * useHRRoute — Hash-based routing for HRShell
- * Reads/writes URL hash to maintain active screen across refreshes.
- * Falls back to 'HR_DASHBOARD' if no hash or invalid key.
- */
 import { useState, useEffect, useCallback } from 'react';
-import { Platform } from 'react-native';
 
 export function useHRRoute(validKeys: string[]) {
-  const getKeyFromHash = (): string => {
-    if (Platform.OS !== 'web') return 'HR_DASHBOARD';
-    const hash = window.location.hash.replace('#', '').toUpperCase();
-    return validKeys.includes(hash) ? hash : 'HR_DASHBOARD';
+  const parseHash = () => {
+    if (typeof window === 'undefined') return { key: 'HR_DASHBOARD', params: new URLSearchParams() };
+    const fullHash = window.location.hash.replace('#', '');
+    const [path, queryString] = fullHash.split('?');
+    const key = path.toUpperCase();
+    
+    return {
+      key: validKeys.includes(key) ? key : 'HR_DASHBOARD',
+      params: new URLSearchParams(queryString || '')
+    };
   };
 
-  const [activeKey, setActiveKey] = useState(getKeyFromHash);
+  const [routeState, setRouteState] = useState(parseHash());
 
-  // Listen for popstate (browser back/forward)
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
-    const handler = () => setActiveKey(getKeyFromHash());
+    const handler = () => setRouteState(parseHash());
     window.addEventListener('hashchange', handler);
     return () => window.removeEventListener('hashchange', handler);
   }, []);
 
-  const navigate = useCallback((key: string) => {
-    setActiveKey(key);
-    if (Platform.OS === 'web') {
-      window.location.hash = key.toLowerCase();
-    }
-  }, []);
+  const navigate = useCallback((key: string, params?: Record<string, string>) => {
+    const searchParams = new URLSearchParams(params || {});
+    const queryString = searchParams.toString();
+    const newHash = `${key.toLowerCase()}${queryString ? `?${queryString}` : ''}`;
+    
+    setRouteState({
+      key: validKeys.includes(key.toUpperCase()) ? key.toUpperCase() : 'HR_DASHBOARD',
+      params: searchParams
+    });
+    window.location.hash = newHash;
+  }, [validKeys]);
 
-  return { activeKey, navigate };
+  return { activeKey: routeState.key, params: routeState.params, navigate };
 }

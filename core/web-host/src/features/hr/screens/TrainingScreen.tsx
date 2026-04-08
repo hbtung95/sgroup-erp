@@ -1,271 +1,121 @@
-/**
- * TrainingScreen — Premium HR Learning & Development (L&D)
- * LMS Dashboard: Training programs, compliance courses, employee progress
- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { GraduationCap, Trophy, CheckCircle, Clock, Search, MoreHorizontal, BookOpen, Users, PlayCircle, Star, ArrowRight } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '@sgroup/ui/src/theme/useAppTheme';
-import { sgds } from '@sgroup/ui/src/theme/theme';
-import { SGTable } from '@sgroup/ui/src/ui/components';
+import { BookOpen, GraduationCap, PlayCircle, Clock, CheckCircle, Search, LayoutGrid, List, Award, TrendingUp } from 'lucide-react';
 import type { HRRole } from '../HRSidebar';
-import { useCourses, useTrainees } from '../hooks/useHR';
 
-const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  COMPLETED: { bg: 'rgba(34,197,94,0.15)', text: '#16a34a', label: 'HOÀN THÀNH' },
-  IN_PROGRESS: { bg: 'rgba(245,158,11,0.15)', text: '#d97706', label: 'ĐANG HỌC' },
-  NOT_STARTED: { bg: 'rgba(220,38,38,0.15)', text: '#dc2626', label: 'CHƯA HỌC' },
-};
+const MOCK_COURSES = [
+  { id: 1, title: 'Văn hóa Doanh nghiệp SGROUP', instructor: 'Phòng Nhân sự', duration: '2h 15m', modules: 5, bg: 'bg-blue-500', icon: BookOpen, status: 'MANDATORY' },
+  { id: 2, title: 'Kỹ năng Đàm phán BĐS B2B', instructor: 'GĐKD Nguyễn A', duration: '4h 30m', modules: 8, bg: 'bg-amber-500', icon: GraduationCap, status: 'OPTIONAL' },
+  { id: 3, title: 'Bảo mật Thông tin Nâng cao', instructor: 'IT Dept', duration: '1h 00m', modules: 3, bg: 'bg-purple-500', icon: PlayCircle, status: 'MANDATORY' },
+];
 
 export function TrainingScreen({ userRole }: { userRole?: HRRole }) {
-  const { theme, isDark } = useAppTheme();
-  const cText = theme.colors.textPrimary;
-  const cSub = theme.colors.textSecondary;
-  const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
-  const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-
-  const { data: rawCourses, isLoading: loadingCourses } = useCourses();
-  const { data: rawTrainees, isLoading: loadingTrainees } = useTrainees();
-
-  const safeCourses = Array.isArray(rawCourses) ? rawCourses : (rawCourses as any)?.data ?? [];
-  const safeTrainees = Array.isArray(rawTrainees) ? rawTrainees : (rawTrainees as any)?.data ?? [];
-
-  const allCourses = safeCourses.map((c: any) => ({
-    id: c.id,
-    title: c.title,
-    category: c.category || '',
-    duration: c.duration || '',
-    enrolled: c.enrolled,
-    completed: c.completed,
-    status: c.status,
-  }));
-
-  const allTrainees = safeTrainees.map((t: any) => ({
-    id: t.id,
-    code: t.employeeCode || '',
-    name: t.name,
-    course: t.course?.title || '',
-    progress: t.progress,
-    score: t.score || '-',
-    status: t.status,
-  }));
-
-  const COLUMNS: any = [
-    { key: 'name', title: 'HỌC VIÊN', flex: 1.5, render: (v: any, row: any) => (
-      <View>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: cText }}>{v}</Text>
-        <Text style={{ fontSize: 11, color: cSub, marginTop: 2 }}>{row.code}</Text>
-      </View>
-    ) },
-    { key: 'course', title: 'KHÓA HỌC', flex: 1.5, render: (v: any) => <Text style={{ fontSize: 13, fontWeight: '600', color: cText }} numberOfLines={2}>{v}</Text> },
-    { key: 'progress', title: 'TIẾN ĐỘ', flex: 1, align: 'center', render: (v: any) => (
-      <View style={{ width: '100%', alignItems: 'center', paddingHorizontal: 16 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 6 }}>
-          <Text style={{ fontSize: 11, fontWeight: '800', color: cSub }}>Tiến độ</Text>
-          <Text style={{ fontSize: 11, fontWeight: '800', color: v === 100 ? '#10b981' : '#3b82f6' }}>{v}%</Text>
-        </View>
-        <View style={{ width: '100%', height: 6, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9', borderRadius: 3 }}>
-          <View style={{ width: `${v}%`, height: '100%', backgroundColor: v === 100 ? '#10b981' : '#3b82f6', borderRadius: 3 }} />
-        </View>
-      </View>
-    ) },
-    { key: 'score', title: 'ĐIỂM SỐ', flex: 0.8, align: 'center', render: (v: any) => (
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
-        {v !== '-' && <Star size={12} fill="#eab308" color="#eab308" />}
-        <Text style={{ fontSize: 14, fontWeight: '800', color: v !== '-' ? '#eab308' : cSub }}>{v}</Text>
-      </View>
-    ) },
-    { key: 'status', title: 'TRẠNG THÁI', flex: 1, align: 'center', render: (v: any) => {
-      const s = STATUS_CONFIG[v] || STATUS_CONFIG['NOT_STARTED'];
-      return (
-        <View style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: s.bg, alignSelf: 'center' }}>
-          <Text style={{ fontSize: 10, fontWeight: '800', color: s.text }}>{s.label}</Text>
-        </View>
-      );
-    } },
-    { key: 'actions', title: '', flex: 0.5, align: 'right', render: () => (
-      <TouchableOpacity style={{ padding: 6, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: 8 }}>
-        <MoreHorizontal size={16} color={cText} />
-      </TouchableOpacity>
-    ) }
-  ];
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
-      <ScrollView contentContainerStyle={{ padding: 32, gap: 32, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-        
-        {/* Premium LMS Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <LinearGradient 
-              colors={['#06b6d4', '#3b82f6']} start={{x:0,y:0}} end={{x:1,y:1}}
-              style={{ width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', 
-                     shadowColor: '#06b6d4', shadowOpacity: 0.5, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}
-            >
-              <GraduationCap size={28} color="#fff" />
-            </LinearGradient>
-            <View>
-              <Text style={{ fontSize: 32, fontWeight: '900', color: cText, letterSpacing: -1 }}>Đào tạo (L&D)</Text>
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#94a3b8', marginTop: 4 }}>Trung tâm Phát triển Năng lực & Khóa học</Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <TouchableOpacity style={{
-              backgroundColor: '#06b6d4', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16,
-              shadowColor: '#06b6d4', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
-              ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {}),
-            }}>
-              <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff', letterSpacing: 0.5 }}>TẠO KHÓA HỌC</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
+    <div className="p-8 pb-32 animate-sg-fade-in flex flex-col gap-6 w-full max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex flex-row items-center gap-4">
+          <div className="w-16 h-16 rounded-[20px] bg-blue-500/10 flex items-center justify-center shadow-sm">
+            <GraduationCap size={28} className="text-blue-500" />
+          </div>
+          <div className="flex flex-col">
+            <h2 className="text-[32px] font-black text-sg-heading tracking-tight leading-none">Cổng Đào Tạo Nội Bộ</h2>
+            <p className="text-[15px] font-medium text-sg-subtext mt-1.5">Nâng cao năng lực chuyên môn & Kỹ năng mềm</p>
+          </div>
+        </div>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-xl shadow-lg shadow-blue-500/30 transition-all text-[13px] font-black uppercase tracking-wider">
+          ĐĂNG KÝ KHÓA HỌC MỚI
+        </button>
+      </div>
 
-        {/* Learning KPI Cards */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap' }}>
-          {[
-            { label: 'KHÓA ĐANG MỞ', val: '12', unit: 'khóa', icon: BookOpen, color: '#3b82f6', shadow: '#3b82f6' },
-            { label: 'GIỜ ĐÀO TẠO YTD', val: '1,420', unit: 'giờ', icon: Clock, color: '#f59e0b', shadow: '#f59e0b' },
-            { label: 'TỈ LỆ CẤP CHỨNG CHỈ', val: '85', unit: '%', icon: Trophy, color: '#10b981', shadow: '#10b981' },
-            { label: 'CHƯA HOÀN THÀNH', val: '38', unit: 'user', icon: Users, color: '#ef4444', shadow: '#ef4444' },
-          ].map((s, i) => (
-            <LinearGradient
-              key={i}
-              colors={isDark ? ['rgba(30,41,59,0.7)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
-              style={{
-                flex: 1, minWidth: 200, padding: 24, borderRadius: 24,
-                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.03)',
-                shadowColor: isDark ? '#000' : s.shadow, shadowOpacity: isDark ? 0.5 : 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${s.color}15`, alignItems: 'center', justifyContent: 'center' }}>
-                  <s.icon size={22} color={s.color} />
-                </View>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, flex: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-                <Text style={{ fontSize: 36, fontWeight: '900', color: cText, letterSpacing: -1 }}>{s.val}</Text>
-                {s.unit ? <Text style={{ fontSize: 15, fontWeight: '700', color: cSub }}>{s.unit}</Text> : null}
-              </View>
-            </LinearGradient>
-          ))}
-        </Animated.View>
+      {/* Stats Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          { label: 'KHÓA ĐANG HỌC', val: '2', icon: PlayCircle, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+          { label: 'KHÓA ĐÃ HOÀN THÀNH', val: '14', icon: CheckCircle, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+          { label: 'GIỜ HỌC TÍCH LŨY', val: '38h', icon: Clock, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10' },
+          { label: 'CHỨNG CHỈ ĐÃ NHẬN', val: '5', icon: Award, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+        ].map((s, i) => (
+          <div key={i} className="bg-sg-card border border-sg-border p-6 rounded-[24px] shadow-sm flex flex-col">
+            <div className="flex flex-row items-center gap-3 mb-4">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${s.bg}`}>
+                <s.icon size={20} className={s.color} />
+              </div>
+              <span className="text-[11px] font-black text-sg-subtext uppercase tracking-wider">{s.label}</span>
+            </div>
+            <span className="text-[36px] font-black text-sg-heading tracking-tight leading-none">{s.val}</span>
+          </div>
+        ))}
+      </div>
 
-        {/* Featured Courses Carousel */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <Text style={{ fontSize: 20, fontWeight: '900', color: cText }}>Khóa học Nổi bật</Text>
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#06b6d4' }}>Xem tất cả</Text>
-              <ArrowRight size={16} color="#06b6d4" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20 }}>
-            {loadingCourses ? (
-              <View style={{ padding: 40, alignItems: 'center' }}><ActivityIndicator size="large" color="#06b6d4" /></View>
-            ) : allCourses.map((course: any, idx: number) => {
-              const gradients = [
-                ['#3b82f6', '#1d4ed8'],
-                ['#10b981', '#047857'],
-                ['#f59e0b', '#b45309'],
-                ['#8b5cf6', '#6d28d9'],
-                ['#ec4899', '#be185d'],
-              ];
-              const cGrad = gradients[idx % gradients.length];
-
-              return (
-                <Animated.View entering={FadeInDown.delay(300 + idx * 50).duration(400).springify()} key={course.id} style={{
-                  width: 320, borderRadius: 28, overflow: 'hidden',
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#ffffff', 
-                  borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
-                  shadowColor: '#000', shadowOpacity: isDark ? 0.3 : 0.06, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6,
-                }}>
-                  {/* Premium Abstract Cover */}
-                  <LinearGradient colors={cGrad as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={{ height: 120, padding: 20, justifyContent: 'space-between' }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                       <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.2)' }}>
-                        <Text style={{ fontSize: 10, fontWeight: '900', color: '#fff' }}>
-                          {course.category.toUpperCase()}
-                        </Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,0,0,0.3)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                        <Clock size={12} color="#fff" />
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>{course.duration}</Text>
-                      </View>
-                    </View>
-                  </LinearGradient>
-                  
-                  {/* Course Details */}
-                  <View style={{ padding: 20 }}>
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: cText, marginBottom: 16, lineHeight: 26 }} numberOfLines={2}>
-                      {course.title}
-                    </Text>
-                    
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(6,182,212,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-                          <Users size={16} color="#06b6d4" />
-                        </View>
-                        <Text style={{ fontSize: 14, fontWeight: '800', color: cText }}>{course.enrolled} <Text style={{ fontSize: 13, fontWeight: '600', color: cSub }}>user</Text></Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Trophy size={16} color="#eab308" />
-                        <Text style={{ fontSize: 13, fontWeight: '800', color: cText }}>{Math.round((course.completed / (course.enrolled || 1)) * 100)}% <Text style={{ fontSize: 12, fontWeight: '600', color: cSub }}>đạt</Text></Text>
-                      </View>
-                    </View>
-                  </View>
-                </Animated.View>
-              );
-            })}
-          </ScrollView>
-        </Animated.View>
-
-        {/* Dynamic Trainees Progress Table */}
-        <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ marginTop: 12 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <Text style={{ fontSize: 20, fontWeight: '900', color: cText }}>Tiến độ Học viên</Text>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <View style={{
-                flexDirection: 'row', alignItems: 'center', gap: 10,
-                backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#ffffff', 
-                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
-                borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10,
-                shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2,
-              }}>
-                <Search size={18} color={cSub} />
-                <Text style={{ color: cSub, fontSize: 14, fontWeight: '600' }}>Tìm kiếm học viên, khóa học...</Text>
-              </View>
-            </View>
-          </View>
+      {/* Hero Banner / Continue Learning */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[28px] p-8 shadow-lg shadow-blue-500/20 text-white flex flex-col md:flex-row gap-8 items-center justify-between">
+        <div className="flex flex-col max-w-[600px]">
+          <span className="px-3 py-1 rounded-lg bg-white/20 self-start text-[11px] font-black uppercase tracking-wider mb-4 border border-white/30">TIẾP TỤC HỌC</span>
+          <h3 className="text-[28px] font-black leading-tight mb-2">Văn hóa Doanh nghiệp & Quy tắc Ứng xử Bất động sản</h3>
+          <p className="text-[15px] font-medium text-blue-100 mb-6">Bài 3: Kỹ năng xử lý khiếu nại khách hàng V.I.P</p>
           
-          <View style={{
-            backgroundColor: isDark ? 'rgba(30,41,59,0.35)' : '#ffffff',
-            borderRadius: 28, overflow: 'hidden',
-            borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            ...(Platform.OS === 'web' ? { 
-              backdropFilter: 'blur(32px)', 
-              WebkitBackdropFilter: 'blur(32px)',
-              boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.2)' : '0 12px 32px rgba(0,0,0,0.04)' 
-            } : {}),
-          }}>
-            {loadingTrainees ? (
-               <View style={{ padding: 60, alignItems: 'center' }}>
-                 <ActivityIndicator size="large" color="#06b6d4" />
-                 <Text style={{ color: cSub, marginTop: 16, fontSize: 14, fontWeight: '600' }}>Đang tải dữ liệu học tập...</Text>
-               </View>
-            ) : (
-              <SGTable 
-                columns={COLUMNS} 
-                data={allTrainees} 
-                style={{ borderWidth: 0, backgroundColor: 'transparent' }}
-              />
-            )}
-          </View>
-        </Animated.View>
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center text-[13px] font-bold">
+              <span>Tiến độ tiến trình khóa học</span>
+              <span>65%</span>
+            </div>
+            <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-white rounded-full" style={{ width: '65%' }} />
+            </div>
+          </div>
+        </div>
+        <button className="shrink-0 w-20 h-20 bg-white text-blue-600 rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.4)]">
+          <PlayCircle size={40} className="ml-1" />
+        </button>
+      </div>
 
-      </ScrollView>
-    </View>
+      {/* Action Bar */}
+      <div className="flex flex-col md:flex-row gap-4 items-center mt-4">
+        <div className="flex-1 flex flex-row items-center gap-3 bg-sg-card border border-sg-border rounded-xl px-5 py-3.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
+          <Search size={20} className="text-sg-muted" />
+          <input 
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Tìm kiếm khóa học, kỹ năng..."
+            className="flex-1 bg-transparent border-none outline-none text-[14px] font-medium text-sg-heading placeholder:text-sg-subtext"
+          />
+        </div>
+      </div>
+
+      {/* Courses List */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {MOCK_COURSES.map((course, idx) => (
+          <div key={idx} className="bg-sg-card border border-sg-border p-6 rounded-[28px] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all flex flex-col">
+            <div className="flex justify-between items-start mb-6">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg ${course.bg}`}>
+                <course.icon size={26} />
+              </div>
+              <span className={`px-2.5 py-1 rounded-[8px] text-[10px] font-black uppercase tracking-wider ${course.status === 'MANDATORY' ? 'bg-red-50 dark:bg-red-500/10 text-red-500' : 'bg-sg-btn-bg text-sg-subtext'}`}>
+                {course.status === 'MANDATORY' ? 'BẮT BUỘC' : 'TỰ CHỌN'}
+              </span>
+            </div>
+            
+            <h4 className="text-[18px] font-black text-sg-heading leading-tight mb-2">{course.title}</h4>
+            <p className="text-[13px] font-bold text-sg-subtext mb-6">Giảng viên: {course.instructor}</p>
+            
+            <div className="mt-auto pt-5 border-t border-sg-border flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 text-sg-subtext">
+                  <Clock size={16} />
+                  <span className="text-[12px] font-bold">{course.duration}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-sg-subtext">
+                  <BookOpen size={16} />
+                  <span className="text-[12px] font-bold">{course.modules} bài</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

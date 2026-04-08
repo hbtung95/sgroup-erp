@@ -1,32 +1,26 @@
-import { Platform } from 'react-native';
-
-const DEV_API_URL_WEB = 'http://localhost:3000/api';
-const DEV_API_URL_NATIVE = 'http://10.0.2.2:3000/api';
+const DEV_API_URL = '/api'; // Proxied by Vite dev server
 const PROD_API_URL = 'https://sgroup-erp.onrender.com/api';
 
-// Detect dev/prod reliably: on web check hostname, on native check NODE_ENV
-const isDevWeb = Platform.OS === 'web' && typeof window !== 'undefined'
+const isDev = typeof window !== 'undefined'
   && (window.location?.hostname === 'localhost' || window.location?.hostname === '127.0.0.1');
-const isDevNative = Platform.OS !== 'web' && process.env.NODE_ENV !== 'production';
 
-export const API_BASE_URL = isDevWeb
-  ? DEV_API_URL_WEB
-  : isDevNative
-    ? DEV_API_URL_NATIVE
-    : PROD_API_URL;
+export const API_BASE_URL = isDev ? DEV_API_URL : PROD_API_URL;
 
 export async function apiFetch<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
-  const res = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options?.headers || {}),
-    },
-    ...options,
-  });
+  
+  // Attach token if available
+  const token = localStorage.getItem('access_token');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(url, { ...options, headers });
 
   if (!res.ok) {
     const errorBody = await res.text();
@@ -39,6 +33,13 @@ export async function apiFetch<T>(
     } catch {
       if (errorBody) message = errorBody;
     }
+    
+    // Auto-logout on 401
+    if (res.status === 401) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('sgroup_auth');
+    }
+    
     throw new Error(message);
   }
   return res.json() as Promise<T>;

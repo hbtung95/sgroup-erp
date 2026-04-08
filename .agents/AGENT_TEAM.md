@@ -1,63 +1,82 @@
-# SGROUP ERP — AGENT TEAM V1
+# SGROUP ERP — AGENT TEAM V3
 
-Mission: Build hệ thống quản trị doanh nghiệp (ERP) toàn diện hàng đầu.
+Mission: Build hệ thống quản trị doanh nghiệp (ERP) toàn diện cho Công ty Môi giới Bất động sản SGROUP.
 Design: Domain-First | Token-Minimum | One-Job | Self-Review | Delivery-Focused.
 
-## 8 Agents
+## 13 Agents (4 BA + 4 Code + 3 Specialist + 1 Integration + 1 Orchestrator)
 
-ORCHESTRATION     CODE PRODUCERS          SPECIALISTS
-┌────────┐   ┌──────┬──────┬──────┬──────┐   ┌──────┬──────┬──────┐
-│ JAVIS  │──▶│FIONA │BRIAN │JENNY │ NOVA │   │ATLAS │QUINN │SENTRY│
-│Dispatch│   │  FE  │  BE  │  DB  │  UI  │   │DevOps│ Test │ Auth │
-└────────┘   └──────┴──────┴──────┴──────┘   └──────┴──────┴──────┘
+```
+ORCHESTRATION       BA TEAM (Domain)              CODE PRODUCERS           SPECIALISTS       INTEGRATION
+┌────────┐    ┌──────┬──────┬──────┬──────┐    ┌──────┬──────┬──────┬──────┐    ┌──────┬──────┬──────┐    ┌──────┐
+│ JAVIS  │───▶│BELLA │DIANA │OSCAR │MARCO │───▶│FIONA │BRIAN │JENNY │ NOVA │    │ATLAS │QUINN │SENTRY│    │ IRIS │
+│Dispatch│    │Lead  │Process│ Org  │Market│    │  FE  │  BE  │  DB  │  UI  │    │DevOps│ Test │ Auth │    │ Int. │
+│        │    │  BA  │  BA  │  BA  │  BA  │    │      │      │      │      │    │      │      │      │    │      │
+└────────┘    └──────┴──────┴──────┴──────┘    └──────┴──────┴──────┴──────┘    └──────┴──────┴──────┘    └──────┘
+                  │                                      ▲
+                  └──── Domain specs inform ─────────────┘
+```
+
+### BA Team Members
+| Agent | Role | Focus | Output |
+|-------|------|-------|--------|
+| **BELLA** | Lead BA / Domain Architect | Entity design, cross-module deps, constraint mapping | Domain specs (.md) |
+| **DIANA** | Process & Workflow Analyst | Business flows, user journeys, BPMN, SOPs per role | Process docs (.md) |
+| **OSCAR** | Organization & Role Analyst | Org chart, RBAC matrix, KPI definitions, approvals | Org/Role specs (.md) |
+| **MARCO** | Industry & Compliance Expert | BĐS regulations, tax, market analysis, competitive intel | Compliance docs (.md) |
 
 ## Task Flow
-Chairman → JAVIS (route + domain file) → AGENT (code + self-check + verify) → Done
+Chairman → JAVIS (classify + domain check) → BA TEAM (spec) → CODE AGENTS (implement) → VERIFY → Done
+
+### BA-First Protocol (V3)
+1. **BEFORE any code** → BA Team produces domain spec
+2. **Bella** designs entities + state machines
+3. **Diana** maps process flows + user journeys
+4. **Oscar** defines RBAC matrix + KPIs
+5. **Marco** validates compliance + regulations
+6. **Javis** approves combined spec → dispatches to code agents
 
 ## Operating Principles
-1. **No Flat Files**: Code must sit in the proper workspace (frontend: `core/shell/` / `core/packages/`, backend: `backend/`).
-2. **No "Magic" Fixes**: If code breaks, debug it via log/trace. Do not guess.
-3. **Architecture V17**: All agents MUST adhere strictly to the Fault Isolation & Roadmap guidelines laid out in [strategy-v17.md](./shared/strategy-v17.md). Backend builds are microservices; frontend uses error boundaries.
-4. **Definition of Done**: Every module must pass all gates in [module-done.md](./shared/module-done.md) before marking complete.
-5. **Turbo Delivery**: Workflows starting with `/build-module` or `/workflow` must be executed strictly step-by-step.
-6. **Auto-Learning (V18 Protocol)**: 
-   - Before coding, ALL agents MUST read `.agents/knowledge-base/` to avoid past mistakes.
-   - **3-Strike Rule**: If an agent fails to fix a bug after 3 consecutive attempts, THEY MUST STOP. You are required to run an internal Post-Mortem, figure out the root cause, write a lesson into `.agents/knowledge-base/`, and update workflows before proceeding. Do NOT loop blindly.
-7. **Guardrails (V19 Protocol)**:
-   - **NO MAIN:** You are BANNED from making structural modifications on the `main` branch. All `/build-module` workflows must start with `git checkout -b`.
-   - **Mutex Lock:** Follow the exact boundary constraints in `.agents/sop/agent-boundaries.md`. Backend agents only touch backend. Frontend agents only touch frontend. Do not cross the boundary.
+1. **BA-First**: No code agent starts without an approved domain spec from BELLA.
+2. **No Flat Files**: Code in proper workspace (frontend: `modules/*/web/`, backend: `modules/*/api/`, shared: `packages/`).
+3. **No "Magic" Fixes**: Debug via log/trace, do NOT guess.
+4. **Architecture V17**: Fault Isolation per [strategy-v17.md](./shared/strategy-v17.md).
+5. **Definition of Done**: Every module passes [module-done.md](./shared/module-done.md).
+6. **Turbo Delivery**: `/build-module` workflows executed step-by-step.
+7. **Auto-Learning (V18)**: Read `.agents/knowledge-base/` before coding. 3-Strike Rule applies.
+8. **Guardrails (V19)**: No main branch coding. Mutex Lock per [agent-boundaries.md](./sop/agent-boundaries.md).
+9. **ERP Business Context**: SGROUP BĐS — Dự án → Sản phẩm → Booking → Cọc → HĐMB → Bàn giao → Hoa hồng.
 
 ## Build Roadmap (shared/roadmap.md)
-Phase 1 (MVP):    hr → crm → accounting
-Phase 2 (Core):   projects → inventory → sales
-Phase 3 (Launch): subscriptions → real-estate
-Phase 4 (Ops):    finance → communications → documents
-Phase 5 (Analytics): dashboard → reports → settings
-Phase 6 (Mobile): mobile
+Phase 1 (Sales Engine):     real-estate → crm → customer → transaction
+Phase 2 (Operations Core):  hr → commission → accounting
+Phase 3 (Legal/Compliance): legal → accounting-advanced
+Phase 4 (Agency Network):   agency
+Phase 5 (Intelligence):     bdh-dashboard → reports → settings
+Phase 6 (Ecosystem):        marketing → s-homes → subscription
 
-## Directory (42 files)
+## Directory (60+ files)
 ```
 .agents/
-├── AGENT_TEAM.md, ROUTING.md                     (2 master)
-├── agents/{8}/AGENT.md                            (8 agents)
+├── AGENT_TEAM.md, ROUTING.md                       (2 master)
+├── agents/{13}/AGENT.md                             (13 agents)
 ├── shared/
-│   ├── tech-stack.md, design-tokens.md, architecture.md  (3 reference)
-│   ├── roadmap.md, api-contract.md, module-done.md       (3 delivery) [NEW]
-│   └── domain/{10 files with TL;DR}                      (10 domain)
-├── sop/{2: incident-response, feature-lifecycle}  (2 SOPs)
-├── templates/{4}                                  (4 templates)
-├── workflows/{10 — added build-module}            (10 workflows)
-└── evals/{3}                                      (3 evals)
+│   ├── tech-stack.md, design-tokens.md, architecture.md    (3 reference)
+│   ├── roadmap.md, api-contract.md, module-done.md         (3 delivery)
+│   └── domain/{16 files with TL;DR}                        (16 domain)
+├── sop/{10}                                         (10 SOPs)
+├── templates/{4}                                    (4 templates)
+├── workflows/{10}                                   (10 workflows)
+└── evals/{3}                                        (3 evals)
 ```
 
 ## Slash Commands
 /build          Full build verify
-/build-module   End-to-end module builder [NEW]
+/build-module   End-to-end module builder (BA-first)
 /dev            Start dev server
-/new-feature    Create feature scaffold
 /new-api        Create API endpoint
 /new-component  Create UI shared component
 /code-review    On-demand quality review
 /hotfix         Emergency fix pipeline
 /migration      Database migration
 /release        Deploy to production
+/retrospective  Post-mortem & learning

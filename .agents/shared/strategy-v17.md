@@ -1,49 +1,59 @@
-# VCT Platform Strategy V17 — Microservices & Bottom-Up Roadmap
+# SGROUP ERP Strategy V17 — Microservices & Revenue-First Roadmap
 
-**Notice to All Agents:** This document outlines the V17 architectural and business strategy for the VCT Platform. ALL modules engineered from this point forward MUST adhere to these constraints.
+**Notice to All Agents:** This document outlines the V17 architectural and business strategy for the SGROUP ERP Platform. ALL modules engineered from this point forward MUST adhere to these constraints.
 
-## 1. Architectural Mandate: Fault Isolation
-To ensure massive stability, the VCT Platform uses **Modular Frontends** paired with **Dockerized Microservices Backend**.
+## 1. Business Context: Real Estate Brokerage ERP
+SGROUP is a **real estate brokerage company** (Công ty Môi giới Bất Động Sản). The ERP system must manage:
+- **Project & Inventory:** Track real estate projects, units (apartments/land/townhouses), pricing, availability.
+- **Sales Pipeline:** Booking → Deposit → Contract (HĐMB) → Handover, with race condition prevention.
+- **Commission:** Multi-level commission (Direct Sales 60% / Team Lead 20% / Branch Manager 15% / Company 5%).
+- **Agency Network:** F1/F2 distribution partners with tiered commission sharing.
+- **Finance:** Invoice, AR/AP, payroll, tax compliance (Vietnamese regulation).
+- **HR/Ops:** Staff management, attendance, KPI, performance reviews.
 
-- **Frontend isolation:** UI modules must be rendered through React's `TolerantErrorBoundary` inside `core/shell`. A crash in the "Tournaments" UI must NEVER crash the "Members" UI.
+## 2. Architectural Mandate: Fault Isolation
+To ensure massive stability, the SGROUP ERP uses **Modular Frontends** paired with **Dockerized Microservices Backend**.
+
+- **Frontend isolation:** UI modules must be rendered through React's `TolerantErrorBoundary` inside `core/web-host`. A crash in the "Commission" UI must NEVER crash the "CRM" UI.
 - **Backend isolation (Microservices):** 
-  - Sub-domains (e.g. `backend/services/members-svc/`, `backend/services/tournaments-svc/`) MUST be built as standalone Go executables intended for isolated Docker containers.
+  - Sub-domains (e.g. `modules/crm/api/`, `modules/hr/api/`) MUST be built as standalone Go executables intended for isolated Docker containers.
   - A panic or fatal error in a particular service must only take down its own container. Other services must continue operating.
-  - Inter-service communication should happen via HTTP/RPC or an event bus, NOT via direct internal Go imports spanning across different service domains.
+  - Inter-service communication should happen via HTTP/RPC or RabbitMQ event bus, NOT via direct internal Go imports spanning across different service domains.
 
-## 2. Delivery Roadmap: The "Bottom-Up" Strategy
-Prioritization is radically changed to focus on acquiring end-users first, rather than top-level federations down. Development phases must occur in this exact order:
+## 3. Delivery Roadmap: The "Revenue-First" Strategy
+Prioritization focuses on **sales revenue generation first**, then operations, then intelligence.
 
-- 🎯 **Phase 1: "User First" (The Athlete Lifecycle)**
-  - Modules: `members`, `dashboard`.
-  - Goal: Focus on individual martial artists, ID/QR code, digital profile.
-  - Status: *In Progress* (`members` MVP built).
+- 🎯 **Phase 1: "Sales Engine" (Revenue Pipeline)**
+  - Modules: `real-estate`, `crm`, `customer`, `transaction`.
+  - Goal: Digitize the end-to-end sales pipeline, CRM integration with BizFly.
+  - Status: *Domain specs ready, scaffolding in progress*.
 
-- 🎯 **Phase 2: "National Core" (Top-Level Fed)**
-  - Modules: `belt-ranks`, `examinations`, `certificates`.
-  - Goal: National standards, belt progression approval, massive certification issuance.
+- 🎯 **Phase 2: "Operations Core" (HR + Finance)**
+  - Modules: `hr`, `commission`, `accounting`.
+  - Goal: Payroll, attendance, commission calculation, invoice management.
 
-- 🎯 **Phase 3: "Regional Control" (Provincial Fed)**
-  - Modules: `personnel`, `communications`.
-  - Goal: Delegation logic. Provinces manage their own zones.
+- 🎯 **Phase 3: "Legal & Compliance"**
+  - Modules: `legal`, `accounting` (advanced).
+  - Goal: Contract lifecycle, tax compliance, audit trail.
 
-- 🎯 **Phase 4: "Dojo Operations" (Clubs & Gyms)**
-  - Modules: `clubs`, `finance`, `documents`.
-  - Goal: Day-to-day operations for martial arts schools (tuition, schedules).
+- 🎯 **Phase 4: "Agency Network"**
+  - Modules: `agency`.
+  - Goal: F1/F2 partner management, territory assignment, multi-tier commission.
 
-- 🎯 **Phase 5: "The Arena" (Tournaments)**
-  - Modules: `tournaments`.
-  - Goal: Bracket making, real-time match scoring, leaderboards. Heavy logic container.
+- 🎯 **Phase 5: "Intelligence" (BDH Dashboard)**
+  - Modules: `bdh-dashboard`, `reports`, `settings`.
+  - Goal: Revenue KPIs, target tracking, executive decision tools.
 
-- 🎯 **Phase 6: "Ecosystem" (Marketplace)**
-  - Modules: `marketplace`, `reports`, `settings`.
-  - Goal: Commerce (apparel, gear) and Big Data insights.
+- 🎯 **Phase 6: "Ecosystem"**
+  - Modules: `marketing`, `s-homes`, `subscription`.
+  - Goal: Marketing campaigns, rental property management, SaaS for partners.
 
 ## Agent Directives
 1. **Javis (Orchestrator):** Ensure all plans align strictly with the V17 roadmap order. Do not build Phase 5 features before Phase 2.
-2. **Brian (Backend API):** Ensure that you craft APIs inside `backend/services/[domain-svc]` instead of a monolith. 
-3. **Fiona (Frontend UI):** Ensure all new feature slices inside `core/shell/src/features` are wrapped in error boundaries.
-4. **Sentry (Security/Auth):** Ensure RBAC scales gracefully from National ──▶ Provincial ──▶ Club levels.
-5. **Atlas & Quinn (Build/QA):** Verify container isolation compatibility by testing isolated packages.
+2. **Brian (Backend API):** Ensure that you craft APIs inside `modules/[domain]/api/` as standalone Go modules. Use `Decimal(18,4)` for all monetary values, `$transaction` for all multi-table writes.
+3. **Fiona (Frontend UI):** Ensure all new feature slices inside `modules/[domain]/web/src/` are wrapped in error boundaries. Use Neo-Corporate Light theme by default.
+4. **Sentry (Security/Auth):** Ensure RBAC scales gracefully from CEO → Director → Branch Manager → Team Lead → Sales levels.
+5. **Nova (UI/Design):** Build Neo-Corporate Premium theme — Light mode DEFAULT, dark mode optional. No gaming/cyber aesthetics.
+6. **Atlas & Quinn (Build/QA):** Verify container isolation compatibility by testing isolated packages.
 
-*Strategy drafted on: 2026-04-06*
+*Strategy drafted on: 2026-04-08*

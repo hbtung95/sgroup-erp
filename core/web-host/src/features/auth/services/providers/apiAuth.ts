@@ -2,7 +2,7 @@ import { AuthProvider } from '../authProvider';
 import { apiFetch } from '../../../../core/api/api';
 import { AuthUser } from '../../types';
 
-/** Real API authentication — calls NestJS backend */
+/** Real API authentication — calls backend */
 export const apiAuthProvider: AuthProvider = {
   async login(email: string, password: string) {
     const res = await apiFetch<{
@@ -45,6 +45,6 @@ export const apiAuthProvider: AuthProvider = {
     return { user, token: res.data.access_token };
   },
   async logout() {
-    // Backend doesn't have a logout endpoint yet; just clear token client-side
+    // Backend doesn't have a logout endpoint yet
   },
 };

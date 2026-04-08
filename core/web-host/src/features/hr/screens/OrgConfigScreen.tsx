@@ -1,24 +1,12 @@
- /**
- * OrgConfigScreen — Premium Department-Centric Org Configuration
- * Hierarchy: Department → Teams → Positions
- * Full CRUD for departments, teams, and positions
- */
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Platform, TextInput, Modal, Alert, ActivityIndicator } from 'react-native';
-import {
+import { 
   Building, Briefcase, Plus, Pencil, Trash2, X, Users, Hash,
   ChevronDown, ChevronRight, UsersRound, Settings, Network, List
-} from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useAppTheme } from '@sgroup/ui/src/theme/useAppTheme';
-import { sgds } from '@sgroup/ui/src/theme/theme';
-import { SGCard } from '@sgroup/ui/src/ui/components';
-import type { HRRole } from '../HRSidebar';
-import {
+} from 'lucide-react';
+import { 
   useDepartments, useCreateDepartment, useUpdateDepartment, useDeleteDepartment,
   usePositions, useCreatePosition, useUpdatePosition,
-  useCreateTeam, useUpdateTeam, useDeleteTeam,
+  useCreateTeam, useUpdateTeam, useDeleteTeam
 } from '../hooks/useHR';
 
 type ModalMode = 'create_dept' | 'edit_dept' | 'create_team' | 'edit_team' | 'create_pos' | 'edit_pos' | null;
@@ -28,28 +16,21 @@ const EMPTY_TEAM = { name: '', code: '', departmentId: '', description: '' };
 const EMPTY_POS = { name: '', code: '', level: '', description: '' };
 const LEVEL_OPTIONS = ['Staff', 'Senior', 'Leader', 'Manager', 'Director'];
 
-export function OrgConfigScreen({ userRole }: { userRole?: HRRole }) {
-  const { theme, isDark } = useAppTheme();
-  const cText = theme.colors.textPrimary;
-  const cSub = theme.colors.textSecondary;
-  const cardBg = isDark ? 'rgba(255,255,255,0.03)' : '#ffffff';
-  const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-
+export function OrgConfigScreen() {
   const [modalMode, setModalMode] = useState<ModalMode>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'tree'>('tree'); // Default to Tree View for premium feel
+  const [viewMode, setViewMode] = useState<'list' | 'tree'>('list'); 
   const [editId, setEditId] = useState('');
   const [expandedDept, setExpandedDept] = useState<string | null>(null);
+  
   const [deptForm, setDeptForm] = useState(EMPTY_DEPT);
   const [teamForm, setTeamForm] = useState(EMPTY_TEAM);
   const [posForm, setPosForm] = useState(EMPTY_POS);
 
-  // Data — departments include teams via backend
   const { data: rawDepts, isLoading: loadingDepts } = useDepartments();
   const { data: rawPos, isLoading: loadingPos } = usePositions();
   const departments = Array.isArray(rawDepts) ? rawDepts : (rawDepts as any)?.data ?? [];
   const positions = Array.isArray(rawPos) ? rawPos : (rawPos as any)?.data ?? [];
 
-  // Mutations
   const createDept = useCreateDepartment();
   const updateDept = useUpdateDepartment();
   const deleteDept = useDeleteDepartment();
@@ -59,23 +40,12 @@ export function OrgConfigScreen({ userRole }: { userRole?: HRRole }) {
   const createPos = useCreatePosition();
   const updatePos = useUpdatePosition();
 
-  const inputStyle: any = {
-    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f8fafc',
-    borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
-    borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14,
-    fontSize: 15, color: cText, fontWeight: '600',
-    ...(Platform.OS === 'web' ? { outlineStyle: 'none' } : {}),
-  };
-
-  const showAlert = (msg: string) => {
-    Platform.OS === 'web' ? window.alert(msg) : Alert.alert('Thông báo', msg);
-  };
-
   const isPending = createDept.isPending || updateDept.isPending || createTeam.isPending || updateTeam.isPending || createPos.isPending || updatePos.isPending;
 
-  // ── Handlers ──
+  const showAlert = (msg: string) => window.alert(msg);
+
   const handleDeptSubmit = async () => {
-    if (!deptForm.name.trim() || !deptForm.code.trim()) { showAlert('Vui lòng nhập tên và mã phòng ban'); return; }
+    if (!deptForm.name.trim() || !deptForm.code.trim()) return showAlert('Vui lòng nhập tên và mã phòng ban');
     try {
       if (modalMode === 'edit_dept') await updateDept.mutateAsync({ id: editId, data: deptForm });
       else await createDept.mutateAsync(deptForm);
@@ -84,7 +54,7 @@ export function OrgConfigScreen({ userRole }: { userRole?: HRRole }) {
   };
 
   const handleTeamSubmit = async () => {
-    if (!teamForm.name.trim() || !teamForm.code.trim()) { showAlert('Vui lòng nhập tên và mã team'); return; }
+    if (!teamForm.name.trim() || !teamForm.code.trim()) return showAlert('Vui lòng nhập tên và mã team');
     try {
       if (modalMode === 'edit_team') await updateTeam.mutateAsync({ id: editId, data: { name: teamForm.name, code: teamForm.code, description: teamForm.description } });
       else await createTeam.mutateAsync(teamForm);
@@ -93,7 +63,7 @@ export function OrgConfigScreen({ userRole }: { userRole?: HRRole }) {
   };
 
   const handlePosSubmit = async () => {
-    if (!posForm.name.trim() || !posForm.code.trim()) { showAlert('Vui lòng nhập tên và mã chức vụ'); return; }
+    if (!posForm.name.trim() || !posForm.code.trim()) return showAlert('Vui lòng nhập tên và mã chức vụ');
     try {
       if (modalMode === 'edit_pos') await updatePos.mutateAsync({ id: editId, data: posForm });
       else await createPos.mutateAsync(posForm);
@@ -102,16 +72,15 @@ export function OrgConfigScreen({ userRole }: { userRole?: HRRole }) {
   };
 
   const handleDeleteDept = async (id: string, name: string) => {
-    if (Platform.OS === 'web' && !window.confirm(`Xóa phòng ban "${name}"? Tất cả team bên trong cũng sẽ bị xóa.`)) return;
+    if (!window.confirm(`Xóa phòng ban "${name}"? Tất cả team bên trong cũng sẽ bị xóa.`)) return;
     try { await deleteDept.mutateAsync(id); } catch (e: any) { showAlert(e?.response?.data?.message || 'Không thể xóa'); }
   };
 
   const handleDeleteTeam = async (id: string, name: string) => {
-    if (Platform.OS === 'web' && !window.confirm(`Xóa team "${name}"?`)) return;
+    if (!window.confirm(`Xóa team "${name}"?`)) return;
     try { await deleteTeam.mutateAsync(id); } catch (e: any) { showAlert(e?.response?.data?.message || 'Không thể xóa'); }
   };
 
-  // ── Modal Content ──
   const getModalTitle = () => {
     switch (modalMode) {
       case 'create_dept': return 'Thêm phòng ban';
@@ -125,9 +94,9 @@ export function OrgConfigScreen({ userRole }: { userRole?: HRRole }) {
   };
 
   const getModalColor = () => {
-    if (modalMode?.includes('dept')) return '#ec4899';
-    if (modalMode?.includes('team')) return '#3b82f6';
-    return '#8b5cf6';
+    if (modalMode?.includes('dept')) return 'bg-pink-500 shadow-pink-500/30';
+    if (modalMode?.includes('team')) return 'bg-blue-500 shadow-blue-500/30';
+    return 'bg-purple-500 shadow-purple-500/30';
   };
 
   const handleSubmit = () => {
@@ -136,489 +105,346 @@ export function OrgConfigScreen({ userRole }: { userRole?: HRRole }) {
     return handlePosSubmit();
   };
 
-  const isEdit = modalMode?.startsWith('edit');
+  const totalTeams = departments.reduce((s: number, d: any) => s + (d.teams?.length || 0), 0);
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? theme.colors.background : theme.colors.backgroundAlt }}>
-      {/* ── Modal ── */}
-      <Modal visible={!!modalMode} transparent animationType="fade" onRequestClose={() => setModalMode(null)}>
-        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }} onPress={() => setModalMode(null)}>
-          <Pressable style={{ width: '90%', maxWidth: 480, backgroundColor: isDark ? '#1e293b' : '#fff', borderRadius: 28, padding: 32, ...(Platform.OS === 'web' ? { boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' } : {}) }} onPress={() => {}}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <Text style={{ fontSize: 24, fontWeight: '900', color: cText, letterSpacing: -0.5 }}>{getModalTitle()}</Text>
-              <Pressable onPress={() => setModalMode(null)} style={{ padding: 6, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: 12 }}><X size={20} color={cSub} /></Pressable>
-            </View>
+    <div className="relative flex flex-col w-full h-full bg-sg-bg overflow-x-hidden text-sg-text custom-scrollbar">
+      {/* Header */}
+      <div className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 border-b border-sg-border bg-sg-card/80 backdrop-blur-xl">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30">
+            <Settings size={22} />
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-xl font-black text-sg-heading tracking-tight">Cấu hình Tổ chức</h1>
+            <p className="text-[13px] font-bold text-sg-subtext mt-0.5">Phòng ban → Teams → Chức vụ</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => { setPosForm(EMPTY_POS); setModalMode('create_pos'); }} className="flex items-center gap-2 px-4 py-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/20 transition-all font-extrabold text-xs uppercase tracking-wide">
+            <Plus size={16} strokeWidth={3} /> Chức Vụ
+          </button>
+          <button onClick={() => { setDeptForm(EMPTY_DEPT); setModalMode('create_dept'); }} className="flex items-center gap-2 px-4 py-2.5 bg-pink-500 hover:bg-pink-600 text-white rounded-xl shadow-lg shadow-pink-500/20 transition-all font-extrabold text-xs uppercase tracking-wide">
+            <Plus size={16} strokeWidth={3} /> Phòng Ban
+          </button>
+        </div>
+      </div>
 
-            {/* Department form */}
-            {modalMode?.includes('dept') && (
-              <View style={{ gap: 16 }}>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Tên phòng ban *</Text>
-                  <TextInput value={deptForm.name} onChangeText={v => setDeptForm(f => ({ ...f, name: v }))} placeholder="Phòng Kinh doanh" placeholderTextColor={cSub} style={inputStyle} />
-                </View>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Mã phòng ban *</Text>
-                  <TextInput value={deptForm.code} onChangeText={v => setDeptForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="SALES" placeholderTextColor={cSub} style={inputStyle} autoCapitalize="characters" />
-                </View>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Mô tả</Text>
-                  <TextInput value={deptForm.description} onChangeText={v => setDeptForm(f => ({ ...f, description: v }))} placeholder="Mô tả phòng ban" placeholderTextColor={cSub} style={[inputStyle, { minHeight: 80 }]} multiline />
-                </View>
-              </View>
-            )}
+      <div className="flex-1 overflow-y-auto px-6 py-8">
+        <div className="max-w-6xl mx-auto flex flex-col gap-8">
+          
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatCard label="Phòng ban" value={departments.length} icon={Building} colorClass="text-pink-500 bg-pink-500/10 border-pink-500/20" />
+            <StatCard label="Teams" value={totalTeams} icon={UsersRound} colorClass="text-blue-500 bg-blue-500/10 border-blue-500/20" />
+            <StatCard label="Chức vụ" value={positions.length} icon={Briefcase} colorClass="text-purple-500 bg-purple-500/10 border-purple-500/20" />
+          </div>
 
-            {/* Team form */}
-            {modalMode?.includes('team') && (
-              <View style={{ gap: 16 }}>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Tên team *</Text>
-                  <TextInput value={teamForm.name} onChangeText={v => setTeamForm(f => ({ ...f, name: v }))} placeholder="Team KD Online" placeholderTextColor={cSub} style={inputStyle} />
-                </View>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Mã team *</Text>
-                  <TextInput value={teamForm.code} onChangeText={v => setTeamForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="KD-ONLINE" placeholderTextColor={cSub} style={inputStyle} autoCapitalize="characters" />
-                </View>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Mô tả</Text>
-                  <TextInput value={teamForm.description} onChangeText={v => setTeamForm(f => ({ ...f, description: v }))} placeholder="Mô tả team" placeholderTextColor={cSub} style={[inputStyle, { minHeight: 80 }]} multiline />
-                </View>
-              </View>
-            )}
+          <div className="flex justify-end -mt-2">
+            <div className="flex bg-sg-btn-bg p-1 rounded-2xl border border-sg-border shadow-sm">
+              <button onClick={() => setViewMode('tree')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold tracking-wide transition-all ${viewMode === 'tree' ? 'bg-sg-card text-pink-500 shadow border border-sg-border' : 'text-sg-muted hover:text-sg-text'}`}>
+                <Network size={14} strokeWidth={3} /> SƠ ĐỒ CÂY
+              </button>
+              <button onClick={() => setViewMode('list')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold tracking-wide transition-all ${viewMode === 'list' ? 'bg-sg-card text-pink-500 shadow border border-sg-border' : 'text-sg-muted hover:text-sg-text'}`}>
+                <List size={14} strokeWidth={3} /> DANH SÁCH
+              </button>
+            </div>
+          </div>
 
-            {/* Position form */}
-            {modalMode?.includes('pos') && (
-              <View style={{ gap: 16 }}>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Tên chức vụ *</Text>
-                  <TextInput value={posForm.name} onChangeText={v => setPosForm(f => ({ ...f, name: v }))} placeholder="Trưởng phòng" placeholderTextColor={cSub} style={inputStyle} />
-                </View>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Mã chức vụ *</Text>
-                  <TextInput value={posForm.code} onChangeText={v => setPosForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="MGR" placeholderTextColor={cSub} style={inputStyle} autoCapitalize="characters" />
-                </View>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Cấp bậc</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
-                    {LEVEL_OPTIONS.map(l => (
-                      <Pressable key={l} onPress={() => setPosForm(f => ({ ...f, level: f.level === l ? '' : l }))} style={{
-                        paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12,
-                        backgroundColor: posForm.level === l ? '#8b5cf6' : (isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'),
-                        borderWidth: 1, borderColor: posForm.level === l ? '#8b5cf6' : (isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
-                      }}>
-                        <Text style={{ fontSize: 13, fontWeight: '700', color: posForm.level === l ? '#fff' : cText }}>{l}</Text>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                </View>
-                <View>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: cSub, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>Mô tả</Text>
-                  <TextInput value={posForm.description} onChangeText={v => setPosForm(f => ({ ...f, description: v }))} placeholder="Mô tả chức vụ" placeholderTextColor={cSub} style={[inputStyle, { minHeight: 80 }]} multiline />
-                </View>
-              </View>
-            )}
-
-            {/* Actions */}
-            <View style={{ flexDirection: 'row', gap: 16, marginTop: 32 }}>
-              <Pressable onPress={() => setModalMode(null)} style={{ flex: 1, paddingVertical: 16, borderRadius: 16, alignItems: 'center', backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9' }}>
-                <Text style={{ fontSize: 15, fontWeight: '800', color: cSub }}>Hủy Bỏ</Text>
-              </Pressable>
-              <Pressable onPress={handleSubmit} disabled={isPending} style={{ flex: 1, paddingVertical: 16, borderRadius: 16, alignItems: 'center', backgroundColor: isPending ? '#94a3b8' : getModalColor(), shadowColor: getModalColor(), shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }}>
-                <Text style={{ fontSize: 15, fontWeight: '800', color: '#fff' }}>{isPending ? 'Đang lưu...' : (isEdit ? 'Cập Nhật' : 'Tạo Mới')}</Text>
-              </Pressable>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
-
-      {/* ── Main Content ── */}
-      <ScrollView contentContainerStyle={{ padding: 32, gap: 32, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-        {/* Premium Header */}
-        <Animated.View entering={FadeInDown.duration(400)} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <LinearGradient 
-              colors={['#ec4899', '#f43f5e']} start={{x:0,y:0}} end={{x:1,y:1}}
-              style={{ width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', 
-                     shadowColor: '#ec4899', shadowOpacity: 0.5, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}
-            >
-              <Settings size={28} color="#fff" />
-            </LinearGradient>
-            <View>
-              <Text style={{ fontSize: 32, fontWeight: '900', color: cText, letterSpacing: -1 }}>Cấu hình Tổ chức</Text>
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#94a3b8', marginTop: 4 }}>Phòng ban → Teams → Chức vụ</Text>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <Pressable onPress={() => { setPosForm(EMPTY_POS); setModalMode('create_pos'); }} style={{
-              flexDirection: 'row', alignItems: 'center', gap: 8,
-              backgroundColor: '#8b5cf6', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16,
-              shadowColor: '#8b5cf6', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
-              ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {}),
-            }}>
-              <Plus size={16} color="#fff" />
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff', letterSpacing: 0.5 }}>CHỨC VỤ</Text>
-            </Pressable>
-            <Pressable onPress={() => { setDeptForm(EMPTY_DEPT); setModalMode('create_dept'); }} style={{
-              flexDirection: 'row', alignItems: 'center', gap: 8,
-              backgroundColor: '#ec4899', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16,
-              shadowColor: '#ec4899', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4,
-              ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {}),
-            }}>
-              <Plus size={16} color="#fff" />
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff', letterSpacing: 0.5 }}>PHÒNG BAN</Text>
-            </Pressable>
-          </View>
-        </Animated.View>
-
-        {/* View Mode Toggle */}
-        <Animated.View entering={FadeInDown.delay(50).duration(400)} style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: -16 }}>
-          <View style={{ flexDirection: 'row', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: 16, padding: 4 }}>
-            <Pressable onPress={() => setViewMode('tree')} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: viewMode === 'tree' ? (isDark ? '#ec4899' : '#fff') : 'transparent', shadowColor: '#000', shadowOpacity: viewMode === 'tree' ? 0.05 : 0, shadowRadius: 4, elevation: viewMode === 'tree' ? 2 : 0, flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-              <Network size={16} color={viewMode === 'tree' ? (isDark ? '#fff' : '#ec4899') : cSub} />
-              <Text style={{ fontSize: 13, fontWeight: '800', color: viewMode === 'tree' ? (isDark ? '#fff' : '#ec4899') : cSub }}>SƠ ĐỒ CÂY</Text>
-            </Pressable>
-            <Pressable onPress={() => setViewMode('list')} style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: viewMode === 'list' ? (isDark ? '#ec4899' : '#fff') : 'transparent', shadowColor: '#000', shadowOpacity: viewMode === 'list' ? 0.05 : 0, shadowRadius: 4, elevation: viewMode === 'list' ? 2 : 0, flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-              <List size={16} color={viewMode === 'list' ? (isDark ? '#fff' : '#ec4899') : cSub} />
-              <Text style={{ fontSize: 13, fontWeight: '800', color: viewMode === 'list' ? (isDark ? '#fff' : '#ec4899') : cSub }}>DANH SÁCH</Text>
-            </Pressable>
-          </View>
-        </Animated.View>
-
-        {/* ═══ Stats Overview ═══ */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap' }}>
-          {[
-            { label: 'PHÒNG BAN', val: departments.length, icon: Building, color: '#ec4899', shadow: '#ec4899' },
-            { label: 'TEAMS', val: departments.reduce((s: number, d: any) => s + (d.teams?.length || 0), 0), icon: UsersRound, color: '#3b82f6', shadow: '#3b82f6' },
-            { label: 'CHỨC VỤ', val: positions.length, icon: Briefcase, color: '#8b5cf6', shadow: '#8b5cf6' },
-          ].map((s, i) => (
-            <LinearGradient
-              key={i}
-              colors={isDark ? ['rgba(30,41,59,0.7)', 'rgba(15,23,42,0.8)'] : ['#ffffff', '#ffffff']}
-              style={{
-                flex: 1, minWidth: 200, padding: 24, borderRadius: 24,
-                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.03)',
-                shadowColor: isDark ? '#000' : s.shadow, shadowOpacity: isDark ? 0.3 : 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 6,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: `${s.color}15`, alignItems: 'center', justifyContent: 'center' }}>
-                  <s.icon size={22} color={s.color} />
-                </View>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: cSub, flex: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.label}</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-                <Text style={{ fontSize: 36, fontWeight: '900', color: cText, letterSpacing: -1 }}>{s.val}</Text>
-              </View>
-            </LinearGradient>
-          ))}
-        </Animated.View>
-
-        {/* ═══ DEPARTMENTS — Expandable Cards ═══ */}
-        {loadingDepts ? (
-          <View style={{ padding: 40, alignItems: 'center' }}><ActivityIndicator size="large" color="#ec4899" /></View>
-        ) : departments.length === 0 ? (
-          <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-            <SGCard variant="glass" style={{ padding: 40, alignItems: 'center', borderRadius: 24 }}>
-              <Text style={{ fontSize: 48, marginBottom: 16 }}>🏢</Text>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: cSub }}>Chưa có phòng ban nào. Bấm "+ PHÒNG BAN" để khởi tạo.</Text>
-            </SGCard>
-          </Animated.View>
-        ) : viewMode === 'tree' ? (
-          /* ═══ TREE VIEW ═══ */
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 20 }}>
-            <View style={{ alignItems: 'center', minWidth: '100%' }}>
-              {/* Root Node (Company/CEO) Mock */}
-              <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ alignItems: 'center', marginBottom: 32 }}>
-                <LinearGradient colors={['#3b82f6', '#1d4ed8']} style={{ paddingHorizontal: 32, paddingVertical: 16, borderRadius: 20, alignItems: 'center', shadowColor: '#3b82f6', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6, zIndex: 10 }}>
-                  <Text style={{ fontSize: 18, fontWeight: '900', color: '#fff' }}>SGroup Corporation</Text>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>{departments.length} Phòng ban • {positions.length} Chức vụ</Text>
-                </LinearGradient>
-                {/* Vertical line down from Root */}
-                <View style={{ width: 2, height: 32, backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1', marginTop: -2 }} />
-              </Animated.View>
-
-              {/* Departments Row */}
-              <View style={{ flexDirection: 'row', gap: 40, position: 'relative' }}>
-                {/* Horizontal line connecting all departments */}
-                {departments.length > 1 && (
-                  <View style={{ position: 'absolute', top: -2, left: '50%', right: '50%', height: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1',
-                    transform: [{ translateX: '-50%' }, { scaleX: (departments.length - 1) / departments.length * 1.5 }] // Approx width
-                  }} />
-                )}
-                
-                {departments.map((dept: any, dIdx: number) => {
-                  const deptTeams = dept.teams || [];
-                  return (
-                    <Animated.View entering={FadeInDown.delay(300 + dIdx * 100).duration(400)} key={dept.id} style={{ alignItems: 'center' }}>
-                      {/* Vertical line to Department */}
-                      <View style={{ width: 2, height: 16, backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : '#cbd5e1', marginTop: -16, marginBottom: 0 }} />
-                      
-                      {/* Department Node */}
-                      <View style={{ width: 220, padding: 20, borderRadius: 20, backgroundColor: isDark ? 'rgba(236,72,153,0.1)' : '#fdf2f8', borderWidth: 1, borderColor: isDark ? 'rgba(236,72,153,0.3)' : '#fbcfe8', alignItems: 'center', marginBottom: deptTeams.length > 0 ? 32 : 0, shadowColor: '#ec4899', shadowOpacity: 0.1, shadowRadius: 10, elevation: 2 }}>
-                        <Building size={24} color="#ec4899" style={{ marginBottom: 8 }} />
-                        <Text style={{ fontSize: 15, fontWeight: '800', color: cText, textAlign: 'center' }}>{dept.name}</Text>
-                        <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: 'rgba(236,72,153,0.15)', marginTop: 6 }}>
-                          <Text style={{ fontSize: 11, fontWeight: '900', color: '#ec4899' }}>{dept.code}</Text>
-                        </View>
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: cSub, marginTop: 8 }}>{dept._count?.employees ?? 0} NS • {deptTeams.length} Teams</Text>
-                      </View>
-
-                      {/* Teams under Department */}
-                      {deptTeams.length > 0 && (
-                        <View style={{ alignItems: 'center' }}>
-                           {/* Vertical line from Dept down */}
-                           <View style={{ width: 2, height: 32, backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : '#e2e8f0', marginTop: -32 }} />
-                           <View style={{ gap: 16 }}>
-                             {deptTeams.map((t: any, tIdx: number) => (
-                               <Animated.View entering={FadeInDown.delay(500 + tIdx * 50).duration(400)} key={t.id} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                 {/* Horizontal connector to team */}
-                                 <View style={{ width: 24, height: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : '#e2e8f0', marginRight: 8, marginLeft: -32 }} />
-                                 {/* Team Node */}
-                                 <View style={{ width: 180, padding: 14, borderRadius: 16, backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : '#eff6ff', borderWidth: 1, borderColor: isDark ? 'rgba(59,130,246,0.2)' : '#bfdbfe' }}>
-                                   <Text style={{ fontSize: 13, fontWeight: '800', color: cText }}>{t.name}</Text>
-                                   <Text style={{ fontSize: 11, fontWeight: '600', color: '#3b82f6', marginTop: 2 }}>{t.code}</Text>
-                                 </View>
-                               </Animated.View>
-                             ))}
-                           </View>
-                           {/* Extend vertical line down alongside teams */}
-                           <View style={{ position: 'absolute', left: -16, top: 0, bottom: 20, width: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : '#e2e8f0' }} />
-                        </View>
-                      )}
-                    </Animated.View>
-                  );
-                })}
-              </View>
-            </View>
-          </ScrollView>
-        ) : (
-          /* ═══ LIST VIEW (ACCORDION) ═══ */
-          <View style={{ gap: 20 }}>
-            {departments.map((dept: any, idx: number) => {
-              const isExpanded = expandedDept === dept.id;
-              const deptTeams = dept.teams || [];
-              return (
-                <Animated.View entering={FadeInDown.delay(200 + idx * 50).duration(400).springify()} key={dept.id} style={{ 
-                  borderRadius: 24, overflow: 'hidden',
-                  backgroundColor: isDark ? 'rgba(30,41,59,0.4)' : '#ffffff', 
-                  borderWidth: 1, borderColor: isExpanded ? (isDark ? 'rgba(236,72,153,0.3)' : 'rgba(236,72,153,0.3)') : (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'),
-                  shadowColor: '#ec4899', shadowOpacity: isExpanded ? 0.05 : 0, shadowRadius: 20,
-                  ...(Platform.OS === 'web' && isExpanded ? { backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' } : {}),
-                }}>
-                  {/* Department Header — clickable to expand */}
-                  <Pressable onPress={() => setExpandedDept(isExpanded ? null : dept.id)} style={{ padding: 24, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                    <LinearGradient 
-                      colors={isExpanded ? ['#ec4899', '#f43f5e'] : (isDark ? ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.05)'] : ['#fce7f3', '#fbcfe8'])} 
-                      style={{ width: 52, height: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      <Building size={24} color={isExpanded ? "#fff" : "#ec4899"} />
-                    </LinearGradient>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <Text style={{ fontSize: 18, fontWeight: '900', color: cText }}>{dept.name}</Text>
-                        <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9' }}>
-                          <Text style={{ fontSize: 11, fontWeight: '800', color: cSub, letterSpacing: 0.5 }}>{dept.code}</Text>
-                        </View>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Users size={14} color={cSub} />
-                          <Text style={{ fontSize: 13, fontWeight: '700', color: cSub }}>{dept._count?.employees ?? 0} nhân sự</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <UsersRound size={14} color="#3b82f6" />
-                          <Text style={{ fontSize: 13, fontWeight: '700', color: '#3b82f6' }}>{deptTeams.length} teams</Text>
-                        </View>
-                        {dept.manager?.fullName && (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Briefcase size={14} color="#f59e0b" />
-                            <Text style={{ fontSize: 13, fontWeight: '700', color: '#f59e0b' }}>TP: {dept.manager.fullName}</Text>
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                    {/* Action buttons */}
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      <Pressable onPress={() => { setEditId(dept.id); setDeptForm({ name: dept.name, code: dept.code, description: dept.description || '' }); setModalMode('edit_dept'); }}
-                        style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}>
-                        <Pencil size={16} color={cSub} />
-                      </Pressable>
-                      <Pressable onPress={() => handleDeleteDept(dept.id, dept.name)}
-                        style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(244,63,94,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-                        <Trash2 size={16} color="#f43f5e" />
-                      </Pressable>
-                    </View>
-                    <View style={{ marginLeft: 8, width: 32, height: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: isExpanded ? 'rgba(236,72,153,0.1)' : 'transparent', borderRadius: 16 }}>
-                      {isExpanded ? <ChevronDown size={20} color="#ec4899" /> : <ChevronRight size={20} color={cSub} />}
-                    </View>
-                  </Pressable>
-
-                  {/* Expanded content — Teams + Positions */}
-                  {isExpanded && (
-                    <View style={{ borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9', backgroundColor: isDark ? 'rgba(0,0,0,0.1)' : '#f8fafc' }}>
-                      {/* Teams Section */}
-                      <View style={{ padding: 24 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <UsersRound size={18} color="#3b82f6" />
-                            <Text style={{ fontSize: 16, fontWeight: '900', color: cText }}>Các Team Trực Thuộc</Text>
-                            <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, backgroundColor: 'rgba(59,130,246,0.15)' }}>
-                              <Text style={{ fontSize: 11, fontWeight: '900', color: '#3b82f6' }}>{deptTeams.length}</Text>
-                            </View>
-                          </View>
-                          <Pressable onPress={() => { setTeamForm({ ...EMPTY_TEAM, departmentId: dept.id }); setModalMode('create_team'); }} style={{
-                            flexDirection: 'row', alignItems: 'center', gap: 6,
-                            paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12,
-                            backgroundColor: '#3b82f6', ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {}),
-                          }}>
-                            <Plus size={14} color="#fff" />
-                            <Text style={{ fontSize: 12, fontWeight: '800', color: '#fff', letterSpacing: 0.5 }}>THÊM TEAM</Text>
-                          </Pressable>
-                        </View>
-
-                        {deptTeams.length === 0 ? (
-                          <View style={{ padding: 24, borderRadius: 16, backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#ffffff', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.04)' : '#e2e8f0', alignItems: 'center', borderStyle: 'dashed' }}>
-                            <Text style={{ fontSize: 14, fontWeight: '600', color: cSub }}>Chưa có team nào trong phòng ban này</Text>
-                          </View>
-                        ) : (
-                          <View style={{ gap: 12 }}>
-                            {deptTeams.map((t: any) => (
-                              <View key={t.id} style={{
-                                flexDirection: 'row', alignItems: 'center', gap: 16,
-                                padding: 16, borderRadius: 16, backgroundColor: isDark ? 'rgba(59,130,246,0.04)' : '#ffffff',
-                                borderWidth: 1, borderColor: isDark ? 'rgba(59,130,246,0.12)' : '#e0e7ff',
-                                shadowColor: '#000', shadowOpacity: isDark ? 0 : 0.02, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 2,
-                              }}>
-                                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(59,130,246,0.15)', alignItems: 'center', justifyContent: 'center' }}>
-                                  <UsersRound size={18} color="#3b82f6" />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                  <Text style={{ fontSize: 16, fontWeight: '800', color: cText }}>{t.name}</Text>
-                                  <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                      <Hash size={12} color={cSub} />
-                                      <Text style={{ fontSize: 12, fontWeight: '700', color: cSub, letterSpacing: 0.5 }}>{t.code}</Text>
-                                    </View>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                      <Users size={12} color="#3b82f6" />
-                                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#3b82f6' }}>{t._count?.employees ?? 0} thành viên</Text>
-                                    </View>
-                                  </View>
-                                </View>
-                                <View style={{ flexDirection: 'row', gap: 8 }}>
-                                  <Pressable onPress={() => { setEditId(t.id); setTeamForm({ name: t.name, code: t.code, departmentId: dept.id, description: t.description || '' }); setModalMode('edit_team'); }}
-                                    style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Pencil size={14} color={cSub} />
-                                  </Pressable>
-                                  <Pressable onPress={() => handleDeleteTeam(t.id, t.name)}
-                                    style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: 'rgba(244,63,94,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Trash2 size={14} color="#f43f5e" />
-                                  </Pressable>
-                                </View>
-                              </View>
-                            ))}
-                          </View>
-                        )}
-                      </View>
-
-                      {/* Positions quick view */}
-                      <View style={{ padding: 24, paddingTop: 8, paddingBottom: 24 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                          <Briefcase size={16} color="#8b5cf6" />
-                          <Text style={{ fontSize: 14, fontWeight: '900', color: cText }}>Hệ thống Chức vụ</Text>
-                        </View>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                          {positions.map((p: any) => {
-                            const levelColors: Record<string, string> = { Staff: '#22c55e', Senior: '#3b82f6', Leader: '#8b5cf6', Manager: '#f59e0b', Director: '#ef4444' };
-                            const lc = levelColors[p.level] || '#64748b';
-                            return (
-                              <View key={p.id} style={{
-                                paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12,
-                                backgroundColor: isDark ? 'rgba(139,92,246,0.06)' : '#ffffff',
-                                borderWidth: 1, borderColor: isDark ? 'rgba(139,92,246,0.12)' : '#ede9fe',
-                                flexDirection: 'row', alignItems: 'center', gap: 10,
-                                shadowColor: '#000', shadowOpacity: isDark ? 0 : 0.02, shadowRadius: 4, elevation: 1,
-                              }}>
-                                <Text style={{ fontSize: 13, fontWeight: '800', color: cText }}>{p.name}</Text>
-                                {p.level && <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: `${lc}15` }}>
-                                  <Text style={{ fontSize: 10, fontWeight: '900', color: lc, letterSpacing: 0.5 }}>{p.level.toUpperCase()}</Text>
-                                </View>}
-                              </View>
-                            );
-                          })}
-                          {positions.length === 0 && <Text style={{ color: cSub, fontSize: 14, fontWeight: '600' }}>Chưa có chức vụ nào</Text>}
-                        </ScrollView>
-                      </View>
-                    </View>
-                  )}
-                </Animated.View>
-              );
-            })}
-          </View>
-        )}
-
-        {/* ═══ Positions Master List ═══ */}
-        <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ marginTop: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(139,92,246,0.15)', alignItems: 'center', justifyContent: 'center' }}>
-                <Briefcase size={22} color="#8b5cf6" />
-              </View>
-              <View>
-                <Text style={{ fontSize: 20, fontWeight: '900', color: cText }}>Danh sách Chức vụ</Text>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: cSub, marginTop: 2 }}>Toàn bộ các cấp bậc trong công ty</Text>
-              </View>
-            </View>
-          </View>
-
-          {loadingPos ? (
-            <ActivityIndicator size="large" color="#8b5cf6" />
-          ) : positions.length === 0 ? (
-            <SGCard variant="glass" style={{ padding: 40, alignItems: 'center', borderRadius: 24 }}>
-              <Briefcase size={40} color={cSub} style={{ marginBottom: 16, opacity: 0.5 }} />
-              <Text style={{ fontSize: 15, fontWeight: '700', color: cSub }}>Chưa có chức vụ nào. Bấm "+ CHỨC VỤ" ở trên.</Text>
-            </SGCard>
-          ) : (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-              {positions.map((p: any) => {
-                const levelColors: Record<string, string> = { Staff: '#22c55e', Senior: '#3b82f6', Leader: '#8b5cf6', Manager: '#f59e0b', Director: '#ef4444' };
-                const lc = levelColors[p.level] || '#64748b';
+          {/* Core Content */}
+          {loadingDepts ? (
+            <div className="py-20 flex justify-center"><div className="w-8 h-8 rounded-full border-4 border-pink-500/30 border-t-pink-500 animate-spin" /></div>
+          ) : viewMode === 'list' ? (
+            <div className="flex flex-col gap-6">
+              {departments.map((dept: any) => {
+                const isExpanded = expandedDept === dept.id;
+                const deptTeams = dept.teams || [];
                 return (
-                  <View key={p.id} style={{
-                    flexDirection: 'row', alignItems: 'center', gap: 16,
-                    padding: 20, borderRadius: 20, backgroundColor: cardBg, 
-                    borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                    flex: 1, minWidth: 280,
-                    shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2,
-                  }}>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <Text style={{ fontSize: 16, fontWeight: '800', color: cText }}>{p.name}</Text>
-                        {p.level && <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: `${lc}15` }}>
-                          <Text style={{ fontSize: 10, fontWeight: '900', color: lc, letterSpacing: 0.5 }}>{p.level.toUpperCase()}</Text>
-                        </View>}
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 6 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Hash size={14} color={cSub} />
-                          <Text style={{ fontSize: 13, fontWeight: '700', color: cSub, letterSpacing: 0.5 }}>{p.code}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Users size={14} color="#8b5cf6" />
-                          <Text style={{ fontSize: 13, fontWeight: '700', color: '#8b5cf6' }}>{p._count?.employees ?? 0} NV</Text>
-                        </View>
-                      </View>
-                    </View>
-                    <Pressable onPress={() => { setEditId(p.id); setPosForm({ name: p.name, code: p.code, level: p.level || '', description: p.description || '' }); setModalMode('edit_pos'); }}
-                      style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}>
-                      <Pencil size={15} color={cSub} />
-                    </Pressable>
-                  </View>
-                );
+                  <div key={dept.id} className={`flex flex-col rounded-3xl border transition-all duration-300 overflow-hidden ${isExpanded ? 'bg-sg-card/50 border-pink-500/30 shadow-lg shadow-pink-500/5' : 'bg-sg-card border-sg-border shadow-sg-light'}`}>
+                    {/* Header Row */}
+                    <div 
+                      className="p-6 flex items-center justify-between cursor-pointer hover:bg-sg-btn-bg transition-colors"
+                      onClick={() => setExpandedDept(isExpanded ? null : dept.id)}
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isExpanded ? 'bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30' : 'bg-pink-500/10 text-pink-500'}`}>
+                          <Building size={24} />
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h2 className="text-xl font-black text-sg-heading">{dept.name}</h2>
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-sg-btn-bg text-sg-subtext uppercase">{dept.code}</span>
+                          </div>
+                          <div className="flex items-center gap-5">
+                            <div className="flex items-center gap-1.5 text-sg-muted">
+                              <Users size={14} />
+                              <span className="text-xs font-bold">{dept._count?.employees ?? 0} NS</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-blue-500">
+                              <UsersRound size={14} />
+                              <span className="text-xs font-bold">{deptTeams.length} Teams</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Action buttons (stop propagation so it doesn't expand) */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setEditId(dept.id); setDeptForm({ name: dept.name, code: dept.code, description: dept.description || '' }); setModalMode('edit_dept'); }}
+                            className="w-10 h-10 rounded-xl flex items-center justify-center bg-sg-btn-bg hover:bg-sg-border text-sg-subtext transition-colors"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteDept(dept.id, dept.name); }}
+                            className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-transform ${isExpanded ? 'rotate-180 bg-pink-500/10 text-pink-500' : 'text-sg-muted'}`}>
+                          <ChevronDown size={20} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Body Content */}
+                    <div className={`grid transition-[grid-template-rows] duration-300 ease-glass ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                      <div className="overflow-hidden border-t border-sg-border/50">
+                        <div className="p-6 bg-sg-bg/50">
+                          
+                          {/* Teams Header */}
+                          <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-3">
+                              <UsersRound size={18} className="text-blue-500" />
+                              <h3 className="text-base font-extrabold text-sg-heading">Các Team Trực Thuộc</h3>
+                              <span className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-blue-500/15 text-blue-500">{deptTeams.length}</span>
+                            </div>
+                            <button 
+                              onClick={() => { setTeamForm({ ...EMPTY_TEAM, departmentId: dept.id }); setModalMode('create_team'); }}
+                              className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2 text-xs font-extrabold uppercase tracking-wide transition-colors"
+                            >
+                              <Plus size={14} strokeWidth={3} /> Thêm Team
+                            </button>
+                          </div>
+
+                          {deptTeams.length === 0 ? (
+                            <div className="p-8 border-2 border-dashed border-sg-border rounded-2xl flex justify-center text-sg-muted font-bold text-sm">
+                              Chưa có team nào. Bấm Thêm Team.
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                              {deptTeams.map((t: any) => (
+                                <div key={t.id} className="flex items-center justify-between p-4 bg-sg-card border border-sg-border shadow-sm rounded-2xl hover:border-blue-500/30 transition-colors">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                      <UsersRound size={18} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="font-extrabold text-sg-text mb-1">{t.name}</span>
+                                      <div className="flex items-center gap-3 text-xs font-bold text-sg-muted">
+                                        <span className="flex items-center gap-1"><Hash size={12}/>{t.code}</span>
+                                        <span className="flex items-center gap-1 text-blue-500"><Users size={12}/>{t._count?.employees ?? 0}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2 text-sg-subtext">
+                                    <button onClick={() => { setEditId(t.id); setTeamForm({ name: t.name, code: t.code, departmentId: dept.id, description: t.description || '' }); setModalMode('edit_team'); }} className="w-8 h-8 rounded-lg bg-sg-bg hover:bg-sg-border flex items-center justify-center"><Pencil size={14}/></button>
+                                    <button onClick={() => handleDeleteTeam(t.id, t.name)} className="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center"><Trash2 size={14}/></button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
               })}
-            </View>
+            </div>
+          ) : (
+            <div className="overflow-x-auto pb-10 custom-scrollbar">
+               {/* Simplified mock tree view for demonstration */}
+               <div className="min-w-max flex flex-col items-center gap-10">
+                 <div className="px-10 py-5 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 text-center relative z-10 border border-blue-400/30 font-black tracking-wide text-lg">
+                   SGroup Corporation
+                 </div>
+                 {departments.length > 0 && (
+                   <div className="flex gap-8 border-t-2 border-sg-border/60 pt-10 relative">
+                     <div className="absolute top-0 left-1/2 w-0.5 h-10 bg-sg-border/60 -translate-x-1/2 -mt-10" />
+                     {departments.map((d: any) => (
+                       <div key={d.id} className="flex flex-col items-center gap-6 relative">
+                         <div className="absolute top-0 left-1/2 w-0.5 h-10 bg-sg-border/60 -translate-x-1/2 -mt-10" />
+                         <div className="w-52 p-5 rounded-2xl bg-sg-card border border-pink-500/30 flex flex-col items-center text-center shadow-lg shadow-pink-500/5">
+                           <Building size={24} className="text-pink-500 mb-3" />
+                           <h3 className="font-extrabold text-sg-heading text-[15px]">{d.name}</h3>
+                           <span className="px-2 py-1 bg-pink-500/10 text-pink-500 text-[10px] font-black rounded-lg mt-2 mb-3">{d.code}</span>
+                           <span className="text-xs font-bold text-sg-subtext">{d._count?.employees ?? 0} NS • {d.teams?.length || 0} Teams</span>
+                         </div>
+
+                         {d.teams && d.teams.length > 0 && (
+                           <div className="flex flex-col gap-4 border-l-2 border-sg-border/60 pl-6 mt-2 relative">
+                             <div className="absolute top-0 -left-[1px] w-0.5 h-full bg-sg-border/60" />
+                             {d.teams.map((t: any) => (
+                               <div key={t.id} className="w-48 p-3 rounded-xl bg-sg-card border border-blue-500/30 flex flex-col items-start relative">
+                                  <div className="absolute top-1/2 -left-6 w-6 h-0.5 bg-sg-border/60 -translate-y-1/2" />
+                                  <span className="font-extrabold text-sg-text text-[13px]">{t.name}</span>
+                                  <span className="text-[10px] font-bold text-blue-500 mt-1">{t.code}</span>
+                               </div>
+                             ))}
+                           </div>
+                         )}
+                       </div>
+                     ))}
+                   </div>
+                 )}
+               </div>
+            </div>
           )}
-        </Animated.View>
-      </ScrollView>
-    </View>
+
+          {/* Master Positions List Row */}
+          {!loadingPos && (
+             <div className="mt-10 pt-10 border-t border-sg-border flex flex-col gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/15 flex items-center justify-center text-purple-500">
+                    <Briefcase size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-sg-heading">Danh sách Chức vụ</h2>
+                    <p className="text-sm font-bold text-sg-subtext mt-1">Toàn bộ cấu trúc cấp bậc nhân sự</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {positions.map((p: any) => {
+                    const lc = { Staff: 'green', Senior: 'blue', Leader: 'purple', Manager: 'amber', Director: 'red' }[p.level as string] || 'slate';
+                    const colorMap: Record<string, string> = {
+                      'green': 'bg-green-500/15 text-green-500',
+                      'blue': 'bg-blue-500/15 text-blue-500',
+                      'purple': 'bg-purple-500/15 text-purple-500',
+                      'amber': 'bg-amber-500/15 text-amber-500',
+                      'red': 'bg-red-500/15 text-red-500',
+                      'slate': 'bg-slate-500/15 text-slate-500'
+                    };
+                    return (
+                      <div key={p.id} className="p-5 rounded-2xl bg-sg-card border border-sg-border shadow-sm flex flex-col relative group">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-extrabold text-sg-heading flex-1 pr-2">{p.name}</h3>
+                          <button onClick={() => { setEditId(p.id); setPosForm({ name: p.name, code: p.code, level: p.level || '', description: p.description || '' }); setModalMode('edit_pos'); }} className="text-sg-muted hover:text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Pencil size={16} />
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-3">
+                           {p.level && <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${colorMap[lc]}`}>{p.level}</span>}
+                           <span className="flex items-center gap-1 text-[11px] font-bold text-sg-muted"><Hash size={12}/> {p.code}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+             </div>
+          )}
+
+        </div>
+      </div>
+
+      {/* Modal */}
+      {modalMode && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-up">
+          <div className="w-full max-w-md bg-sg-card border border-sg-border rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col shadow-black/40">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-black text-sg-heading tracking-tight">{getModalTitle()}</h2>
+              <button onClick={() => setModalMode(null)} className="w-8 h-8 rounded-full bg-sg-btn-bg hover:bg-sg-border flex items-center justify-center text-sg-muted transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-5">
+              {modalMode.includes('dept') && (
+                <>
+                  <InputRow label="Tên phòng ban *" value={deptForm.name} onChange={(v) => setDeptForm(f => ({ ...f, name: v }))} placeholder="VD: Phòng Kinh doanh" />
+                  <InputRow label="Mã phòng ban *" value={deptForm.code} onChange={(v) => setDeptForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="SALES" />
+                  <InputRow label="Mô tả" value={deptForm.description} onChange={(v) => setDeptForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
+                </>
+              )}
+              {modalMode.includes('team') && (
+                <>
+                  <InputRow label="Tên team *" value={teamForm.name} onChange={(v) => setTeamForm(f => ({ ...f, name: v }))} placeholder="VD: Team Online" />
+                  <InputRow label="Mã team *" value={teamForm.code} onChange={(v) => setTeamForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="KD-ONL" />
+                  <InputRow label="Mô tả" value={teamForm.description} onChange={(v) => setTeamForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
+                </>
+              )}
+              {modalMode.includes('pos') && (
+                <>
+                  <InputRow label="Tên chức vụ *" value={posForm.name} onChange={(v) => setPosForm(f => ({ ...f, name: v }))} placeholder="VD: Trưởng khoản" />
+                  <InputRow label="Mã chức vụ *" value={posForm.code} onChange={(v) => setPosForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="MGR" />
+                  
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[11px] font-black text-sg-subtext uppercase tracking-widest pl-1">Cấp bậc</label>
+                    <div className="flex flex-wrap gap-2">
+                      {LEVEL_OPTIONS.map(l => (
+                        <button key={l} onClick={() => setPosForm(f => ({ ...f, level: f.level === l ? '' : l }))} 
+                          className={`px-4 py-2 rounded-xl text-[13px] font-extrabold border transition-colors ${posForm.level === l ? 'bg-purple-500 text-white border-purple-500 shadow-lg shadow-purple-500/30' : 'bg-sg-bg border-sg-border text-sg-text hover:bg-sg-border'}`}
+                        >
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <InputRow label="Mô tả" value={posForm.description} onChange={(v) => setPosForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-4 mt-8 pt-6 border-t border-sg-border">
+              <button disabled={isPending} onClick={() => setModalMode(null)} className="flex-1 py-3.5 rounded-xl font-extrabold text-sm text-sg-subtext bg-sg-btn-bg hover:bg-sg-border transition-colors">
+                HỦY BỎ
+              </button>
+              <button disabled={isPending} onClick={handleSubmit} className={`flex-1 flex justify-center py-3.5 rounded-xl font-extrabold text-sm text-white ${getModalColor()} hover:opacity-90 transition-all uppercase tracking-wide`}>
+                {isPending ? <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /> : 'XÁC NHẬN'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
   );
+}
+
+function StatCard({ label, value, icon: Icon, colorClass }: any) {
+  return (
+    <div className="p-6 bg-sg-card border border-sg-border rounded-3xl shadow-sg-light flex items-center gap-5">
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${colorClass}`}>
+        <Icon size={24} />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-xs font-black text-sg-muted uppercase tracking-widest mb-1">{label}</span>
+        <span className="text-3xl font-black text-sg-heading tracking-tighter">{value}</span>
+      </div>
+    </div>
+  )
+}
+
+function InputRow({ label, value, onChange, placeholder, isTextArea }: any) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-[11px] font-black text-sg-subtext uppercase tracking-widest pl-1">{label}</label>
+      {isTextArea ? (
+        <textarea 
+          value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} 
+          className="w-full bg-sg-bg border border-sg-border rounded-2xl px-5 py-4 text-sm font-semibold text-sg-text placeholder-sg-muted focus:border-sg-red focus:ring-1 focus:ring-sg-red transition-all min-h-[100px] outline-none"
+        />
+      ) : (
+        <input 
+          value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} 
+          className="w-full bg-sg-bg border border-sg-border rounded-full px-5 py-3.5 text-sm font-semibold text-sg-text placeholder-sg-muted focus:border-sg-red focus:ring-1 focus:ring-sg-red transition-all outline-none"
+        />
+      )}
+    </div>
+  )
 }

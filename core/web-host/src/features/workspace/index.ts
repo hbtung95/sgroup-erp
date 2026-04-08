@@ -1,2 +1,2 @@
 // Workspace feature public API
-export { WorkspaceScreen } from './screens/WorkspaceScreen';
+export { default as WorkspaceScreen } from './screens/WorkspaceScreen';

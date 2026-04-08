@@ -1,4 +1,4 @@
-# The VCT Knowledge Base (Agent Memory Bank)
+# SGROUP ERP Knowledge Base (Agent Memory Bank)
 
 > **MANDATORY DIRECTIVE FOR ALL AGENTS:** 
 > Before writing any code for a module, you MUST search this `knowledge-base` folder for any past lessons related to your task (e.g. database schema gotchas, Golang import rules, TypeScript strict modes). 

@@ -1,61 +1,65 @@
-# VCT Platform — Build Roadmap (V17 Bottom-Up)
+# SGROUP ERP — Build Roadmap (Real Estate Brokerage)
 
-TL;DR: 6 phases, User-Centric approach. Each module is built full-stack (schema ──▶ Go Microservice ──▶ React Frontend ──▶ Tests) and containerized independently before proceeding.
+TL;DR: 6 phases, Revenue-First approach. Each module is built full-stack (schema ──▶ Go Microservice ──▶ React Frontend ──▶ Tests) and containerized independently before proceeding.
 
-## Business Priorities (Bottom-Up Logic)
-1. **Users First (Athletes/Members):** Attract maximum user registration.
-2. **National Federation:** Supply national management tools for the users.
-3. **Provincial Federations:** Delegation and local control.
-4. **Clubs/Dojos:** Deep operations for the actual training centers.
-5. **Tournaments:** The ultimate martial arts feature.
-6. **Marketplace:** Commercial ecosystem.
+## Business Priorities (Revenue-Impact Logic)
+1. **Sales First (Revenue Engine):** Real estate sales pipeline = blood of the company.
+2. **Operations:** HR, Attendance, Payroll, Commission — keep the machine running.
+3. **Finance & Compliance:** Accounting, Legal, Tax — protect the business.
+4. **Agency Network:** F1/F2 distribution network — scale reach.
+5. **Intelligence:** BDH Dashboard, Reports, KPI — make decisions.
+6. **Ecosystem:** Marketing, S-Homes, Integrations — grow the business.
 
 ---
 
 ## Phase Order + Deliverables
 
-### 🎯 PHASE 1: "User Identity" (Prioritizing end-users)
-*Goal: Provide a digital martial arts passport to attract users to the app.*
-- **modules:** `members`, `dashboard` (Basic User Portal)
-- **features:** Member registration, identity (QR), basic tracking.
+### 🎯 PHASE 1: "Sales Engine" (Revenue-generating core)
+*Goal: Digitize the real estate sales pipeline — from project → product → booking → HĐMB.*
+- **modules:** `real-estate`, `crm`, `customer`, `transaction`
+- **features:** Project/product management, customer 360, BizFly CRM sync, booking with pessimistic lock, deposit → contract flow.
 - **priority:** P0 — MVP
+- **dependencies:** API Gateway, Auth, DB schema
 
-### 🎯 PHASE 2: "National Core" (Prioritizing national federation)
-*Goal: Allow the top-level federation to manage the massive influx of members.*
-- **modules:** `belt-ranks`, `examinations`, `certificates`
-- **features:** Define standards, approve examinations, issue digital certificates.
+### 🎯 PHASE 2: "Operations Core" (Keep the company running)
+*Goal: HR and payroll management for sales teams + commission calculation.*
+- **modules:** `hr`, `commission`, `accounting`
+- **features:** Staff profiles, attendance, payroll calculation, commission multi-level split, invoice management, AR/AP tracking.
 - **priority:** P0 — MVP
+- **dependencies:** Phase 1 (deals feed into commission)
 
-### 🎯 PHASE 3: "Regional Control" (Prioritizing provincial federation)
-*Goal: Delegate management and foster communication locally.*
-- **modules:** `personnel` (Federation Staff), `communications` (Announcements)
-- **features:** RBAC refinement for provincial scope, internal news.
+### 🎯 PHASE 3: "Legal & Compliance" (Protect the business)
+*Goal: Contract lifecycle, legal document management, financial compliance.*
+- **modules:** `legal`, `accounting` (advanced: tax, audit trail)
+- **features:** HĐMB generation, notarization tracking, handover protocol, tax compliance, financial audit trail.
 - **priority:** P1 — Launch
+- **dependencies:** Phase 1 (transactions), Phase 2 (accounting)
 
-### 🎯 PHASE 4: "Dojo Operations" (Prioritizing clubs)
-*Goal: Bring club owners on board with operational management tools.*
-- **modules:** `clubs` (Deep ops), `finance` (Tuitions/Fees), `documents`
-- **features:** Club profiles, member assignments, collecting tuition.
+### 🎯 PHASE 4: "Agency Network" (Scale distribution)
+*Goal: F1/F2 agency management, multi-level commission sharing.*
+- **modules:** `agency`, `commission` (advanced: F1/F2 split)
+- **features:** Agency onboarding, territory assignment, 2-tier commission split, agency performance tracking.
 - **priority:** P1 — Launch
+- **dependencies:** Phase 1 (sales data), Phase 2 (commission engine)
 
-### 🎯 PHASE 5: "The Arena" (Prioritizing tournaments)
-*Goal: Digitize the most complex lifecycle in martial arts.*
-- **modules:** `tournaments`
-- **features:** Bracket generation, real-time scoring, referee assignments.
-- **note:** Needs completely isolated microservice logic due to heavy computational logic/real-time loads.
+### 🎯 PHASE 5: "Intelligence" (Decision-making tools)
+*Goal: Executive dashboard, KPI tracking, advanced reporting.*
+- **modules:** `bdh-dashboard`, `reports`, `settings`
+- **features:** Revenue KPI, target vs actual, drill-down analytics, export PDF/Excel, notification center.
 - **priority:** P2 — Post-launch
+- **dependencies:** All data from Phase 1-4
 
-### 🎯 PHASE 6: "Ecosystem" (Prioritizing marketplace & reports)
-*Goal: Monetization and high-level insights.*
-- **modules:** `marketplace`, `reports`, `settings`
-- **features:** E-commerce for gear, data warehouse aggregations.
+### 🎯 PHASE 6: "Ecosystem" (Growth & Expansion)
+*Goal: Marketing, property management, and external integrations.*
+- **modules:** `marketing`, `s-homes`, `subscription`
+- **features:** Campaign tracking, lead attribution, property rental management, SaaS subscription for agency partners.
 - **priority:** P2 — Post-launch
 
 ---
 
 ## Technical Definition of Done (Microservice Context)
-For a module to cross the finish line in V17, it must:
-1. Work locally in isolated `/backend/services/<name>` Go module.
+For a module to cross the finish line, it must:
+1. Work locally in isolated `modules/<name>/api/` Go module.
 2. Ensure its failure does not crash the API Gateway.
-3. Render completely isolated in `/core/shell/src/features/<name>`.
+3. Render completely isolated in `modules/<name>/web/`.
 4. Gracefully show an Error Boundary if the backend is down without freezing the portal.

@@ -1,5 +1,5 @@
 ---
-name: vct-subscription
+name: sgroup-subscription
 description: SaaS subscription and billing management for SGROUP ERP Platform â€” plans, subscriptions, billing cycles, renewals, upgrades, and admin management.
 ---
 
@@ -11,7 +11,7 @@ description: SaaS subscription and billing management for SGROUP ERP Platform â€
 
 
 > [!IMPORTANT]
-> **SUPREME ARCHITECTURE DIRECTIVE**: You are strictly bound by the 19 architecture pillars documented in `docs/architecture/`. As a VCT AI Agent, your absolute highest priority is 100% compliance with these rules. You MUST NOT generate code, propose designs, or execute workflows that violate these foundational rules. They are unchangeable and strictly enforced.
+> **SUPREME ARCHITECTURE DIRECTIVE**: You are strictly bound by the architecture pillars documented in `docs/architecture/`. As a SGROUP ERP Agent, your absolute highest priority is 100% compliance with these rules. You MUST NOT generate code, propose designs, or execute workflows that violate these foundational rules. They are unchangeable and strictly enforced.
 
 ## 1. Architecture
 
