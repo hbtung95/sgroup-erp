@@ -466,10 +466,10 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
           {/* Overlay to close */}
           <div className="absolute inset-0" onClick={() => setModalMode(null)} />
           
-          <div className="relative w-full max-w-[560px] max-h-full flex flex-col bg-white dark:bg-zinc-900 rounded-[32px] border border-sg-border shadow-2xl animate-sg-slide-up">
+          <div className="relative w-full max-w-[560px] max-h-full flex flex-col bg-sg-portal-bg rounded-[32px] border border-sg-border shadow-2xl animate-sg-slide-up">
              
              {/* Modal Header */}
-             <div className="px-8 py-6 border-b border-sg-border flex items-center justify-between z-10 bg-white dark:bg-zinc-900 rounded-t-[32px]">
+             <div className="px-8 py-6 border-b border-sg-border flex items-center justify-between z-10 bg-sg-portal-bg rounded-t-[32px]">
                 <h3 className="text-[22px] font-black text-sg-heading">
                    {modalMode === 'edit' ? 'Chỉnh sửa hồ sơ' : 'Thêm hồ sơ nhân viên'}
                 </h3>
