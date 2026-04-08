@@ -1,0 +1,32 @@
+export const vi = {
+  common: {
+    save: 'Lưu',
+    cancel: 'Hủy',
+    confirm: 'Xác nhận',
+    delete: 'Xóa',
+    edit: 'Sửa',
+    add: 'Thêm',
+    search: 'Tìm kiếm',
+    filter: 'Lọc',
+    loading: 'Đang tải...',
+    noData: 'Không có dữ liệu',
+    error: 'Đã xảy ra lỗi',
+    retry: 'Thử lại',
+    back: 'Quay lại',
+    next: 'Tiếp theo',
+    done: 'Hoàn thành',
+    close: 'Đóng',
+  },
+  auth: {
+    login: 'Đăng nhập',
+    logout: 'Đăng xuất',
+    email: 'Email',
+    password: 'Mật khẩu',
+    welcomeBack: 'Chào mừng trở lại',
+    loginSubtitle: 'Đăng nhập để tiếp tục',
+  },
+  workspace: {
+    title: 'Chọn phân hệ',
+    subtitle: 'Chọn module để bắt đầu làm việc',
+  },
+};
