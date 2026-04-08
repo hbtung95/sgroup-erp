@@ -37,7 +37,7 @@ import {
   Calculator,
 } from 'lucide-react-native';
 import { SGThemeToggle } from '@sgroup/ui/src/ui/components/SGThemeToggle';
-import sgroupLogo from '../../../../assets/images/Logo 3_noFont.png';
+import sgroupLogo from '../../../assets/images/Logo 3_noFont.png';
 
 export interface SidebarItem {
   key: string;

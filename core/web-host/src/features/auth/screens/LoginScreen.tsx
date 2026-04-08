@@ -13,7 +13,7 @@ import { sgds } from '@sgroup/ui/src/theme/theme';
 import { useAuthStore } from '../store/authStore';
 import { apiAuthProvider } from '../services/providers/apiAuth';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react-native';
-import sgroupLogo from '../../../../assets/images/Logo 3_noFont.png';
+import sgroupLogo from '../../../assets/images/Logo 3_noFont.png';
 
 const R = '#D42027';
 const R_DARK = '#9F1219';

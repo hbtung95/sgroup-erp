@@ -39,7 +39,7 @@ import {
   ShieldCheck,
   Activity,
 } from 'lucide-react-native';
-import sgroupLogo from '../../../../assets/images/Logo 3_noFont.png';
+import sgroupLogo from '../../../assets/images/Logo 3_noFont.png';
 
 const MODULE_ICONS: Record<string, any> = {
   exec: BarChart3,
