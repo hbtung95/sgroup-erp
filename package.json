@@ -1,6 +1,7 @@
 {
   "name": "sgroup-erp-full",
   "version": "1.0.0",
+  "packageManager": "npm@11.11.0",
   "description": "Monorepo chứa toàn bộ hệ thống ERP cho SGROUP.",
   "main": "index.js",
   "directories": {
