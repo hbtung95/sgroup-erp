@@ -3,16 +3,10 @@ import { mockHRData, mockRespond } from './hrMocks';
 
 export const hrApi = {
   // Dashboard
-  getDashboard: async () => {
-    const res = await apiClient.get('/hr/dashboard');
-    return res.data;
-  },
+  getDashboard: async () => mockRespond(mockHRData.getDashboard),
 
   // Departments
-  getDepartments: async () => {
-    const res = await apiClient.get('/hr/departments');
-    return res.data;
-  },
+  getDepartments: async () => mockRespond(mockHRData.getDepartments),
   createDepartment: async (data: any) => {
     const res = await apiClient.post('/hr/departments', data);
     return res.data;
@@ -26,10 +20,7 @@ export const hrApi = {
   },
 
   // Positions
-  getPositions: async () => {
-    const res = await apiClient.get('/hr/positions');
-    return res.data;
-  },
+  getPositions: async () => mockRespond(mockHRData.getPositions),
   createPosition: async (data: any) => {
     const res = await apiClient.post('/hr/positions', data);
     return res.data;
@@ -57,20 +48,8 @@ export const hrApi = {
   },
 
   // Employees
-  getEmployees: async (params?: {
-    search?: string;
-    departmentId?: string;
-    status?: string;
-    page?: number;
-    limit?: number;
-  }) => {
-    const res = await apiClient.get('/hr/employees', { params });
-    return res.data;
-  },
-  getEmployee: async (id: string) => {
-    const res = await apiClient.get(`/hr/employees/${id}`);
-    return res.data;
-  },
+  getEmployees: async (params?: any) => mockRespond(mockHRData.getEmployees),
+  getEmployee: async (id: string) => mockRespond(mockHRData.getEmployee),
   createEmployee: async (data: any) => {
     const res = await apiClient.post('/hr/employees', data);
     return res.data;
@@ -236,14 +215,8 @@ export const hrApi = {
   },
 
   // Dashboard Extras
-  getDashboardEvents: async () => {
-    const res = await apiClient.get('/hr/dashboard/events');
-    return res.data;
-  },
-  getDashboardActivities: async () => {
-    const res = await apiClient.get('/hr/dashboard/activities');
-    return res.data;
-  },
+  getDashboardEvents: async () => mockRespond(mockHRData.getDashboardEvents),
+  getDashboardActivities: async () => mockRespond(mockHRData.getDashboardActivities),
 
   // Transfer History
   getTransfers: async (employeeId?: string) => {
