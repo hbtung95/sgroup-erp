@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import reactNativeWeb from 'vite-plugin-react-native-web'
 
+import path from 'path';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -9,11 +11,13 @@ export default defineConfig({
     react()
   ],
   resolve: {
-    alias: {
-      'react-native': 'react-native-web',
-      'expo-linear-gradient': '../../packages/ui/src/mocks/expo-linear-gradient.tsx',
-      'expo-clipboard': '../../packages/ui/src/mocks/expo-clipboard.ts'
-    },
+    alias: [
+      { find: 'react-native', replacement: 'react-native-web' },
+      { find: 'expo-linear-gradient', replacement: path.resolve(__dirname, '../../packages/ui/src/mocks/expo-linear-gradient.tsx') },
+      { find: 'expo-clipboard', replacement: path.resolve(__dirname, '../../packages/ui/src/mocks/expo-clipboard.ts') },
+      { find: 'expo-blur', replacement: path.resolve(__dirname, '../../packages/ui/src/mocks/expo-blur.tsx') },
+      { find: /^(?:.*\/)?shared\/(.*)$/, replacement: path.resolve(__dirname, '../../packages/ui/src/$1') }
+    ],
     extensions: [
       '.web.tsx',
       '.web.ts',
