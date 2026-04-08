@@ -365,22 +365,22 @@ export function OrgConfigScreen() {
             <div className="flex flex-col gap-5">
               {modalMode.includes('dept') && (
                 <>
-                  <InputRow label="Tên phòng ban *" value={deptForm.name} onChange={(v) => setDeptForm(f => ({ ...f, name: v }))} placeholder="VD: Phòng Kinh doanh" />
-                  <InputRow label="Mã phòng ban *" value={deptForm.code} onChange={(v) => setDeptForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="SALES" />
-                  <InputRow label="Mô tả" value={deptForm.description} onChange={(v) => setDeptForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
+                  <InputRow label="Tên phòng ban *" value={deptForm.name} onChange={(v: string) => setDeptForm(f => ({ ...f, name: v }))} placeholder="VD: Phòng Kinh doanh" />
+                  <InputRow label="Mã phòng ban *" value={deptForm.code} onChange={(v: string) => setDeptForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="SALES" />
+                  <InputRow label="Mô tả" value={deptForm.description} onChange={(v: string) => setDeptForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
                 </>
               )}
               {modalMode.includes('team') && (
                 <>
-                  <InputRow label="Tên team *" value={teamForm.name} onChange={(v) => setTeamForm(f => ({ ...f, name: v }))} placeholder="VD: Team Online" />
-                  <InputRow label="Mã team *" value={teamForm.code} onChange={(v) => setTeamForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="KD-ONL" />
-                  <InputRow label="Mô tả" value={teamForm.description} onChange={(v) => setTeamForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
+                  <InputRow label="Tên team *" value={teamForm.name} onChange={(v: string) => setTeamForm(f => ({ ...f, name: v }))} placeholder="VD: Team Online" />
+                  <InputRow label="Mã team *" value={teamForm.code} onChange={(v: string) => setTeamForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="KD-ONL" />
+                  <InputRow label="Mô tả" value={teamForm.description} onChange={(v: string) => setTeamForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
                 </>
               )}
               {modalMode.includes('pos') && (
                 <>
-                  <InputRow label="Tên chức vụ *" value={posForm.name} onChange={(v) => setPosForm(f => ({ ...f, name: v }))} placeholder="VD: Trưởng khoản" />
-                  <InputRow label="Mã chức vụ *" value={posForm.code} onChange={(v) => setPosForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="MGR" />
+                  <InputRow label="Tên chức vụ *" value={posForm.name} onChange={(v: string) => setPosForm(f => ({ ...f, name: v }))} placeholder="VD: Trưởng khoản" />
+                  <InputRow label="Mã chức vụ *" value={posForm.code} onChange={(v: string) => setPosForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="MGR" />
                   
                   <div className="flex flex-col gap-2">
                     <label className="text-[11px] font-black text-sg-subtext uppercase tracking-widest pl-1">Cấp bậc</label>
@@ -395,7 +395,7 @@ export function OrgConfigScreen() {
                     </div>
                   </div>
 
-                  <InputRow label="Mô tả" value={posForm.description} onChange={(v) => setPosForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
+                  <InputRow label="Mô tả" value={posForm.description} onChange={(v: string) => setPosForm(f => ({ ...f, description: v }))} placeholder="Nhập thêm chi tiết..." isTextArea />
                 </>
               )}
             </div>

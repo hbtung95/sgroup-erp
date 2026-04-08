@@ -22,7 +22,7 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
   const { data: employeesData } = useEmployees({ search: '' });
   const employeeList = Array.isArray(employeesData?.data) ? employeesData.data : (Array.isArray(employeesData) ? employeesData : []);
   
-  let displayUser = user;
+  let displayUser: any = user;
   if (employeeId && employeeList.length > 0) {
     const found = employeeList.find((e: any) => String(e.id) === String(employeeId));
     if (found) {

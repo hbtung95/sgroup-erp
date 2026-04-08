@@ -1,8 +1,8 @@
 import React from 'react';
 import { Users, Briefcase, Clock, Building, Cake, Zap } from 'lucide-react';
 import { useHRDashboard, useDepartments, useDashboardEvents, useDashboardActivities } from '../hooks/useHR';
-import { SGStatsCard } from '../../components/ui/SGStatsCard';
-import { SGGlassPanel } from '../../components/ui/SGGlassPanel';
+import { SGStatsCard } from '../../../components/ui/SGStatsCard';
+import { SGGlassPanel } from '../../../components/ui/SGGlassPanel';
 
 export function HRDashboard() {
   const { data: dashboard, isLoading } = useHRDashboard();

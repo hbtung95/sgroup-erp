@@ -320,3 +320,13 @@ export function HRShell() {
     </div>
   );
 }
+
+function PlaceholderScreen({ title }: { title: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full min-h-[400px] p-8 text-center text-sg-subtext">
+      <div className="text-4xl text-sg-muted mb-4 opacity-70">🚧</div>
+      <h3 className="text-xl font-bold text-sg-heading mb-2">{title}</h3>
+      <p className="max-w-sm text-sm font-medium">Màn hình này đang trong quá trình phát triển (Phase 2).</p>
+    </div>
+  );
+}
