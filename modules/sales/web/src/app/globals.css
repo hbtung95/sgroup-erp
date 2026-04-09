@@ -1,73 +1,61 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: var(--font-inter);
+/* AG-Grid Base Imports - Kept for Inventory grid */
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-alpine.css";
+
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
 }
 
-@layer base {
-  :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-  }
+body {
+  color: var(--foreground);
+  background: var(--background);
 }
 
-@layer base {
-  * {
-    border-color: hsl(var(--border) / 0.5);
-  }
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    /* Neo-Glassmorphism Mesh Gradient Background */
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(253,16%,7%,0.03) 0, transparent 50%), 
-      radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
-      radial-gradient(at 100% 0%, hsla(339,49%,30%,0.03) 0, transparent 50%);
-    background-attachment: fixed;
-  }
+/* 
+  Neo-Glassmorphism overrides for AG-Grid Dark Theme 
+  This transforms the standard AG-grid into a transparent/acrylic enterprise grid.
+*/
+.custom-ag-grid {
+  --ag-background-color: transparent !important;
+  --ag-header-background-color: rgba(255, 255, 255, 0.03) !important;
+  --ag-odd-row-background-color: rgba(0, 0, 0, 0.2) !important;
+  --ag-border-color: rgba(255, 255, 255, 0.1) !important;
+  --ag-header-foreground-color: #94a3b8 !important;
+  --ag-foreground-color: #e2e8f0 !important;
+  --ag-row-hover-color: rgba(59, 130, 246, 0.1) !important;
+  --ag-selected-row-background-color: rgba(59, 130, 246, 0.2) !important;
+  --ag-font-family: inherit !important;
+  --ag-font-size: 14px !important;
+  --ag-font-weight: 500 !important;
+  --ag-header-font-weight: 600 !important;
+  --ag-cell-horizontal-border: solid rgba(255,255,255,0.05) !important;
 }
 
-@layer utilities {
-  .glass-card {
-    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-xl;
-  }
-  .glass-panel {
-    @apply bg-white/50 backdrop-blur-md border border-white/30 shadow-md;
-  }
-  .glass-button {
-    @apply bg-white/20 backdrop-blur-md border border-white/30 shadow transition-all hover:bg-white/40 hover:shadow-lg active:scale-95;
-  }
-  .glass-input {
-    @apply bg-white/50 backdrop-blur-md border border-white/50 shadow-inner focus:ring-2 focus:ring-blue-500/50 outline-none transition-all;
-  }
-  .glass-nav {
-    @apply bg-white/30 backdrop-blur-lg border-b border-white/20;
-  }
+.custom-ag-grid .ag-header {
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-ag-grid .ag-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.2); 
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2); 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.3); 
 }

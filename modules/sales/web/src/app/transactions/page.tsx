@@ -50,21 +50,21 @@ export default function KanbanPage() {
     <div className="h-[90vh] flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-extrabold text-blue-400 tracking-tight flex items-center gap-2">
             Kanban Giao Dịch
-            <span className="text-sm font-medium bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md">Live</span>
+            <span className="text-sm font-medium bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-md border border-blue-500/20">Live</span>
           </h1>
-          <p className="text-slate-500 font-medium">Kéo thả hoặc sử dụng nút bấm để duyệt trạng thái (Mock data)</p>
+          <p className="text-slate-400 font-medium">Kéo thả hoặc sử dụng nút bấm để duyệt trạng thái (Mock data)</p>
         </div>
-        <div className="flex bg-white/60 p-1 rounded-xl shadow-sm border border-white">
+        <div className="flex bg-slate-800/80 p-1 rounded-xl shadow-sm border border-white/10 backdrop-blur-md">
           <button 
            onClick={() => setRole("sales_staff")}
-           className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${role === 'sales_staff' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-white'}`}>
+           className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${role === 'sales_staff' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'text-slate-400 hover:bg-white/10'}`}>
             Góc nhìn NVKD
           </button>
           <button 
            onClick={() => setRole("sales_manager")}
-           className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${role === 'sales_manager' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-white'}`}>
+           className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${role === 'sales_manager' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]' : 'text-slate-400 hover:bg-white/10'}`}>
             Góc nhìn TPKD
           </button>
         </div>
@@ -76,45 +76,45 @@ export default function KanbanPage() {
            const colTxs = transactions.filter(t => t.status === col.id);
            
            return (
-             <div key={col.id} className="flex-none w-80 flex flex-col h-full bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-lg overflow-hidden">
-               <div className={`p-4 border-t-4 ${col.color} bg-white/60 flex justify-between items-center`}>
-                 <h3 className="font-bold flex items-center gap-2 text-slate-700">
-                    <col.icon className="w-5 h-5 text-slate-600" />
+             <div key={col.id} className="flex-none w-80 flex flex-col h-full bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
+               <div className={`p-4 border-t-4 ${col.color} bg-white/5 flex justify-between items-center`}>
+                 <h3 className="font-bold flex items-center gap-2 text-slate-200">
+                    <col.icon className="w-5 h-5 text-slate-300" />
                     {col.label}
                  </h3>
-                 <span className="bg-slate-200 text-slate-600 font-bold px-2.5 py-0.5 text-sm rounded-full">{colTxs.length}</span>
+                 <span className="bg-slate-800 text-slate-300 border border-white/10 font-bold px-2.5 py-0.5 text-sm rounded-full">{colTxs.length}</span>
                </div>
                
                <div className="flex-1 p-3 overflow-y-auto space-y-3 custom-scrollbar">
                  {colTxs.map(tx => (
-                   <div key={tx.id} className={`p-4 rounded-xl shadow-md border border-white bg-white/80 hover:bg-white hover:scale-[1.02] hover:shadow-xl transition-all cursor-grab relative group`}>
+                   <div key={tx.id} className={`p-4 rounded-xl shadow-lg border border-white/10 bg-slate-800/80 hover:bg-slate-700 hover:scale-[1.02] hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] transition-all cursor-grab relative group`}>
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-indigo-900 bg-indigo-50 px-2 py-0.5 rounded text-sm">{tx.productCode}</span>
-                        <span className="text-xs font-bold text-slate-400">#{tx.id}</span>
+                        <span className="font-bold text-blue-300 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded text-sm">{tx.productCode}</span>
+                        <span className="text-xs font-bold text-slate-500">#{tx.id}</span>
                       </div>
-                      <p className="text-slate-600 text-sm mb-1">Giá Lock: <strong className="text-slate-900">{tx.priceAtLock} Tỷ</strong></p>
+                      <p className="text-slate-400 text-sm mb-1">Giá Lock: <strong className="text-slate-200">{tx.priceAtLock} Tỷ</strong></p>
                       <p className="text-slate-500 text-xs mb-3">Tạo bởi: {tx.salesStaffId}</p>
                       
                       {/* Actions based on Role & Status */}
-                      <div className="flex gap-2 mt-4 pt-3 border-t border-slate-100">
+                      <div className="flex gap-2 mt-4 pt-3 border-t border-white/5">
                          {role === 'sales_manager' && tx.status === 'PENDING_LOCK' && (
                            <>
-                             <button onClick={() => handleApprove(tx.id, "LOCKED")} className="flex-1 py-1.5 text-xs font-bold bg-green-500 text-white rounded shadow-sm hover:bg-green-600">Duyệt Lock</button>
-                             <button onClick={() => handleReject(tx.id)} className="flex-1 py-1.5 text-xs font-bold bg-red-50 text-red-600 rounded hover:bg-red-100">Từ Chối</button>
+                             <button onClick={() => handleApprove(tx.id, "LOCKED")} className="flex-1 py-1.5 text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded shadow-sm hover:bg-emerald-500/30">Duyệt Lock</button>
+                             <button onClick={() => handleReject(tx.id)} className="flex-1 py-1.5 text-xs font-bold bg-red-500/10 text-red-500 border border-red-500/20 rounded hover:bg-red-500/20">Từ Chối</button>
                            </>
                          )}
                          {role === 'sales_manager' && tx.status === 'LOCKED' && (
-                           <button onClick={() => handleApprove(tx.id, "DEPOSIT")} className="w-full py-1.5 text-xs font-bold bg-indigo-500 text-white rounded shadow-sm hover:bg-indigo-600 flex justify-center items-center">
+                           <button onClick={() => handleApprove(tx.id, "DEPOSIT")} className="w-full py-1.5 text-xs font-bold bg-blue-600 text-white rounded shadow-[0_0_10px_rgba(37,99,235,0.4)] hover:bg-blue-500 flex justify-center items-center">
                              Chuyển Sang Cọc <ChevronRight className="w-3 h-3 ml-1" />
                            </button>
                          )}
                          {role === 'sales_manager' && tx.status === 'DEPOSIT' && (
-                           <button onClick={() => handleApprove(tx.id, "SOLD")} className="w-full py-1.5 text-xs font-bold bg-green-600 text-white rounded shadow-sm hover:bg-green-700 flex justify-center items-center">
+                           <button onClick={() => handleApprove(tx.id, "SOLD")} className="w-full py-1.5 text-xs font-bold bg-emerald-600 text-white rounded shadow-[0_0_10px_rgba(5,150,105,0.4)] hover:bg-emerald-500 flex justify-center items-center">
                              Chốt Bán (Sold) <CheckCircle2 className="w-3 h-3 ml-1" />
                            </button>
                          )}
                          {role === 'sales_staff' && tx.status === 'PENDING_LOCK' && (
-                           <span className="w-full py-1 text-xs text-center text-orange-600 font-medium italic">Đang chờ sếp duyệt...</span>
+                           <span className="w-full py-1 text-xs text-center text-orange-400 font-medium italic">Đang chờ sếp duyệt...</span>
                          )}
                       </div>
                    </div>

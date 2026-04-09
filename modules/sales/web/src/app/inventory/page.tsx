@@ -26,9 +26,17 @@ export default function InventoryPage() {
         if (res.data.data.length > 0) {
             fetchProducts(res.data.data[0].id, res.data.data[0]);
         }
+      } else {
+        throw new Error("No data");
       }
     } catch(e) {
       console.log("Failed to fetch projects, using fallback UI");
+      const mockProjects = [
+          { id: "proj-1", name: "Vinhomes Grand Park", location: "Quận 9, TP. Thủ Đức", feeRate: 3.5 },
+          { id: "proj-2", name: "Aqua City", location: "Biên Hòa, Đồng Nai", feeRate: 4.0 },
+      ];
+      setProjects(mockProjects);
+      fetchProducts(mockProjects[0].id, mockProjects[0]);
     }
   };
 
@@ -38,9 +46,19 @@ export default function InventoryPage() {
       const res = await axios.get(`http://localhost:8081/api/v1/projects/${projectId}/products?limit=500`);
       if (res.data.data) {
           setProducts(res.data.data);
+      } else {
+          throw new Error("No data");
       }
     } catch(e) {
         console.log("Failed to fetch products");
+        setProducts([
+            { id: "prd-1", code: "VHO-S1.01-05", block: "S1.01", floor: 5, area: 45.5, price: 3.25, status: "AVAILABLE" },
+            { id: "prd-2", code: "VHO-S2.05-12A", block: "S2.05", floor: 12, area: 68.0, price: 4.10, status: "AVAILABLE" },
+            { id: "prd-3", code: "VHO-S1.02-15", block: "S1.02", floor: 15, area: 55.4, price: 2.85, status: "LOCKED" },
+            { id: "prd-4", code: "VHO-S3.01-20", block: "S3.01", floor: 20, area: 88.0, price: 5.50, status: "LOCKED" },
+            { id: "prd-5", code: "VHO-S1.01-08", block: "S1.01", floor: 8, area: 45.5, price: 2.95, status: "SOLD" },
+            { id: "prd-6", code: "VHO-S1.05-22", block: "S1.05", floor: 22, area: 72.0, price: 3.80, status: "AVAILABLE" },
+        ]);
     }
   };
 
@@ -70,9 +88,9 @@ export default function InventoryPage() {
     { field: "price", headerName: "Giá (Tỷ)", filter: true, width: 120, valueFormatter: (p: any) => p.value ? `${Number(p.value).toLocaleString()} Tỷ` : '' },
     { field: "status", headerName: "Trạng thái", filter: true, width: 130, cellRenderer: (params: any) => {
         const val = params.value;
-        if(val === 'AVAILABLE') return <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded border border-green-200">{val}</span>;
-        if(val === 'LOCKED') return <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded border border-yellow-200">{val}</span>;
-        return <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-bold rounded border border-gray-200">{val}</span>;
+        if(val === 'AVAILABLE') return <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded border border-emerald-500/20">{val}</span>;
+        if(val === 'LOCKED') return <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs font-medium rounded border border-amber-500/20">{val}</span>;
+        return <span className="px-2 py-0.5 bg-slate-500/20 text-slate-400 text-xs font-medium rounded border border-slate-500/20">{val}</span>;
     }},
     { headerName: "Thao tác", width: 150, cellRenderer: (params: any) => {
         const data = params.data;
@@ -80,7 +98,7 @@ export default function InventoryPage() {
             return (
                 <button 
                   onClick={() => handleRequestLock(data)} 
-                  className="flex items-center text-xs bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition shadow-sm w-full h-full justify-center"
+                  className="flex items-center text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded hover:bg-blue-600/40 transition shadow-[0_0_10px_rgba(59,130,246,0.3)] w-full h-full justify-center"
                 >
                   <Handshake className="w-3 h-3 mr-1" /> Yêu cầu Lock
                 </button>
@@ -93,56 +111,56 @@ export default function InventoryPage() {
   return (
     <div className="flex gap-6 h-[90vh]">
       {/* Sidebar Projects */}
-      <div className="w-80 glass-panel rounded-3xl flex flex-col overflow-hidden border border-white p-4">
-         <h2 className="font-extrabold text-xl text-slate-800 mb-4 flex items-center">
-             <Building className="w-5 h-5 mr-2 text-indigo-600" /> Chọn Dự Án
+      <div className="w-80 bg-slate-900/50 backdrop-blur-xl shadow-2xl rounded-3xl flex flex-col overflow-hidden border border-white/10 p-4">
+         <h2 className="font-bold text-xl text-slate-200 mb-4 flex items-center">
+             <Building className="w-5 h-5 mr-2 text-blue-400" /> Chọn Dự Án
          </h2>
          <div className="relative mb-4">
              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
-             <input placeholder="Tìm nhanh..." className="w-full bg-white/50 border border-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" />
+             <input placeholder="Tìm nhanh..." className="w-full bg-slate-950/50 border border-white/10 text-slate-200 rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500/50 placeholder:text-slate-500" />
          </div>
          <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
              {projects.map(p => (
                  <div 
                    key={p.id} 
                    onClick={() => fetchProducts(p.id, p)}
-                   className={`p-4 rounded-xl cursor-pointer transition-all border ${selectedProject?.id === p.id ? 'bg-indigo-600 text-white border-indigo-700 shadow-md' : 'bg-white/40 hover:bg-white text-slate-700 border-white/60 hover:border-indigo-200 hover:shadow-sm'}`}
+                   className={`p-4 rounded-xl cursor-pointer transition-all border ${selectedProject?.id === p.id ? 'bg-blue-600/20 text-white border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'bg-slate-800/40 hover:bg-slate-800 text-slate-300 border-white/5 hover:border-white/10'}`}
                  >
-                     <p className="font-bold mb-1">{p.name}</p>
-                     <p className={`text-xs flex items-center ${selectedProject?.id === p.id ? 'text-indigo-100' : 'text-slate-500'}`}>
+                     <p className="font-medium mb-1 text-slate-200">{p.name}</p>
+                     <p className={`text-xs flex items-center ${selectedProject?.id === p.id ? 'text-blue-200' : 'text-slate-500'}`}>
                          <MapPin className="w-3 h-3 mr-1" /> {p.location || 'Bình Thuận'}
                      </p>
                  </div>
              ))}
              {projects.length === 0 && (
-                 <div className="text-center p-4 text-slate-400 italic text-sm">Chưa có dự án nào</div>
+                 <div className="text-center p-4 text-slate-500 italic text-sm">Chưa có dự án nào</div>
              )}
          </div>
       </div>
 
       {/* Main Grid */}
-      <div className="flex-1 glass-panel rounded-3xl overflow-hidden flex flex-col border border-white relative">
+      <div className="flex-1 bg-slate-900/50 backdrop-blur-xl rounded-3xl overflow-hidden flex flex-col border border-white/10 relative shadow-2xl">
          {/* Top bar */}
-         <div className="bg-white/40 backdrop-blur-md p-5 border-b border-white z-10 flex justify-between items-center">
+         <div className="bg-slate-900/60 p-5 border-b border-white/10 z-10 flex justify-between items-center">
              <div>
-                <h2 className="font-extrabold text-2xl text-slate-800 flex items-center gap-3">
+                <h2 className="font-bold text-2xl text-slate-200 flex items-center gap-3">
                     {selectedProject ? selectedProject.name : "Rổ Hàng Online"}
                     {selectedProject && (
-                        <span className="text-xs bg-indigo-100 text-indigo-700 font-bold px-2 py-1 rounded-md">Live Sync</span>
+                        <span className="text-xs bg-blue-500/20 border border-blue-500/20 text-blue-300 font-bold px-2 py-1 rounded-md">Live Sync</span>
                     )}
                 </h2>
                 {selectedProject && (
-                    <p className="text-slate-500 text-sm mt-1">Đang hiển thị {products.length} sản phẩm - Phí môi giới (Fee Rate): <strong className="text-indigo-600">{selectedProject.feeRate}%</strong></p>
+                    <p className="text-slate-400 text-sm mt-1">Đang hiển thị {products.length} sản phẩm - Phí môi giới (Fee Rate): <strong className="text-blue-400">{selectedProject.feeRate}%</strong></p>
                 )}
              </div>
              
-             <button className="glass-button px-4 py-2 rounded-lg text-sm font-bold text-slate-700 flex items-center gap-2">
+             <button className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 border border-white/10 hover:bg-slate-700 transition flex items-center gap-2">
                  <Filter className="w-4 h-4" /> Bộ lọc Nâng Cao
              </button>
          </div>
 
          {/* Ag-Grid */}
-         <div className="ag-theme-alpine w-full flex-1" style={{ "--ag-background-color": "transparent", "--ag-header-background-color": "rgba(255,255,255,0.7)", "--ag-row-border-color": "rgba(0,0,0,0.05)" } as React.CSSProperties}>
+         <div className="ag-theme-alpine-dark w-full flex-1 custom-ag-grid">
              <AgGridReact
                 rowData={products}
                 columnDefs={columnDefs}
