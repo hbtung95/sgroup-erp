@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* AG-Grid Base Imports */
+@import "ag-grid-community/styles/ag-grid.css";
+@import "ag-grid-community/styles/ag-theme-alpine.css";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #020617;
+  --foreground: #f8fafc;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* 
+  Neo-Glassmorphism overrides for AG-Grid Dark Theme 
+  This transforms the standard AG-grid into a transparent/acrylic enterprise grid.
+*/
+.custom-ag-grid {
+  --ag-background-color: transparent !important;
+  --ag-header-background-color: rgba(255, 255, 255, 0.03) !important;
+  --ag-odd-row-background-color: rgba(0, 0, 0, 0.2) !important;
+  --ag-border-color: rgba(255, 255, 255, 0.1) !important;
+  --ag-header-foreground-color: #94a3b8 !important;
+  --ag-foreground-color: #e2e8f0 !important;
+  --ag-row-hover-color: rgba(59, 130, 246, 0.1) !important;
+  --ag-selected-row-background-color: rgba(59, 130, 246, 0.2) !important;
+  --ag-font-family: inherit !important;
+  --ag-font-size: 14px !important;
+  --ag-font-weight: 500 !important;
+  --ag-header-font-weight: 600 !important;
+  --ag-cell-horizontal-border: solid rgba(255,255,255,0.05) !important;
+}
+
+.custom-ag-grid .ag-header {
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-ag-grid .ag-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.2); 
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2); 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.3); 
+}

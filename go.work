@@ -1,9 +1,11 @@
-go 1.26.1
+go 1.26.2
 
 use (
 	./core/api-gateway
 	./modules/accounting/api
 	./modules/crm/api
 	./modules/hr/api
+	./modules/project/api
+	./modules/sales/api
 	./packages/go-common
 )
