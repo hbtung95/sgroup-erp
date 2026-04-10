@@ -49,7 +49,7 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
     }));
   }, []);
 
-  const employees: Employee[] = Array.isArray(employeesData?.data) ? employeesData.data : Array.isArray(employeesData) ? employeesData : [];
+  const employees: Employee[] = Array.isArray(employeesData?.data) ? employeesData.data as any : Array.isArray(employeesData) ? employeesData as any : [];
   const db: Partial<HRDashboardData> = (dashboardData as any)?.data ?? dashboardData ?? {};
 
   const statCards = [

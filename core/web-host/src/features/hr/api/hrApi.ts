@@ -55,7 +55,7 @@ export const hrApi = {
       workStatus: 'Đang làm việc',
       createdAt: new Date().toISOString().split('T')[0],
     };
-    mockHRData.getEmployees.data.push(newEmployee);
+    mockHRData.getEmployees.data.push(newEmployee as any);
     mockHRData.getEmployees.meta.total = mockHRData.getEmployees.data.length;
     return mockRespond(newEmployee as Employee);
   },
