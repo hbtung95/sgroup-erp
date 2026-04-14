@@ -4,7 +4,7 @@
   "main": "src/index.ts",
   "peerDependencies": {
     "react": "19.2.x",
-    "react-native": "0.85.x"
+    "react-native": "^0.76.0"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

@@ -1,55 +1,49 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
 import { Search, Building, MapPin, Handshake, Filter } from "lucide-react";
 import { AgGridReact } from "ag-grid-react";
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, ICellRendererParams, ValueFormatterParams } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css"; 
 import "ag-grid-community/styles/ag-theme-alpine.css";
 
+type SalesProject = {
+  id: string;
+  name: string;
+  location?: string;
+  feeRate?: number;
+};
+
+type InventoryProduct = {
+  id: string;
+  code: string;
+  block: string;
+  floor: number;
+  area: number;
+  price: number;
+  status: "AVAILABLE" | "LOCKED" | "SOLD";
+};
+
+type ListResponse<T> = {
+  data?: T[];
+};
+
 export default function InventoryPage() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
-  const [products, setProducts] = useState<any[]>([]);
-  
-  // This will fetch from 8081 (Project Module API)
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  const [projects, setProjects] = useState<SalesProject[]>([]);
+  const [selectedProject, setSelectedProject] = useState<SalesProject | null>(null);
+  const [products, setProducts] = useState<InventoryProduct[]>([]);
 
-  const fetchProjects = async () => {
-    try {
-      const res = await axios.get("http://localhost:8081/api/v1/projects");
-      if (res.data.data) {
-        setProjects(res.data.data);
-        if (res.data.data.length > 0) {
-            fetchProducts(res.data.data[0].id, res.data.data[0]);
-        }
-      } else {
-        throw new Error("No data");
-      }
-    } catch(e) {
-      console.log("Failed to fetch projects, using fallback UI");
-      const mockProjects = [
-          { id: "proj-1", name: "Vinhomes Grand Park", location: "Quận 9, TP. Thủ Đức", feeRate: 3.5 },
-          { id: "proj-2", name: "Aqua City", location: "Biên Hòa, Đồng Nai", feeRate: 4.0 },
-      ];
-      setProjects(mockProjects);
-      fetchProducts(mockProjects[0].id, mockProjects[0]);
-    }
-  };
-
-  const fetchProducts = async (projectId: string, proj: any) => {
+  const fetchProducts = useCallback(async (projectId: string, proj: SalesProject) => {
     setSelectedProject(proj);
     try {
-      const res = await axios.get(`http://localhost:8081/api/v1/projects/${projectId}/products?limit=500`);
+      const res = await axios.get<ListResponse<InventoryProduct>>(`http://localhost:8081/api/v1/projects/${projectId}/products?limit=500`);
       if (res.data.data) {
           setProducts(res.data.data);
       } else {
           throw new Error("No data");
       }
-    } catch(e) {
+    } catch {
         console.log("Failed to fetch products");
         setProducts([
             { id: "prd-1", code: "VHO-S1.01-05", block: "S1.01", floor: 5, area: 45.5, price: 3.25, status: "AVAILABLE" },
@@ -60,9 +54,36 @@ export default function InventoryPage() {
             { id: "prd-6", code: "VHO-S1.05-22", block: "S1.05", floor: 22, area: 72.0, price: 3.80, status: "AVAILABLE" },
         ]);
     }
-  };
+  }, []);
 
-  const handleRequestLock = async (productData: any) => {
+  const fetchProjects = useCallback(async () => {
+    try {
+      const res = await axios.get<ListResponse<SalesProject>>("http://localhost:8081/api/v1/projects");
+      if (res.data.data) {
+        setProjects(res.data.data);
+        if (res.data.data.length > 0) {
+          void fetchProducts(res.data.data[0].id, res.data.data[0]);
+        }
+      } else {
+        throw new Error("No data");
+      }
+    } catch {
+      console.log("Failed to fetch projects, using fallback UI");
+      const mockProjects: SalesProject[] = [
+          { id: "proj-1", name: "Vinhomes Grand Park", location: "Quận 9, TP. Thủ Đức", feeRate: 3.5 },
+          { id: "proj-2", name: "Aqua City", location: "Biên Hòa, Đồng Nai", feeRate: 4.0 },
+      ];
+      setProjects(mockProjects);
+      void fetchProducts(mockProjects[0].id, mockProjects[0]);
+    }
+  }, [fetchProducts]);
+
+  // This will fetch from 8081 (Project Module API)
+  useEffect(() => {
+    void fetchProjects();
+  }, [fetchProjects]);
+
+  const handleRequestLock = useCallback(async (productData: InventoryProduct) => {
       // Typically fires to 8082 Sales API: POST /api/v1/transactions/request-lock
       // With staff token
       try {
@@ -75,26 +96,26 @@ export default function InventoryPage() {
               headers: { "Authorization": "Bearer mock-staff-token" }
           });
           */
-      } catch(e) {
+      } catch {
           alert("Lỗi yêu cầu giữ chỗ");
       }
-  };
+  }, []);
 
   const columnDefs = useMemo<ColDef[]>(() => [
     { field: "code", headerName: "Mã Căn", filter: true, sortable: true, width: 120 },
     { field: "block", headerName: "Tòa/Khu", filter: true, width: 100 },
     { field: "floor", headerName: "Tầng", filter: true, width: 90 },
     { field: "area", headerName: "DT (m2)", width: 100 },
-    { field: "price", headerName: "Giá (Tỷ)", filter: true, width: 120, valueFormatter: (p: any) => p.value ? `${Number(p.value).toLocaleString()} Tỷ` : '' },
-    { field: "status", headerName: "Trạng thái", filter: true, width: 130, cellRenderer: (params: any) => {
+    { field: "price", headerName: "Giá (Tỷ)", filter: true, width: 120, valueFormatter: (p: ValueFormatterParams<InventoryProduct>) => p.value ? `${Number(p.value).toLocaleString()} Tỷ` : '' },
+    { field: "status", headerName: "Trạng thái", filter: true, width: 130, cellRenderer: (params: ICellRendererParams<InventoryProduct>) => {
         const val = params.value;
         if(val === 'AVAILABLE') return <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded border border-emerald-500/20">{val}</span>;
         if(val === 'LOCKED') return <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs font-medium rounded border border-amber-500/20">{val}</span>;
         return <span className="px-2 py-0.5 bg-slate-500/20 text-slate-400 text-xs font-medium rounded border border-slate-500/20">{val}</span>;
     }},
-    { headerName: "Thao tác", width: 150, cellRenderer: (params: any) => {
+    { headerName: "Thao tác", width: 150, cellRenderer: (params: ICellRendererParams<InventoryProduct>) => {
         const data = params.data;
-        if(data.status === 'AVAILABLE') {
+        if (data?.status === 'AVAILABLE') {
             return (
                 <button 
                   onClick={() => handleRequestLock(data)} 
@@ -106,7 +127,7 @@ export default function InventoryPage() {
         }
         return <span className="text-xs text-gray-400 italic">Không khả dụng</span>;
     }}
-  ], []);
+  ], [handleRequestLock]);
 
   return (
     <div className="flex gap-6 h-[90vh]">

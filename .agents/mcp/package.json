@@ -1,0 +1,29 @@
+{
+  "name": "@sgroup/mcp-infrastructure",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SGROUP ERP Multi-Agent MCP Infrastructure (HERA V5)",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --build",
+    "build:domain": "tsc --build servers/erp-domain-mcp-server",
+    "build:experience": "tsc --build servers/experience-mcp-server",
+    "build:build-server": "tsc --build servers/build-mcp-server",
+    "build:auth": "tsc --build servers/auth-mcp-server",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf **/dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0",
+    "glob": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0",
+    "rimraf": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

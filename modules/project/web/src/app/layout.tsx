@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { SidebarLayout } from "./SidebarLayout";
 import { ThemeProvider } from "@/components/ThemeProvider";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "SGroup ERP — Quản Lý Dự Án",
@@ -18,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans antialiased overflow-hidden transition-colors duration-300`}>
+      <body className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans antialiased overflow-hidden transition-colors duration-300">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <SidebarLayout>{children}</SidebarLayout>
         </ThemeProvider>

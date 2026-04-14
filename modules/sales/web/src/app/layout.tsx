@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
-import { LayoutDashboard, Users, Target, Building, LogOut, FileText, Grid, Menu } from "lucide-react";
-
-const inter = Inter({ subsets: ["latin"] });
+import { Users, Target, Building, LogOut, FileText, Menu } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "SGroup ERP",
@@ -18,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} min-h-screen bg-slate-950 text-slate-200 font-sans antialiased bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(30,58,138,0.3),rgba(2,6,23,1))] overflow-hidden flex flex-col md:flex-row`}>
+      <body className="min-h-screen bg-slate-950 text-slate-200 font-sans antialiased bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(30,58,138,0.3),rgba(2,6,23,1))] overflow-hidden flex flex-col md:flex-row">
         
         {/* Sidebar - Dark Glassmorphism */}
         <aside className="w-full md:w-64 flex-shrink-0 border-r border-white/10 bg-slate-900/50 backdrop-blur-xl shadow-2xl flex flex-col z-20 transition-all h-auto md:h-screen">

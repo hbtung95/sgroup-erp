@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { LayoutDashboard, Building, FileText, Target, Grid, LogOut, Menu, X, ChevronLeft, Sun, Moon } from "lucide-react";
+import { LayoutDashboard, Building, Target, Grid, LogOut, Menu, ChevronLeft, Sun, Moon, type LucideIcon } from "lucide-react";
 import { ToastProvider } from "@/components/Toast";
 
 type NavItem = {
   href: string;
   label: string;
-  icon: any;
+  icon: LucideIcon;
   external?: boolean;
 };
 
@@ -35,13 +35,13 @@ const navItems: NavGroup[] = [
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -79,22 +79,40 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             {group.items.map((item) => {
               const active = !item.external && isActive(item.href);
               const Icon = item.icon;
-              const Comp = item.external ? "a" : Link;
-              const extraProps = item.external ? { target: "_blank", rel: "noopener noreferrer" } : {};
-
-              return (
-                <Comp
-                  key={item.href}
-                  href={item.href}
-                  {...extraProps as any}
-                  onClick={() => setMobileOpen(false)}
-                  className={`sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium group ${
-                    active ? "active bg-blue-50/80 text-blue-700 dark:bg-blue-500/10 dark:text-white" : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                  } ${collapsed ? "justify-center" : ""}`}
-                >
+              const className = `sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium group ${
+                active ? "active bg-blue-50/80 text-blue-700 dark:bg-blue-500/10 dark:text-white" : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              } ${collapsed ? "justify-center" : ""}`;
+              const content = (
+                <>
                   <Icon className={`w-[18px] h-[18px] flex-shrink-0 sidebar-icon ${active ? "text-blue-600 dark:text-blue-400" : "text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400"} transition-colors`} />
                   {!collapsed && <span className="text-sm">{item.label}</span>}
-                </Comp>
+                </>
+              );
+
+              if (item.external) {
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileOpen(false)}
+                    className={className}
+                  >
+                    {content}
+                  </a>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={className}
+                >
+                  {content}
+                </Link>
               );
             })}
           </div>

@@ -2,15 +2,14 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Plus, Search, Building, MapPin, Filter } from "lucide-react";
+import { Plus, Search, Building, MapPin } from "lucide-react";
 import { ProjectCreateModal } from "./ProjectCreateModal";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { SkeletonCard } from "@/components/SkeletonLoader";
 import { useToast } from "@/components/Toast";
 import { listProjects, getDashboardStats } from "@/lib/projectApi";
-import type { Project, DashboardStats, ProjectStatus } from "@/lib/types";
-import { StatCard } from "@/components/StatCard";
+import type { Project, DashboardStats } from "@/lib/types";
 import { Layers, TrendingUp, BarChart3 } from "lucide-react";
 
 const STATUS_TABS: { label: string; value: string }[] = [
@@ -37,8 +36,9 @@ export default function ProjectsPage() {
       const res = await listProjects({ search: query, limit: 50 });
       setProjects(res.data || []);
       setTotal(res.meta?.total || 0);
-    } catch (error: any) {
-      toast("error", "Không thể tải danh sách dự án: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Không rõ nguyên nhân";
+      toast("error", "Không thể tải danh sách dự án: " + message);
     } finally {
       setLoading(false);
     }

@@ -4,10 +4,14 @@ import { useState } from "react";
 import { X, Building2 } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { createProject } from "@/lib/projectApi";
-import type { PropertyType } from "@/lib/types";
+import type { CreateProjectForm, ProjectStatus, PropertyType } from "@/lib/types";
+
+type ProjectFormState = Required<Omit<CreateProjectForm, "imageUrl">> & {
+  imageUrl?: string;
+};
 
 export function ProjectCreateModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProjectFormState>({
     code: "",
     name: "",
     description: "",
@@ -50,8 +54,9 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: { isOpen: boo
       onSuccess();
       onClose();
       setFormData({ code: "", name: "", description: "", developer: "", location: "", province: "", district: "", type: "APARTMENT", feeRate: 0, avgPrice: 0, status: "UPCOMING" });
-    } catch (error: any) {
-      toast("error", "Lỗi tạo dự án: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Không rõ nguyên nhân";
+      toast("error", "Lỗi tạo dự án: " + message);
     } finally {
       setLoading(false);
     }
@@ -88,7 +93,7 @@ export function ProjectCreateModal({ isOpen, onClose, onSuccess }: { isOpen: boo
             </div>
             <div>
               <label className={labelClass}>Trạng thái</label>
-              <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as any })} className={inputClass}>
+              <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as ProjectStatus })} className={inputClass}>
                 <option value="UPCOMING">Sắp mở bán</option>
                 <option value="SELLING">Đang bán</option>
                 <option value="HANDOVER">Bàn giao</option>

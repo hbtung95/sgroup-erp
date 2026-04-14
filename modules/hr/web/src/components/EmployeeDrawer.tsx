@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import { X, Save, User, Briefcase, Hash } from 'lucide-react';
+import { X, Save, User, Hash } from 'lucide-react';
+
+export interface EmployeeFormData {
+  code: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  identity_card: string;
+}
 
 interface EmployeeDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
+  onSave: (data: EmployeeFormData) => void;
 }
 
 export default function EmployeeDrawer({ isOpen, onClose, onSave }: EmployeeDrawerProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EmployeeFormData>({
     code: '',
     first_name: '',
     last_name: '',
@@ -16,7 +24,7 @@ export default function EmployeeDrawer({ isOpen, onClose, onSave }: EmployeeDraw
     identity_card: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLButtonElement | HTMLFormElement>) => {
     e.preventDefault();
     onSave(formData);
   };

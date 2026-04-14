@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Clock, Search, ShieldCheck, DollarSign, CheckCircle2, ChevronRight, XCircle } from "lucide-react";
-import axios from "axios";
+import { useState } from "react";
+import { Clock, ShieldCheck, DollarSign, CheckCircle2, ChevronRight } from "lucide-react";
 
 // Status match with Go Backend
 type TxStatus = "PENDING_LOCK" | "LOCKED" | "DEPOSIT" | "SOLD" | "CANCELLED" | "REJECTED";
@@ -37,12 +36,12 @@ export default function KanbanPage() {
   const [transactions, setTransactions] = useState<Transaction[]>(MOCK_DATA);
   const [role, setRole] = useState("sales_manager"); // mock role toggle
   
-  const handleApprove = async (id: string, newStatus: TxStatus) => {
+  const handleApprove = (id: string, newStatus: TxStatus) => {
     // Optimistic UI update
     setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, status: newStatus } : tx));
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = (id: string) => {
     setTransactions(prev => prev.map(tx => tx.id === id ? { ...tx, status: "REJECTED" } : tx));
   };
 

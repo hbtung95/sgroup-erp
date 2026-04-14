@@ -9,12 +9,12 @@
   },
   "dependencies": {
     "react": "19.2.4",
-    "react-native": "0.85.0",
-    "@sgroup/ui": "*"
+    "react-native": "^0.76.0",
+    "@sgroup/ui": "1.0.0"
   },
   "devDependencies": {
-    "@react-native/babel-preset": "0.85.0",
-    "@callstack/repack": "latest",
+    "@react-native/babel-preset": "^0.76.0",
+    "@callstack/repack": "^4.2.0",
     "typescript": "5.8.x"
   }
 }

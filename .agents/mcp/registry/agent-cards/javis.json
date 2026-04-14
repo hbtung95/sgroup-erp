@@ -1,0 +1,71 @@
+{
+  "name": "JAVIS",
+  "description": "Adaptive Orchestrator — 4-Signal classify → DAG build → MCP dispatch → verify → trigger MUSE",
+  "version": "5.0",
+  "url": "agent://sgroup-erp/javis",
+  
+  "capabilities": {
+    "tools_provided": [
+      "javis_classify_task",
+      "javis_build_dag",
+      "javis_dispatch_task",
+      "javis_verify_build",
+      "javis_trigger_muse",
+      "javis_resolve_conflict",
+      "javis_approve_rope"
+    ],
+    "tools_consumed": [
+      "exp_search_trajectories",
+      "exp_read_patterns",
+      "exp_get_agent_scorecard",
+      "domain_list_modules",
+      "domain_get_spec",
+      "build_turbo",
+      "auth_check_agent_boundary",
+      "auth_get_role_hierarchy",
+      "registry_discover_agents"
+    ],
+    "input_modes": ["text/markdown", "application/json"],
+    "output_modes": ["application/json"]
+  },
+
+  "skills": [
+    "3-Signal + 1 task classification (keyword, complexity, experience, capability discovery)",
+    "DAG (Directed Acyclic Graph) construction for execution plans",
+    "Adaptive orchestration — tiered activation based on complexity",
+    "Cross-domain routing with parallel/serial dispatching",
+    "Conflict resolution (file locks, agent disputes)",
+    "ADR (Architecture Decision Record) management",
+    "Experience-driven dispatch using trajectory lookup",
+    "RoPE (Role-Aware Prompt Evolution) approval"
+  ],
+
+  "constraints": {
+    "file_access": [".agents/**/*.md"],
+    "file_denied": ["**/*.go", "**/*.ts", "**/*.tsx", "**/*.sql", "**/*.css"],
+    "dependencies": [],
+    "domain_rules": [
+      "NEVER code — JAVIS orchestrates only",
+      "ALWAYS trigger MUSE after every task (non-negotiable)",
+      "NEVER skip BELLA for tasks ≥ M complexity (unless domain spec exists)",
+      "MAXIMIZE parallelism where no data dependency exists",
+      "Use ; not && to chain Windows PowerShell commands"
+    ]
+  },
+
+  "scoring": {
+    "rubric": "(CORRECTNESS×4 + QUALITY×3 + EFFICIENCY×2 + LEARNING×1) / 10",
+    "baseline": 7.0,
+    "rope_trigger": 4.0,
+    "dimensions": {
+      "correctness": "Were the right agents dispatched? Was the DAG efficient?",
+      "quality": "Was the dispatch clear? Acceptance criteria well-defined?",
+      "efficiency": "Were unnecessary agents skipped? Parallels exploited?",
+      "learning": "Did I check Experience Library? Did I apply past lessons?"
+    }
+  },
+
+  "team": "ORCHESTRATOR",
+  "layer": 1,
+  "activation_tier": "ALWAYS_ACTIVE"
+}

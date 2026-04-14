@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	hrHTTP "github.com/vctplatform/sgroup-erp/modules/hr/api/internal/delivery/http"
 	"github.com/vctplatform/sgroup-erp/modules/hr/api/internal/delivery/http/middleware"
 	"github.com/vctplatform/sgroup-erp/modules/hr/api/internal/infrastructure/database"
@@ -14,11 +15,14 @@ import (
 )
 
 func main() {
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Println("No .env file found, using system environment")
+	}
 	log.Println("Starting SGroup ERP - HR Module API (Back-office)...")
 
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		dsn = "host=localhost user=sgroup_admin password=sgroup_password! dbname=sgroup_erp port=5433 sslmode=disable TimeZone=Asia/Ho_Chi_Minh"
+		dsn = "host=localhost user=erp_admin password=erp_password dbname=sgroup_erp port=5433 sslmode=disable TimeZone=Asia/Ho_Chi_Minh"
 		log.Println("DATABASE_URL not set, falling back to default local connection")
 	}
 
@@ -73,7 +77,7 @@ func main() {
 	// 5. Start Server
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8081"
 	}
 	log.Printf("Server listening on :%s", port)
 	if err := router.Run(":" + port); err != nil {

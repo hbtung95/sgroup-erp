@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { FileText, Trash2, Plus, X } from "lucide-react";
-import { StatusBadge } from "@/components/StatusBadge";
 import { useToast } from "@/components/Toast";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { listDocs, uploadDoc, deleteDoc, updateDocStatus } from "@/lib/projectApi";
@@ -25,16 +24,16 @@ export function LegalDocsPanel({ projectId }: { projectId: string }) {
   const [formData, setFormData] = useState({ title: "", docType: "Giấy phép xây dựng", fileUrl: "", description: "" });
   const { toast } = useToast();
 
-  useEffect(() => { fetchDocs(); }, [projectId]);
-
-  const fetchDocs = async () => {
+  const fetchDocs = useCallback(async () => {
     try {
       const data = await listDocs(projectId);
       setDocs(data);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => { void fetchDocs(); }, [fetchDocs]);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,9 +47,10 @@ export function LegalDocsPanel({ projectId }: { projectId: string }) {
       toast("success", "Upload tài liệu thành công!");
       setShowForm(false);
       setFormData({ title: "", docType: "Giấy phép xây dựng", fileUrl: "", description: "" });
-      fetchDocs();
-    } catch (e: any) {
-      toast("error", "Lỗi upload: " + e.message);
+      void fetchDocs();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Không rõ nguyên nhân";
+      toast("error", "Lỗi upload: " + message);
     } finally {
       setLoading(false);
     }
@@ -61,9 +61,10 @@ export function LegalDocsPanel({ projectId }: { projectId: string }) {
     try {
       await deleteDoc(projectId, deleteId);
       toast("success", "Đã xoá tài liệu");
-      fetchDocs();
-    } catch (e: any) {
-      toast("error", "Lỗi xoá: " + e.message);
+      void fetchDocs();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Không rõ nguyên nhân";
+      toast("error", "Lỗi xoá: " + message);
     } finally {
       setDeleteId(null);
     }
@@ -73,9 +74,10 @@ export function LegalDocsPanel({ projectId }: { projectId: string }) {
     try {
       await updateDocStatus(projectId, docId, newStatus);
       toast("success", "Cập nhật trạng thái thành công!");
-      fetchDocs();
-    } catch (e: any) {
-      toast("error", "Lỗi cập nhật: " + e.message);
+      void fetchDocs();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Không rõ nguyên nhân";
+      toast("error", "Lỗi cập nhật: " + message);
     }
   };
 

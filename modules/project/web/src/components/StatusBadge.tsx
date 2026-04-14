@@ -1,7 +1,6 @@
 "use client";
 
 import { PROJECT_STATUS_MAP, PRODUCT_STATUS_MAP } from "@/lib/types";
-import type { ProjectStatus, ProductStatus } from "@/lib/types";
 
 type Props = {
   status: string;

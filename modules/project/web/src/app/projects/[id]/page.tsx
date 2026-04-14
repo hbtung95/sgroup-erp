@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useMemo, use, useCallback } from "react";
 import { AgGridReact } from "ag-grid-react";
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, ICellRendererParams, ValueFormatterParams } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import { ArrowLeft, Lock, Unlock, FileSpreadsheet, Plus, Zap, FileText, History } from "lucide-react";
+import { ArrowLeft, Lock, Unlock, FileSpreadsheet, Zap, FileText } from "lucide-react";
 import Link from "next/link";
 import { ImportExcelModal } from "./ImportExcelModal";
 import { LegalDocsPanel } from "./LegalDocsPanel";
@@ -16,7 +16,9 @@ import { getProject, listProducts, lockProduct, unlockProduct, depositProduct, s
 import type { Project, Product } from "@/lib/types";
 import * as xlsx from "xlsx";
 
-type ActiveTab = "inventory" | "legal" | "history";
+type ActiveTab = "inventory" | "legal";
+type ConfirmActionType = "lock" | "unlock" | "deposit" | "sold";
+type ConfirmAction = { type: ConfirmActionType; id: string; message: string };
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -26,29 +28,30 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("inventory");
-  const [confirmAction, setConfirmAction] = useState<{ type: string; id: string; message: string } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
 
   const columnDefs = useMemo<ColDef[]>(() => [
     { field: "code", headerName: "Mã Căn", filter: true, sortable: true, width: 120,
-      cellRenderer: (params: any) => (
+      cellRenderer: (params: ICellRendererParams<Product>) => (
         <span className="font-semibold text-blue-300">{params.value}</span>
       )
     },
     { field: "block", headerName: "Tòa/Khu", filter: true, width: 100 },
     { field: "floor", headerName: "Tầng", filter: true, width: 80 },
     { field: "bedrooms", headerName: "PN", width: 70 },
-    { field: "area", headerName: "DT (m²)", width: 100, valueFormatter: (p: any) => p.value ? `${Number(p.value).toLocaleString()} m²` : "" },
-    { field: "price", headerName: "Giá (Tỷ)", filter: true, width: 120, valueFormatter: (p: any) => p.value ? `${Number(p.value).toLocaleString()} Tỷ` : "" },
+    { field: "area", headerName: "DT (m²)", width: 100, valueFormatter: (p: ValueFormatterParams<Product>) => p.value ? `${Number(p.value).toLocaleString()} m²` : "" },
+    { field: "price", headerName: "Giá (Tỷ)", filter: true, width: 120, valueFormatter: (p: ValueFormatterParams<Product>) => p.value ? `${Number(p.value).toLocaleString()} Tỷ` : "" },
     { field: "direction", headerName: "Hướng", width: 90 },
     { field: "status", headerName: "Trạng thái", filter: true, width: 140,
-      cellRenderer: (params: any) => <StatusBadge status={params.value} type="product" />
+      cellRenderer: (params: ICellRendererParams<Product>) => <StatusBadge status={params.value ?? ""} type="product" />
     },
     { field: "bookedBy", headerName: "Giữ chỗ bởi", width: 140 },
     { headerName: "Thao tác", width: 170, sortable: false, filter: false,
-      cellRenderer: (params: any) => {
+      cellRenderer: (params: ICellRendererParams<Product>) => {
         const data = params.data;
+        if (!data) return null;
         if (data.status === "AVAILABLE") {
           return (
             <button onClick={() => setConfirmAction({ type: "lock", id: data.id, message: `Khóa căn ${data.code}?` })}
@@ -93,7 +96,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       ]);
       setProject(proj);
       setProducts(prodRes.data || []);
-    } catch (e: any) {
+    } catch {
       toast("error", "Không thể tải dữ liệu dự án");
     } finally {
       setLoading(false);
@@ -124,9 +127,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           toast("success", "Giao dịch thành công! Dữ liệu dự án sẽ được đồng bộ.");
           break;
       }
-      fetchData();
-    } catch (e: any) {
-      toast("error", e.message);
+      void fetchData();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Không rõ nguyên nhân";
+      toast("error", message);
     } finally {
       setActionLoading(false);
       setConfirmAction(null);

@@ -16,6 +16,8 @@ type PreviewRow = {
   bedrooms: number;
 };
 
+type RawImportRow = Record<string, string | number | undefined>;
+
 export function ImportExcelModal({ isOpen, onClose, projectId, onSuccess }: {
   isOpen: boolean;
   onClose: () => void;
@@ -42,7 +44,7 @@ export function ImportExcelModal({ isOpen, onClose, projectId, onSuccess }: {
         const bstr = evt.target?.result;
         const wb = XLSX.read(bstr, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws) as any[];
+        const data = XLSX.utils.sheet_to_json<RawImportRow>(ws);
 
         const parsed: PreviewRow[] = data.map((row) => ({
           code: String(row.Code || row.Mã || row["Mã Căn"] || ""),
@@ -71,8 +73,9 @@ export function ImportExcelModal({ isOpen, onClose, projectId, onSuccess }: {
       toast("success", `Import thành công ${result.created} sản phẩm!`);
       onSuccess();
       handleClose();
-    } catch (error: any) {
-      toast("error", "Lỗi import: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Không rõ nguyên nhân";
+      toast("error", "Lỗi import: " + message);
     } finally {
       setLoading(false);
     }

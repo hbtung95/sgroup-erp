@@ -1,18 +1,32 @@
-# SGROUP ERP — AGENT TEAM V4 (HERA Architecture)
+# SGROUP ERP — AGENT TEAM V5 (HERA + MCP Architecture)
 
 Mission: Build hệ thống quản trị doanh nghiệp (ERP) toàn diện cho Công ty Môi giới Bất động sản SGROUP.
-Design: HERA (Hierarchical Evolution) | Experience-Driven | Adaptive Orchestration | Self-Evolving Agents.
+Design: HERA (Hierarchical Evolution) | MCP-Native | A2A Discovery | Experience-Driven | Self-Evolving Agents.
 
 ## 14 Agents (4 BA + 4 Code + 4 Specialist + 1 Evaluator + 1 Orchestrator)
 
 ```
+LAYER 0: MCP INFRASTRUCTURE
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  Agent Registry (A2A)  │  MCP Servers (4)  │  Security/Governance               │
+│  14 Agent Cards        │  Domain | Exp | Build | Auth  │  Boundary Enforcement  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
 LAYER 1: GLOBAL ORCHESTRATOR
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│                           JAVIS v4 (Adaptive Orchestrator)                       │
-│  ┌──────────┐    ┌───────────────┐    ┌──────────────┐    ┌──────────────────┐  │
-│  │ Classify  │───▶│  DAG Builder  │───▶│  Dispatcher   │───▶│  Post-Task Loop  │  │
-│  │(3-Signal) │    │(per task plan)│    │(credit-aware) │    │ (trigger MUSE)   │  │
-│  └──────────┘    └───────────────┘    └──────────────┘    └──────────────────┘  │
+│                     JAVIS v5 (MCP-Native Adaptive Orchestrator)                  │
+│  ┌──────────────┐  ┌──────────────┐  ┌───────────────┐  ┌──────────────────┐   │
+│  │  4-Signal    │  │  DAG Builder  │  │  MCP Dispatch │  │  Post-Task Loop  │   │
+│  │  Classify    │  │  (per task)   │  │  (structured) │  │  (trigger MUSE)  │   │
+│  └──────────────┘  └──────────────┘  └───────────────┘  └──────────────────┘   │
+│           │                                                                      │
+│  ┌────────▼─────────────────────────────────┐                                   │
+│  │ Signal 1: Keyword         (ROUTING.md)   │                                   │
+│  │ Signal 2: Complexity      (T-shirt)      │                                   │
+│  │ Signal 3: Experience      (Exp Library)  │                                   │
+│  │ Signal 4: Capability      (A2A Registry) │ ← NEW                            │
+│  └──────────────────────────────────────────┘                                   │
 │                           │                                                      │
 │                ┌──────────▼──────────────────────────────┐                       │
 │                │     EXPERIENCE LIBRARY (Shared Memory)   │                       │
@@ -21,7 +35,7 @@ LAYER 1: GLOBAL ORCHESTRATOR
 └──────────────────────────────────────────────────────────────────────────────────┘
          │                    │                    │
          ▼                    ▼                    ▼
-LAYER 2: EXECUTION AGENTS
+LAYER 2: EXECUTION AGENTS (MCP Tool Consumers + A2A Providers)
 ┌─────────────────┐ ┌─────────────────┐ ┌──────────────────┐
 │   BA TEAM       │ │   CODE TEAM     │ │   SUPPORT TEAM   │
 │                 │ │                 │ │                  │
@@ -34,67 +48,86 @@ LAYER 2: EXECUTION AGENTS
          └────────────────────┴────────────────────┘
                               │
                               ▼
-LAYER 3: FEEDBACK & EVOLUTION
+LAYER 3: FEEDBACK & EVOLUTION (MCP-Enhanced)
 ┌──────────────────────────────────────────────────────┐
-│                    MUSE (Evaluator)                    │
+│                  MUSE (MCP-Native Evaluator)           │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
 │  │  Score    │  │  Credit  │  │  RoPE    │            │
 │  │ (rubric) │  │ (assign) │  │(evolve)  │            │
 │  └──────────┘  └──────────┘  └──────────┘            │
+│  MCP Tools: exp_capture_trajectory,                    │
+│             exp_update_scorecard,                       │
+│             exp_trigger_rope                            │
 └──────────────────────────────────────────────────────┘
 ```
 
 ### All Team Members
-| Agent | Role | Focus | Output |
-|-------|------|-------|--------|
-| **JAVIS** | Adaptive Orchestrator | 3-Signal classify, DAG planning, dispatch | Execution plans, routing |
-| **BELLA** | Lead BA / Domain Architect | Entity design, cross-module deps, experience curation | Domain specs (.md) |
-| **DIANA** | Process & Workflow Analyst | Business flows, user journeys, BPMN, SOPs | Process docs (.md) |
-| **OSCAR** | Organization & Role Analyst | Org chart, RBAC, KPI definitions, approvals | Org/Role specs (.md) |
-| **MARCO** | Industry & Compliance Expert | BĐS regulations, tax, market analysis | Compliance docs (.md) |
-| **FIONA** | Frontend Engineer | React components, pages, routes | .tsx, .ts files |
-| **BRIAN** | Backend Engineer | Go API endpoints, services, repos | .go files |
-| **JENNY** | Database Engineer | PostgreSQL schema, migrations | .sql files |
-| **NOVA** | UI/Design System Engineer | @sgroup/ui shared components | .tsx, .ts, .css files |
-| **ATLAS** | DevOps Engineer | CI/CD, Docker, deployment, monitoring | .yml, Dockerfile |
-| **QUINN** | Testing Engineer | Unit tests, E2E, coverage | .test.tsx, .spec.ts |
-| **SENTRY** | Security Engineer | Auth, RBAC middleware, security | .go, .ts files |
-| **IRIS** | Integration Engineer | External APIs, webhooks, sync | .go files |
-| **MUSE** ⭐ | Evaluator Agent | Quality scoring, credit assignment, experience capture, RoPE | Scorecards, trajectories (.md) |
+| Agent | Role | Focus | MCP Tools Consumed | A2A Card |
+|-------|------|-------|-------------------|----------|
+| **JAVIS** | MCP Orchestrator | 4-Signal, DAG, MCP dispatch | `domain_*`, `exp_*`, `build_*`, `auth_*`, `registry_*` | ✅ |
+| **BELLA** | Lead BA / Domain Architect | Entity design, cross-module deps | `domain_get_spec`, `exp_search_*` | 🔲 Phase 2 |
+| **DIANA** | Process & Workflow Analyst | Business flows, BPMN, SOPs | `domain_get_spec`, `exp_search_*` | 🔲 Phase 2 |
+| **OSCAR** | Organization & Role Analyst | Org chart, RBAC, KPI | `auth_get_role_hierarchy`, `exp_search_*` | 🔲 Phase 2 |
+| **MARCO** | Industry & Compliance Expert | BĐS regulations, tax | `domain_get_spec`, `exp_search_*` | 🔲 Phase 2 |
+| **FIONA** | Frontend Engineer | React pages, routes | `domain_get_spec`, `build_turbo`, `exp_search_*` | 🔲 Phase 2 |
+| **BRIAN** | Backend Engineer | Go API endpoints | `domain_scaffold_endpoint`, `build_go_module`, `test_go_module` | ✅ |
+| **JENNY** | Database Engineer | PostgreSQL schema | `domain_scaffold_migration`, `exp_search_*` | 🔲 Phase 2 |
+| **NOVA** | UI/Design System Engineer | @sgroup/ui components | `domain_get_design_tokens`, `exp_search_*` | 🔲 Phase 2 |
+| **ATLAS** | DevOps Engineer | CI/CD, Docker | `build_turbo`, `build_check_deps` | 🔲 Phase 2 |
+| **QUINN** | Testing Engineer | Unit tests, E2E | `test_go_module`, `test_frontend_module`, `lint_*` | 🔲 Phase 2 |
+| **SENTRY** | Security Engineer | Auth, RBAC middleware | `auth_*`, `exp_search_*` | 🔲 Phase 2 |
+| **IRIS** | Integration Engineer | External APIs, webhooks | `domain_get_api_contract`, `exp_search_*` | 🔲 Phase 2 |
+| **MUSE** ⭐ | MCP Evaluator | Scoring, credit, RoPE | `exp_capture_*`, `exp_update_*`, `exp_trigger_rope` | ✅ |
 
-## Task Flow (HERA V4)
+## MCP Infrastructure
+
+### 4 MCP Servers
+| Server | Tools | Owner |
+|--------|-------|-------|
+| `erp-domain-mcp-server` | `domain_get_spec`, `domain_list_modules`, `domain_scaffold_*` | Domain Agents |
+| `experience-mcp-server` | `exp_search_*`, `exp_capture_*`, `exp_update_*`, `exp_trigger_rope` | MUSE |
+| `build-mcp-server` | `build_turbo`, `build_go_module`, `test_*`, `lint_*` | ATLAS, QUINN |
+| `auth-mcp-server` | `auth_get_role_hierarchy`, `auth_check_agent_boundary`, `auth_get_financial_rules` | SENTRY |
+
+### A2A Agent Registry
+- Location: `.agents/mcp/registry/agent-cards/`
+- Phase 1 (complete): JAVIS, BRIAN, MUSE → 3 cards
+- Phase 2 (pending): Remaining 11 agents
+
+## Task Flow (HERA V5)
 
 ```
-Chairman → JAVIS (3-Signal Classify → DAG Build → Dispatch)
-  → Execution Agents (work in parallel/serial per DAG)
-    → MUSE (Score → Credit → Capture → Evolve if needed)
-      → Experience Library (updated)
-        → Future tasks benefit from accumulated experience
+Chairman → JAVIS (4-Signal Classify → DAG Build → MCP Dispatch)
+  → Execution Agents (work per DAG, consume MCP tools, produce AgentOutput)
+    → MUSE (Score → Credit → exp_capture_trajectory → exp_update_scorecard)
+      → Experience Library (updated via MCP)
+        → Future tasks benefit from accumulated experience + capability discovery
 ```
 
-### HERA Protocol Summary
-1. **CLASSIFY** — 3 signals: keyword + complexity + experience lookup
-2. **PLAN** — Build a DAG (Directed Acyclic Graph) per task, not a fixed pipeline
-3. **DISPATCH** — Activate only needed agents, parallelize independent steps
-4. **EXECUTE** — Agents work per DAG, self-score upon completion
-5. **EVALUATE** — MUSE scores output, assigns credit, captures trajectory
-6. **EVOLVE** — If agent underperforms, MUSE triggers prompt evolution (RoPE)
+### HERA V5 Protocol Summary
+1. **CLASSIFY** — 4 signals: keyword + complexity + experience + capability discovery
+2. **PLAN** — Build DAG with MCP tool calls per step
+3. **DISPATCH** — Structured `TaskContext` via MCP (not free-form markdown)
+4. **EXECUTE** — Agents consume MCP tools, produce `AgentOutput`
+5. **HANDOFF** — Validated context passing between DAG steps (a2a-handoff.md)
+6. **EVALUATE** — MUSE scores via MCP, captures trajectory, assigns credit
+7. **EVOLVE** — RoPE triggered via `exp_trigger_rope` when thresholds breached
 
-## Operating Principles (HERA V4)
-1. **Senior DNA (20+ YOE)**: ALL agents act as Principal Engineers. Optimal solutions BEFORE coding.
-2. **BA-First**: No code agent starts without an approved domain spec from BELLA.
-3. **Experience-First**: BEFORE any task, check `experience-library/` for past trajectories.
-4. **Adaptive Orchestration**: JAVIS builds DAGs per task complexity — no one-size-fits-all pipeline.
-5. **Tiered Activation**: Only activate agents needed for the task's complexity level.
-6. **Self-Score Always**: Every agent self-scores after completing work (CORRECTNESS/QUALITY/EFFICIENCY/LEARNING).
-7. **MUSE Evaluates Always**: Every task ends with MUSE evaluation and trajectory capture.
-8. **Credit Assignment**: Individual agent contributions tracked — no free-riding, no undeserved blame.
-9. **Continuous Evolution (RoPE)**: Agent prompts evolve based on performance data. Evidence required.
-10. **No Flat Files**: Code in proper workspace (frontend: `modules/*/web/`, backend: `modules/*/api/`, shared: `packages/`).
-11. **No "Magic" Fixes**: Debug via log/trace, do NOT guess.
-12. **Architecture V20**: HERA adaptive per [strategy-v20.md](./shared/strategy-v20.md).
-13. **Definition of Done**: Every module passes [module-done.md](./shared/module-done.md) + MUSE score ≥ 7.0.
-14. **Guardrails**: No main branch coding. Mutex Lock per [agent-boundaries.md](./sop/agent-boundaries.md).
+## Operating Principles (HERA V5)
+1. **Senior DNA (20+ YOE)**: ALL agents act as Principal Engineers.
+2. **BA-First**: No code without approved domain spec.
+3. **Experience-First**: `exp_search_trajectories` BEFORE any task.
+4. **MCP-Native**: Structured context > free-form markdown.
+5. **A2A Discovery**: Agents discoverable via Agent Cards.
+6. **Adaptive Orchestration**: DAGs per task complexity.
+7. **Tiered Activation**: Only needed agents activated.
+8. **Self-Score Always**: Every agent self-scores.
+9. **MUSE Evaluates Always**: Every task ends with MUSE.
+10. **Credit Assignment**: Evidence-based, per agent.
+11. **Continuous Evolution (RoPE)**: Prompt evolution on performance data.
+12. **Backward Compatible**: MCP enhances V4, doesn't break it.
+13. **Architecture V21**: Per [strategy-v21.md](./shared/strategy-v21.md).
+14. **Definition of Done**: Module passes [module-done.md](./shared/module-done.md) + MUSE ≥ 7.0.
 15. **ERP Business Context**: SGROUP BĐS — Dự án → Sản phẩm → Booking → Cọc → HĐMB → Bàn giao → Hoa hồng.
 
 ## Build Roadmap (shared/roadmap.md)
@@ -105,25 +138,32 @@ Phase 4 (Agency Network):   agency
 Phase 5 (Intelligence):     bdh-dashboard → reports → settings
 Phase 6 (Ecosystem):        marketing → s-homes → subscription
 
-## Directory (80+ files)
+## Directory (100+ files)
 ```
 .agents/
 ├── AGENT_TEAM.md, ROUTING.md                       (2 master)
-├── agents/{14}/AGENT.md                             (14 agents — +MUSE)
+├── agents/{14}/AGENT.md                             (14 agents)
+├── mcp/                                             (MCP Infrastructure — NEW)
+│   ├── README.md, package.json, tsconfig.json       (3 config)
+│   ├── servers/{4}/src/index.ts                     (4 MCP servers)
+│   ├── registry/agent-cards/{3+}.json               (Agent Cards — 3 Phase 1)
+│   ├── registry/registry.ts                         (Discovery service)
+│   └── protocols/                                   (3 protocol files)
+│       ├── context-schema.ts                        (Shared types)
+│       ├── mcp-orchestration.md                     (MCP dispatch protocol)
+│       └── a2a-handoff.md                           (Agent handoff protocol)
 ├── shared/
-│   ├── tech-stack.md, design-tokens.md, architecture.md    (3 reference)
-│   ├── roadmap.md, api-contract.md, module-done.md         (3 delivery)
-│   ├── hera-protocol.md, dag-templates.md, strategy-v20.md (3 HERA)
-│   └── domain/{16 files with TL;DR}                        (16 domain)
-├── experience-library/                                      (HERA Experience)
-│   ├── trajectories/  (execution traces)
-│   ├── scorecards/    (agent performance)
-│   ├── insights/      (distilled lessons)
-│   └── evolution/     (prompt change log)
-├── sop/{12}                                         (12 SOPs — +2 HERA)
-├── templates/{6}                                    (6 templates — +2 HERA)
+│   ├── tech-stack.md, design-tokens.md, architecture.md   (3 reference)
+│   ├── roadmap.md, api-contract.md, module-done.md        (3 delivery)
+│   ├── hera-protocol.md, dag-templates.md                 (2 HERA)
+│   ├── strategy-v21.md                                    (1 strategy — V21)
+│   └── domain/{16 files with TL;DR}                       (16 domain)
+├── experience-library/                                     (HERA Experience)
+│   ├── trajectories/ │ scorecards/ │ insights/ │ evolution/
+├── sop/{12}                                         (12 SOPs)
+├── templates/{6}                                    (6 templates)
 ├── workflows/{10}                                   (10 workflows)
-└── evals/{4}                                        (4 evals — +1 HERA)
+└── evals/{4}                                        (4 evals)
 ```
 
 ## Slash Commands
