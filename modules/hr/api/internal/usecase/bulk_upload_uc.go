@@ -8,6 +8,7 @@ import (
 	"io"
 	"mime/multipart"
 	"strconv"
+	"time"
 	"strings"
 
 	"github.com/vctplatform/sgroup-erp/modules/hr/api/internal/domain"
@@ -63,9 +64,14 @@ func (u *bulkUploadUseCase) UploadAttendanceCSV(ctx context.Context, fileHeader 
 		empID := empIDStr
 		hours, _ := strconv.ParseFloat(hoursStr, 64)
 
+		parsedDate, parseErr := time.Parse("2006-01-02", dateStr)
+		if parseErr != nil {
+			continue // Skip rows with invalid date format
+		}
+
 		attendance := &domain.AttendanceRecord{
 			EmployeeID: empID,
-			Date:       dateStr,
+			Date:       parsedDate,
 			TotalHours: hours,
 			Status:     status,
 		}

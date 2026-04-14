@@ -31,11 +31,13 @@ func NewPayrollHandler(router *gin.Engine, pe usecase.PayrollEngineUseCase) {
 
 func (h *PayrollHandler) GeneratePayroll(c *gin.Context) {
 	var payload struct {
-		Title        string    `json:"title"`
-		CycleStart   string    `json:"cycle_start"`
-		CycleEnd     string    `json:"cycle_end"`
-		StandardDays float64   `json:"standard_days"`
-		AdminID      string    `json:"admin_id"`
+		Title        string  `json:"title"`
+		PeriodMonth  int     `json:"period_month"`
+		PeriodYear   int     `json:"period_year"`
+		CycleStart   string  `json:"cycle_start"`
+		CycleEnd     string  `json:"cycle_end"`
+		StandardDays float64 `json:"standard_days"`
+		AdminID      string  `json:"admin_id"`
 	}
 
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -54,9 +56,21 @@ func (h *PayrollHandler) GeneratePayroll(c *gin.Context) {
 		payload.StandardDays = 22.0 // default
 	}
 
+	// Default period from cycle start if not provided
+	periodMonth := payload.PeriodMonth
+	periodYear := payload.PeriodYear
+	if periodMonth == 0 {
+		periodMonth = int(start.Month())
+	}
+	if periodYear == 0 {
+		periodYear = start.Year()
+	}
+
 	run, err := h.payrollEngine.GeneratePayrollRun(
 		c.Request.Context(),
 		payload.Title,
+		periodMonth,
+		periodYear,
 		start,
 		end,
 		payload.StandardDays,

@@ -16,6 +16,10 @@ type LeaveRepository interface {
 	GetBalance(ctx context.Context, employeeID string, year int) (*domain.LeaveBalance, error)
 	UpdateBalance(ctx context.Context, balance *domain.LeaveBalance) error
 	CreateBalance(ctx context.Context, balance *domain.LeaveBalance) error
+
+	// Transaction support
+	DB() *gorm.DB
+	WithTx(tx *gorm.DB) LeaveRepository
 }
 
 type leaveRepository struct {
@@ -85,4 +89,12 @@ func (r *leaveRepository) UpdateBalance(ctx context.Context, balance *domain.Lea
 
 func (r *leaveRepository) CreateBalance(ctx context.Context, balance *domain.LeaveBalance) error {
 	return r.db.WithContext(ctx).Create(balance).Error
+}
+
+func (r *leaveRepository) DB() *gorm.DB {
+	return r.db
+}
+
+func (r *leaveRepository) WithTx(tx *gorm.DB) LeaveRepository {
+	return &leaveRepository{db: tx}
 }

@@ -4,17 +4,18 @@ import (
 	"time"
 )
 
-// AuditLog captures critical changes across the system for security tracing
+// AuditLog captures critical changes across the system for security tracing.
 type AuditLog struct {
-	ID        string      `gorm:"primaryKey" json:"id"`
+	ID          string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	TargetTable string    `gorm:"size:100;index;column:table_name" json:"table_name"`
-	RecordID  string      `gorm:"index" json:"record_id"`
-	Action    string    `gorm:"size:20" json:"action"` // CREATE, UPDATE, DELETE
-	OldValues string    `gorm:"type:text" json:"old_values"` // JSON string representation
-	NewValues string    `gorm:"type:text" json:"new_values"` // JSON string representation
-	ChangedBy string      `gorm:"index" json:"changed_by"` // Admin EmployeeID who made the change
-	IPAddress string    `gorm:"size:45" json:"ip_address"`
-	CreatedAt time.Time `gorm:"index" json:"created_at"`
+	RecordID    string    `gorm:"type:uuid;index" json:"record_id"`
+	Action      string    `gorm:"size:20;index" json:"action"` // CREATE, UPDATE, DELETE, STATUS_CHANGE
+	OldValues   string    `gorm:"type:jsonb" json:"old_values"`
+	NewValues   string    `gorm:"type:jsonb" json:"new_values"`
+	ChangedBy   string    `gorm:"type:uuid;index" json:"changed_by"`
+	IPAddress   string    `gorm:"size:45" json:"ip_address"`
+	UserAgent   string    `gorm:"size:500" json:"user_agent"`
+	CreatedAt   time.Time `gorm:"index" json:"created_at"`
 }
 
 // TableName overrides the table name

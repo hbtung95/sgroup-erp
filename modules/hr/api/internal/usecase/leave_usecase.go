@@ -7,6 +7,7 @@ import (
 
 	"github.com/vctplatform/sgroup-erp/modules/hr/api/internal/domain"
 	"github.com/vctplatform/sgroup-erp/modules/hr/api/internal/repository"
+	"gorm.io/gorm"
 )
 
 type LeaveUseCase interface {
@@ -44,12 +45,12 @@ func (u *leaveUseCase) SubmitRequest(ctx context.Context, req *domain.LeaveReque
 	if balance == nil {
 		// Initialize balance if not exist
 		balance = &domain.LeaveBalance{
-			EmployeeID:  req.EmployeeID,
-			Year:        year,
-			AnnualTotal: 12.0,
-			AnnualUsed:  0.0,
-			SickTotal:   30.0,
-			SickUsed:    0.0,
+			EmployeeID:     req.EmployeeID,
+			Year:           year,
+			AnnualEntitled: 12.0,
+			AnnualUsed:     0.0,
+			SickEntitled:   30.0,
+			SickUsed:       0.0,
 		}
 		if err := u.repo.CreateBalance(ctx, balance); err != nil {
 			return err
@@ -59,11 +60,11 @@ func (u *leaveUseCase) SubmitRequest(ctx context.Context, req *domain.LeaveReque
 	// Validate sufficient balance
 	switch req.LeaveType {
 	case "ANNUAL":
-		if balance.AnnualTotal-balance.AnnualUsed < req.TotalDays {
+		if balance.AnnualEntitled-balance.AnnualUsed < req.TotalDays {
 			return errors.New("insufficient annual leave balance")
 		}
 	case "SICK":
-		if balance.SickTotal-balance.SickUsed < req.TotalDays {
+		if balance.SickEntitled-balance.SickUsed < req.TotalDays {
 			return errors.New("insufficient sick leave balance")
 		}
 	}
@@ -76,43 +77,59 @@ func (u *leaveUseCase) ApproveRequest(ctx context.Context, id string, approverID
 	if err != nil {
 		return err
 	}
-	if req.Status != "PENDING" {
-		return errors.New("only pending requests can be approved")
+	if req.Status != "PENDING" && req.Status != "LEADER_APPROVED" {
+		return errors.New("only pending or leader-approved requests can be approved")
 	}
 
-	// Fetch balance again to deduct
-	year := req.StartDate.Year()
-	balance, err := u.repo.GetBalance(ctx, req.EmployeeID, year)
-	if err != nil || balance == nil {
-		return errors.New("leave balance not found")
-	}
+	// Use transaction for atomic balance update + request approval
+	return u.repo.DB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		txRepo := u.repo.WithTx(tx)
 
-	// Deduct balance
-	switch req.LeaveType {
-	case "ANNUAL":
-		if balance.AnnualTotal-balance.AnnualUsed < req.TotalDays {
-			return errors.New("insufficient annual leave balance")
+		// Fetch balance within transaction
+		year := req.StartDate.Year()
+		balance, err := txRepo.GetBalance(ctx, req.EmployeeID, year)
+		if err != nil || balance == nil {
+			return errors.New("leave balance not found")
 		}
-		balance.AnnualUsed += req.TotalDays
-	case "SICK":
-		if balance.SickTotal-balance.SickUsed < req.TotalDays {
-			return errors.New("insufficient sick leave balance")
+
+		// Deduct balance
+		switch req.LeaveType {
+		case "ANNUAL":
+			remaining := balance.AnnualEntitled + balance.AnnualCarried - balance.AnnualUsed - balance.AnnualPending
+			if remaining < req.TotalDays {
+				return errors.New("insufficient annual leave balance")
+			}
+			balance.AnnualUsed += req.TotalDays
+			if balance.AnnualPending >= req.TotalDays {
+				balance.AnnualPending -= req.TotalDays
+			}
+		case "SICK":
+			if balance.SickEntitled-balance.SickUsed < req.TotalDays {
+				return errors.New("insufficient sick leave balance")
+			}
+			balance.SickUsed += req.TotalDays
+		case "COMP_OFF":
+			if balance.CompOffEntitled-balance.CompOffUsed < req.TotalDays {
+				return errors.New("insufficient comp-off balance")
+			}
+			balance.CompOffUsed += req.TotalDays
+		case "UNPAID":
+			balance.UnpaidUsed += req.TotalDays
 		}
-		balance.SickUsed += req.TotalDays
-	}
 
-	// Save balance
-	if err := u.repo.UpdateBalance(ctx, balance); err != nil {
-		return err
-	}
+		// Save balance
+		if err := txRepo.UpdateBalance(ctx, balance); err != nil {
+			return err
+		}
 
-	// Update Request
-	now := time.Now()
-	req.Status = "APPROVED"
-	req.ApprovedByID = &approverID
-	req.ApprovedAt = &now
+		// Update request
+		now := time.Now()
+		req.Status = "APPROVED"
+		req.ApproverID = &approverID
+		req.ApprovedAt = &now
 
-	return u.repo.UpdateRequest(ctx, req)
+		return txRepo.UpdateRequest(ctx, req)
+	})
 }
 
 func (u *leaveUseCase) RejectRequest(ctx context.Context, id string, approverID string, note string) error {
@@ -126,9 +143,9 @@ func (u *leaveUseCase) RejectRequest(ctx context.Context, id string, approverID 
 
 	now := time.Now()
 	req.Status = "REJECTED"
-	req.ApprovedByID = &approverID
+	req.ApproverID = &approverID
 	req.ApprovedAt = &now
-	req.RejectionNote = note
+	req.ApproverNote = note
 
 	return u.repo.UpdateRequest(ctx, req)
 }

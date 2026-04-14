@@ -26,6 +26,7 @@ func NewAttendanceUseCase(repo repository.AttendanceRepository) AttendanceUseCas
 func (u *attendanceUseCase) CheckIn(ctx context.Context, employeeID string, remarks string) (*domain.AttendanceRecord, error) {
 	now := time.Now()
 	dateStr := now.Format("2006-01-02")
+	todayDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	
 	// Ensure no check-in exists for today, else we might return an error or allow multiple.
 	// We'll simplify: List by date and employee. If already checked in today, return it or error.
@@ -48,7 +49,7 @@ func (u *attendanceUseCase) CheckIn(ctx context.Context, employeeID string, rema
 
 	record := &domain.AttendanceRecord{
 		EmployeeID: employeeID,
-		Date:       dateStr,
+		Date:       todayDate,
 		CheckIn:    &now,
 		Status:     status,
 		Remarks:    remarks,
