@@ -110,7 +110,7 @@ func main() {
 
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
-		port = "8081"
+		port = "8082"
 	}
 
 	// Graceful shutdown

@@ -15,20 +15,44 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+
+      "@modules/hr": ["../../modules/hr/web/index.ts"],
+      "@modules/hr/*": ["../../modules/hr/web/*"],
+      "@modules/project": ["../../modules/project/web/index.ts"],
+      "@modules/project/*": ["../../modules/project/web/*"],
+      "@modules/sales": ["../../modules/sales/web/index.ts"],
+      "@modules/sales/*": ["../../modules/sales/web/*"],
+
+      "@sgroup/design-system": ["../../packages/design-system/src/index.css"],
+      "@sgroup/types": ["../../packages/types/src/index.ts"],
+      "@sgroup/types/*": ["../../packages/types/src/*"],
+      "@sgroup/ui/*": ["../../packages/ui/src/*"],
+      "@sgroup/api-client": ["../../packages/api-client/src/index.ts"],
+      "@sgroup/api-client/*": ["../../packages/api-client/src/*"],
+      "@sgroup/platform": ["../../packages/platform/src/index.ts"],
+      "@sgroup/platform/*": ["../../packages/platform/src/*"],
+      "@sgroup/web-ui": ["../../packages/web-ui/src/index.ts"],
+      "@sgroup/web-ui/*": ["../../packages/web-ui/src/*"]
     }
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "../../modules/hr/web",
+    "../../modules/project/web",
+    "../../modules/sales/web",
+    "../../packages/types/src",
+    "../../packages/api-client/src",
+    "../../packages/platform/src",
+    "../../packages/web-ui/src"
+  ],
   "exclude": [
-    "src/features/admin",
-    "src/features/agency",
-    "src/features/bdh",
-    "src/features/finance",
-    "src/features/hr",
-    "src/features/legal",
-    "src/features/marketing",
-    "src/features/project",
-    "src/features/sales",
-    "src/features/shomes"
+    "src/features/workspace/moduleHub",
+    "../../modules/project/web/src",
+    "../../modules/hr/web/src",
+    "../../modules/sales/web/src",
+    "../../modules/project/web/node_modules",
+    "../../modules/hr/web/node_modules",
+    "../../modules/sales/web/node_modules"
   ]
 }

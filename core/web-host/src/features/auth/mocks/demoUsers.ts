@@ -1,4 +1,4 @@
-import { AuthUser } from '../types';
+import type { AuthUser } from '@sgroup/platform';
 
 export const DEMO_USERS: { email: string; password: string; user: AuthUser }[] = [
   {
@@ -9,7 +9,7 @@ export const DEMO_USERS: { email: string; password: string; user: AuthUser }[] =
       email: 'admin@sgroup.vn',
       name: 'Nguyễn Admin',
       role: 'admin',
-      modules: ['exec', 'biz', 'mkt', 'agency', 'shomes', 'project', 'hr', 'finance', 'legal'],
+      modules: ['exec', 'sales', 'mkt', 'agency', 'shomes', 'project', 'hr', 'finance', 'legal', 'admin'],
     },
   },
   {
@@ -31,7 +31,7 @@ export const DEMO_USERS: { email: string; password: string; user: AuthUser }[] =
       email: 'sales@sgroup.vn',
       name: 'Lê Sales',
       role: 'employee',
-      modules: ['biz', 'project'],
+      modules: ['sales', 'project'],
     },
   },
 ];

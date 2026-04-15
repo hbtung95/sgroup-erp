@@ -1,6 +1,6 @@
 import { AuthProvider } from '../authProvider';
 import { apiFetch } from '../../../../core/api/api';
-import { AuthUser } from '../../types';
+import type { AuthUser } from '@sgroup/platform';
 
 /** Real API authentication — calls backend */
 export const apiAuthProvider: AuthProvider = {
@@ -34,8 +34,8 @@ export const apiAuthProvider: AuthProvider = {
       name: u.name,
       role: (u.role as AuthUser['role']) || 'employee',
       modules: u.role === 'admin'
-        ? ['exec', 'biz', 'mkt', 'agency', 'shomes', 'project', 'hr', 'finance', 'legal']
-        : ['biz', 'project'],
+        ? ['exec', 'sales', 'mkt', 'agency', 'shomes', 'project', 'hr', 'finance', 'legal', 'admin']
+        : ['sales', 'project'],
       salesRole: u.salesRole,
       department: u.department,
       teamId: u.teamId,

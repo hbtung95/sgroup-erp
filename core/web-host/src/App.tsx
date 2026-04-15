@@ -1,56 +1,67 @@
-import React, { Suspense, lazy } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuthStore } from './features/auth/store/authStore'
-import { LoginScreen } from './features/auth/screens/LoginScreen'
+// ═══════════════════════════════════════════════════════════
+// SGroup ERP — App Root
+// Dynamic module routing with per-module error boundaries.
+// Modules are registered in module-registry/registry.ts.
+// ═══════════════════════════════════════════════════════════
 
-// Lazy-loaded module screens
-const WorkspaceScreen = lazy(() => import('./features/workspace/screens/WorkspaceScreen'))
-const AccessDeniedScreen = lazy(() => import('./system/navigation/AccessDeniedScreen'))
-const HRShell = lazy(() => import('./features/hr/HRShell').then(m => ({ default: m.HRShell })))
-const ProjectShell = lazy(() => import('./features/project/ProjectShell').then(m => ({ default: m.ProjectShell })))
-const SalesShell = lazy(() => import('./features/sales/SalesShell').then(m => ({ default: m.SalesShell })))
+import React, { Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from './features/auth/store/authStore';
+import { LoginScreen } from './features/auth/screens/LoginScreen';
+import { registeredModules } from './module-registry';
+import { ModuleErrorBoundary } from './shell/ModuleErrorBoundary';
+import { LoadingFallback } from './shell/LoadingFallback';
 
-function LoadingFallback() {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      height: '100vh', gap: 16, background: 'var(--sg-bg)',
-    }}>
-      <div style={{
-        width: 40, height: 40, border: '3px solid var(--sg-border)',
-        borderTopColor: 'var(--sg-red)', borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-      }} />
-      <span style={{ color: 'var(--sg-text-tertiary)', fontSize: 14, fontWeight: 500 }}>
-        Đang tải module...
-      </span>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-  )
-}
+// Workspace (lazy — not a feature module, it's the hub)
+const WorkspaceScreen = React.lazy(
+  () => import('./features/workspace/screens/WorkspaceScreen'),
+);
+const AccessDeniedScreen = React.lazy(
+  () => import('./system/navigation/AccessDeniedScreen'),
+);
 
-// Protected route wrapper
+// ─── Route Guards ───────────────────────────────────────────
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const user = useAuthStore(s => s.user)
-  if (!user) return <Navigate to="/login" replace />
-  return <>{children}</>
+  const user = useAuthStore(s => s.user);
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
 }
+
+function RoleGate({
+  requiredRoles,
+  children,
+}: {
+  requiredRoles: string[];
+  children: React.ReactNode;
+}) {
+  const user = useAuthStore(s => s.user);
+  if (requiredRoles.length > 0 && user && !requiredRoles.includes(user.role)) {
+    return <Navigate to="/access-denied" replace />;
+  }
+  return <>{children}</>;
+}
+
+// ─── Application Root ───────────────────────────────────────
 
 export default function App() {
-  const user = useAuthStore(s => s.user)
+  const user = useAuthStore(s => s.user);
 
   // Restore session on mount
   React.useEffect(() => {
-    useAuthStore.getState().restore()
-  }, [])
+    useAuthStore.getState().restore();
+  }, []);
 
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
+        {/* Public */}
         <Route
           path="/login"
           element={user ? <Navigate to="/" replace /> : <LoginScreen />}
         />
+
+        {/* Workspace Hub */}
         <Route
           path="/"
           element={
@@ -59,33 +70,33 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/HRModule/*"
-          element={
-            <ProtectedRoute>
-              <HRShell />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/ProjectModule/*"
-          element={
-            <ProtectedRoute>
-              <ProjectShell />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/SalesModule/*"
-          element={
-            <ProtectedRoute>
-              <SalesShell />
-            </ProtectedRoute>
-          }
-        />
+
+        {/* ── Dynamic Module Routes ── */}
+        {registeredModules.map(mod => (
+          <Route
+            key={mod.id}
+            path={`${mod.basePath}/*`}
+            element={
+              <ProtectedRoute>
+                <RoleGate requiredRoles={mod.requiredRoles}>
+                  <ModuleErrorBoundary
+                    moduleId={mod.id}
+                    moduleName={mod.name}
+                  >
+                    <Suspense fallback={<LoadingFallback />}>
+                      <mod.Shell />
+                    </Suspense>
+                  </ModuleErrorBoundary>
+                </RoleGate>
+              </ProtectedRoute>
+            }
+          />
+        ))}
+
+        {/* System */}
         <Route path="/access-denied" element={<AccessDeniedScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
-  )
+  );
 }

@@ -6,43 +6,14 @@ on:
   pull_request:
     branches: [main, develop]
 
-# Hủy CI run cũ nếu có push mới trên cùng branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ══════════════════════════════════════════════════════════════
-  # JOB 1: Backend (NestJS)
-  # ══════════════════════════════════════════════════════════════
-  backend:
-    name: Backend CI
+  web-host:
+    name: Web Host CI
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: sgroup-erp-backend
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-          POSTGRES_DB: sgroup_erp_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    env:
-      DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/sgroup_erp_test
-      JWT_SECRET: ci-test-secret-key-must-be-at-least-32-chars-long
-      JWT_EXPIRES_IN: 1h
-      NODE_ENV: test
-      DB_ADAPTER: prisma
 
     steps:
       - name: Checkout code
@@ -53,78 +24,68 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: sgroup-erp-backend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma Client
-        run: npx prisma generate
+      - name: Typecheck web host
+        run: npx tsc -b core/web-host
 
-      - name: Run database migrations
-        run: npx prisma migrate deploy
+      - name: Build web host
+        run: npm run build --workspace @sgroup/web-host
 
-      - name: Lint
-        run: npm run lint -- --max-warnings=0
-
-      - name: Run unit tests
-        run: npm run test -- --passWithNoTests --coverage --coverageReporters=text-summary
-
-      - name: Build
-        run: npm run build
-
-  # ══════════════════════════════════════════════════════════════
-  # JOB 2: Frontend (Expo/React Native Web)
-  # ══════════════════════════════════════════════════════════════
-  frontend:
-    name: Frontend CI
+  go-services:
+    name: Go Services CI
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: SGROUP-ERP-UNIVERSAL
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: SGROUP-ERP-UNIVERSAL/package-lock.json
+          go-version: '1.26.1'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Test API gateway
+        working-directory: core/api-gateway
+        run: go test ./...
 
-      - name: TypeScript type check
-        run: npx tsc --noEmit
+      - name: Test HR API
+        working-directory: modules/hr/api
+        run: go test ./...
 
-      - name: Build web (Expo export)
-        run: npx expo export --platform web
-        env:
-          EXPO_PUBLIC_API_URL: https://sgroup-erp.onrender.com/api
+      - name: Test Project API
+        working-directory: modules/project/api
+        run: go test ./...
 
-  # ══════════════════════════════════════════════════════════════
-  # JOB 3: Security Audit
-  # ══════════════════════════════════════════════════════════════
+      - name: Test Sales API
+        working-directory: modules/sales/api
+        run: go test ./...
+
+      - name: Test CRM API
+        working-directory: modules/crm/api
+        run: go test ./...
+
   security:
     name: Security Audit
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
 
-      - name: Audit backend dependencies
-        working-directory: sgroup-erp-backend
-        run: npm audit --audit-level=high
-        continue-on-error: true  # Không block CI nhưng vẫn hiển thị
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Audit frontend dependencies
-        working-directory: SGROUP-ERP-UNIVERSAL
+      - name: Audit workspace dependencies
         run: npm audit --audit-level=high
         continue-on-error: true

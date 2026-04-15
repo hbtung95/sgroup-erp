@@ -1,0 +1,53 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Base Styles
+   Global reset, body defaults, scrollbar customization.
+   ═══════════════════════════════════════════════════════ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply font-[--font-sg] bg-sg-bg text-sg-text antialiased;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Custom Scrollbar ── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full;
+    transition: background-color 0.2s;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-500;
+  }
+
+  /* ── Focus Visible ── */
+  :focus-visible {
+    outline: 2px solid var(--color-sg-red);
+    outline-offset: 2px;
+    border-radius: var(--radius-sg-sm);
+  }
+}

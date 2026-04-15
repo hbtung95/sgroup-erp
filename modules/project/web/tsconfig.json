@@ -25,7 +25,15 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ]
+      ],
+      "@sgroup/api-client": ["../../../packages/api-client/src/index.ts"],
+      "@sgroup/api-client/*": ["../../../packages/api-client/src/*"],
+      "@sgroup/platform": ["../../../packages/platform/src/index.ts"],
+      "@sgroup/platform/*": ["../../../packages/platform/src/*"],
+      "@sgroup/types": ["../../../packages/types/src/index.ts"],
+      "@sgroup/types/*": ["../../../packages/types/src/*"],
+      "@sgroup/web-ui": ["../../../packages/web-ui/src/index.ts"],
+      "@sgroup/web-ui/*": ["../../../packages/web-ui/src/*"]
     }
   },
   "include": [

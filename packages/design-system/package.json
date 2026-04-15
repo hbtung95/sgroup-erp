@@ -1,0 +1,17 @@
+{
+  "name": "@sgroup/design-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SGroup ERP Design System — CSS tokens, themes, animations",
+  "main": "src/index.css",
+  "exports": {
+    ".": "./src/index.css",
+    "./tokens/*": "./src/tokens/*",
+    "./themes/*": "./src/themes/*",
+    "./tailwind-preset": "./tailwind.preset.js"
+  },
+  "files": [
+    "src",
+    "tailwind.preset.js"
+  ]
+}

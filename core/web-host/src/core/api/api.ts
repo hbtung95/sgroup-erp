@@ -1,3 +1,8 @@
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  AUTH_STORAGE_KEY,
+} from '@sgroup/platform';
+
 const DEV_API_URL = '/api'; // Proxied by Vite dev server
 const PROD_API_URL = 'https://sgroup-erp.onrender.com/api';
 
@@ -13,7 +18,7 @@ export async function apiFetch<T>(
   const url = `${API_BASE_URL}${endpoint}`;
   
   // Attach token if available
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY);
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string> || {}),
@@ -36,8 +41,8 @@ export async function apiFetch<T>(
     
     // Auto-logout on 401
     if (res.status === 401) {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('sgroup_auth');
+      localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+      localStorage.removeItem(AUTH_STORAGE_KEY);
     }
     
     throw new Error(message);

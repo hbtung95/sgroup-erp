@@ -1,0 +1,26 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Typography Tokens
+   Font families, sizes, weights, and line heights.
+   ═══════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Font Family ── */
+  --font-sg: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --font-sg-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* ── Font Size Scale ── */
+  --text-sg-xs: 0.6875rem;    /* 11px */
+  --text-sg-sm: 0.8125rem;    /* 13px */
+  --text-sg-base: 0.875rem;   /* 14px */
+  --text-sg-md: 1rem;         /* 16px */
+  --text-sg-lg: 1.125rem;     /* 18px */
+  --text-sg-xl: 1.25rem;      /* 20px */
+  --text-sg-2xl: 1.5rem;      /* 24px */
+  --text-sg-3xl: 1.875rem;    /* 30px */
+  --text-sg-4xl: 2.25rem;     /* 36px */
+
+  /* ── Line Heights ── */
+  --leading-sg-tight: 1.25;
+  --leading-sg-normal: 1.5;
+  --leading-sg-relaxed: 1.75;
+}

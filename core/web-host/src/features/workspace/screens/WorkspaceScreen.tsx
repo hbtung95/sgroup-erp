@@ -9,12 +9,17 @@ import {
   UserCog, DollarSign, FileText, LogOut, ChevronRight,
   Sparkles, ShieldCheck, Activity, Moon, Sun, CheckCircle2
 } from 'lucide-react'
-import { useAuthStore } from '../../auth/store/authStore'
-import { ERP_MODULES, type ErpModuleDefinition } from '../../../core/config/modules'
+import {
+  APP_MODULES,
+  ACTIVE_APP_MODULES,
+  canAccessModule,
+  useAuthStore,
+  type AppModuleDefinition,
+} from '@sgroup/platform'
 import sgroupLogo from '../../../assets/images/Logo 3_noFont.png'
 
 const MODULE_ICONS: Record<string, any> = {
-  exec: BarChart3, biz: ShoppingCart, mkt: Megaphone, agency: Users,
+  exec: BarChart3, sales: ShoppingCart, mkt: Megaphone, agency: Users,
   shomes: Home, project: Building, hr: UserCog, finance: DollarSign, legal: FileText,
 }
 
@@ -41,10 +46,7 @@ export default function WorkspaceScreen() {
     requestAnimationFrame(() => setMounted(true))
   }, [])
 
-  const accessibleModules = ERP_MODULES.filter((m) => {
-    if (m.id === 'project' && !!user?.salesRole) return false
-    return user?.role === 'admin' || user?.modules?.includes(m.id)
-  })
+  const visibleModules = APP_MODULES.filter((module) => canAccessModule(user, module))
 
   const handleLogout = () => {
     logout()
@@ -132,29 +134,27 @@ export default function WorkspaceScreen() {
           </h1>
 
           <p className="text-lg font-medium text-sg-subtext text-center mt-4 leading-7 max-w-[640px]">
-            Khám phá hệ sinh thái 9 phân hệ thông minh, sẵn sàng tối ưu hóa mọi luồng công việc của bạn hôm nay.
+            Khám phá kiến trúc hybrid theo module: phân hệ active chạy độc lập, lỗi được cô lập và phần roadmap được tách rõ khỏi runtime hiện tại.
           </p>
 
           {/* Stats Pills */}
           <div className="flex gap-3 mt-8">
             <MetricPill icon={ShieldCheck} label="Bảo mật cấp cao" color="text-emerald-500" />
             <MetricPill icon={Activity} label="Thời gian thực" color="text-blue-500" />
-            <MetricPill icon={CheckCircle2} label="9+ Modules" color="text-sg-red" />
+            <MetricPill icon={CheckCircle2} label={`${ACTIVE_APP_MODULES.length} module active`} color="text-sg-red" />
           </div>
         </div>
 
         {/* Module Grid */}
         <div className="flex flex-wrap justify-center gap-6 max-w-[1240px] mx-auto">
-          {accessibleModules.map((mod, i) => (
+          {visibleModules.map((mod, i) => (
             <ModuleCard
               key={mod.id}
               mod={mod}
               index={i}
               onClick={() => {
-                if (mod.id === 'biz') {
-                  navigate('/SalesModule/dashboard')
-                } else if (mod.routeName) {
-                  navigate(mod.routeName.startsWith('/') ? mod.routeName : `/${mod.routeName}`)
+                if (mod.basePath) {
+                  navigate(mod.basePath)
                 }
               }}
             />
@@ -184,9 +184,10 @@ function MetricPill({ icon: Icon, label, color }: { icon: any; label: string; co
   )
 }
 
-function ModuleCard({ mod, index, onClick }: { mod: ErpModuleDefinition; index: number; onClick: () => void }) {
+function ModuleCard({ mod, index, onClick }: { mod: AppModuleDefinition; index: number; onClick: () => void }) {
   const Icon = MODULE_ICONS[mod.id] || BarChart3
-  const isLocked = !mod.routeName
+  const isLocked = mod.status !== 'active' || !mod.basePath
+  const badgeLabel = mod.status === 'active' ? 'ACTIVE' : mod.status === 'planned' ? 'ROADMAP' : 'SCAFFOLD'
 
   return (
     <button
@@ -236,11 +237,9 @@ function ModuleCard({ mod, index, onClick }: { mod: ErpModuleDefinition; index: 
       </div>
 
       {/* Locked badge */}
-      {isLocked && (
-        <div className="absolute top-6 right-6 px-2 py-1 rounded-md bg-amber-500/10">
-          <span className="text-[9px] font-extrabold text-amber-500">COMING SOON</span>
-        </div>
-      )}
+      <div className={`absolute top-6 right-6 px-2 py-1 rounded-md ${isLocked ? 'bg-amber-500/10' : 'bg-emerald-500/10'}`}>
+        <span className={`text-[9px] font-extrabold ${isLocked ? 'text-amber-500' : 'text-emerald-500'}`}>{badgeLabel}</span>
+      </div>
     </button>
   )
 }

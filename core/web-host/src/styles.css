@@ -1,27 +1,37 @@
-@import "tailwindcss";
-
-@custom-variant dark (&:where(.dark, .dark *));
-
 /* ═══════════════════════════════════════════════════════
-   SGROUP ERP — Design System v2
-   Tailwind v4.2 + CSS Custom Properties
-   Neo-Corporate Premium Light Theme
+   SGROUP ERP — Web Shell Styles
+   @sgroup/design-system tokens inlined here because
+   @tailwindcss/vite's CSS resolver cannot traverse
+   outside the Vite project root via @import.
+   Source of truth: packages/design-system/src/
    ═══════════════════════════════════════════════════════ */
 
+/* Tailwind v4 base */
+@import "tailwindcss";
+
+/* Content scanning paths for Tailwind v4 */
+@source "../../../modules/hr/web/**/*.tsx";
+@source "../../../modules/project/web/**/*.tsx";
+@source "../../../modules/sales/web/**/*.tsx";
+@source "../../../packages/web-ui/src/**/*.tsx";
+
+/* ─────────────────────────────────────────────────────────
+   TOKENS — Colors
+   ───────────────────────────────────────────────────────── */
 @theme {
-  /* Brand Colors */
+  /* ── Brand Colors ── */
   --color-sg-red: #D42027;
   --color-sg-red-dark: #9F1219;
   --color-sg-red-light: #F87171;
   --color-sg-red-50: oklch(0.97 0.01 25);
   --color-sg-red-100: oklch(0.93 0.03 25);
 
-  /* Surface — semantic, changes with dark mode */
+  /* ── Surface — semantic, resolved by theme ── */
   --color-sg-bg: var(--surface-bg);
   --color-sg-surface: var(--surface-main);
   --color-sg-glass: var(--surface-glass);
 
-  /* Semantic Portal Colors (Light/Dark mode) */
+  /* ── Portal / Layout ── */
   --color-sg-portal-bg: var(--portal-bg);
   --color-sg-header: var(--header-bg);
   --color-sg-border: var(--border-color);
@@ -32,18 +42,72 @@
   --color-sg-muted: var(--muted-color);
   --color-sg-btn-bg: var(--btn-bg);
 
-  /* Text — semantic, changes with dark mode */
+  /* ── Text — semantic, resolved by theme ── */
   --color-sg-text: var(--text-primary);
   --color-sg-text-secondary: var(--text-secondary);
   --color-sg-text-tertiary: var(--text-tertiary);
 
-  /* Status */
+  /* ── Status ── */
   --color-sg-success: #10B981;
   --color-sg-warning: #F59E0B;
   --color-sg-danger: #EF4444;
   --color-sg-info: #3B82F6;
 
-  /* Shadows */
+  /* ── Module Accent Colors ── */
+  --color-mod-hr: #D42027;
+  --color-mod-project: #06B6D4;
+  --color-mod-sales: #10B981;
+  --color-mod-crm: #8B5CF6;
+  --color-mod-accounting: #F59E0B;
+
+  /* ─────────────────────────────────────────────────────
+     TOKENS — Typography
+     ───────────────────────────────────────────────────── */
+  --font-sg: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --font-sg-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  --text-sg-xs: 0.6875rem;
+  --text-sg-sm: 0.8125rem;
+  --text-sg-base: 0.875rem;
+  --text-sg-md: 1rem;
+  --text-sg-lg: 1.125rem;
+  --text-sg-xl: 1.25rem;
+  --text-sg-2xl: 1.5rem;
+  --text-sg-3xl: 1.875rem;
+  --text-sg-4xl: 2.25rem;
+
+  --leading-sg-tight: 1.25;
+  --leading-sg-normal: 1.5;
+  --leading-sg-relaxed: 1.75;
+
+  /* ─────────────────────────────────────────────────────
+     TOKENS — Spacing
+     ───────────────────────────────────────────────────── */
+  --space-sg-0: 0;
+  --space-sg-px: 1px;
+  --space-sg-0_5: 0.125rem;
+  --space-sg-1: 0.25rem;
+  --space-sg-1_5: 0.375rem;
+  --space-sg-2: 0.5rem;
+  --space-sg-3: 0.75rem;
+  --space-sg-4: 1rem;
+  --space-sg-5: 1.25rem;
+  --space-sg-6: 1.5rem;
+  --space-sg-8: 2rem;
+  --space-sg-10: 2.5rem;
+  --space-sg-12: 3rem;
+  --space-sg-16: 4rem;
+  --space-sg-20: 5rem;
+  --space-sg-24: 6rem;
+
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+  --header-height: 64px;
+  --content-max-width: 1440px;
+
+  /* ─────────────────────────────────────────────────────
+     TOKENS — Shadows
+     ───────────────────────────────────────────────────── */
   --shadow-sg-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
   --shadow-sg-md: 0 4px 12px rgba(0, 0, 0, 0.06);
   --shadow-sg-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
@@ -51,7 +115,9 @@
   --shadow-sg-brand: 0 8px 32px rgba(212, 32, 39, 0.2);
   --shadow-sg-card-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
 
-  /* Radii */
+  /* ─────────────────────────────────────────────────────
+     TOKENS — Border Radius
+     ───────────────────────────────────────────────────── */
   --radius-sg-sm: 8px;
   --radius-sg-md: 12px;
   --radius-sg-lg: 16px;
@@ -59,15 +125,21 @@
   --radius-sg-2xl: 32px;
   --radius-sg-pill: 100px;
 
-  /* Animation */
+  /* ─────────────────────────────────────────────────────
+     TOKENS — Animations
+     ───────────────────────────────────────────────────── */
   --ease-sg-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --ease-sg-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-sg-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-  /* Font */
-  --font-sg: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
+  --duration-sg-fast: 150ms;
+  --duration-sg-normal: 300ms;
+  --duration-sg-slow: 500ms;
 }
 
-/* ── Semantic Light/Dark Tokens ── */
+/* ─────────────────────────────────────────────────────────
+   THEMES — Light (default)
+   ───────────────────────────────────────────────────────── */
 :root {
   --portal-bg: #F8FAFC;
   --header-bg: rgba(255, 255, 255, 0.7);
@@ -85,6 +157,11 @@
   --text-secondary: #475569;
   --text-tertiary: #94A3B8;
 }
+
+/* ─────────────────────────────────────────────────────────
+   THEMES — Dark
+   ───────────────────────────────────────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
 
 .dark {
   --portal-bg: #09090B;
@@ -104,132 +181,133 @@
   --text-tertiary: #8B8B96;
 }
 
-/* ── Base ── */
-@layer base {
-  body {
-    @apply font-[--font-sg] bg-sg-bg text-sg-text antialiased;
-    overflow-x: hidden;
-  }
-
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-slate-200 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
-}
-
-/* ── Keyframe Animations ── */
+/* ─────────────────────────────────────────────────────────
+   KEYFRAMES
+   ───────────────────────────────────────────────────────── */
 @keyframes sg-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }
 }
-
 @keyframes sg-pulse-scale {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
 }
-
 @keyframes sg-fade-in {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes sg-fade-in-up {
   from { opacity: 0; transform: translateY(40px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes sg-stagger {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes sg-glow {
   0%, 100% { box-shadow: 0 0 40px rgba(212, 32, 39, 0.3); }
   50% { box-shadow: 0 0 80px rgba(212, 32, 39, 0.5); }
 }
-
 @keyframes sg-aurora-1 {
   0%, 100% { transform: translate(-10%, -10%); }
   50% { transform: translate(20%, 30%); }
 }
-
 @keyframes sg-aurora-2 {
   0%, 100% { transform: translate(10%, 10%); }
   50% { transform: translate(-15%, 40%); }
 }
-
 @keyframes sg-spin {
   to { transform: rotate(360deg); }
 }
-
-@keyframes sgToastIn {
+@keyframes sg-toast-in {
   from { opacity: 0; transform: translateX(40px) scale(0.95); }
   to { opacity: 1; transform: translateX(0) scale(1); }
 }
-
-@keyframes sgToastProgress {
+@keyframes sg-toast-progress {
   from { width: 100%; }
   to { width: 0%; }
 }
-
-@keyframes sgSlideUpDialog {
+@keyframes sg-dialog-in {
   from { opacity: 0; transform: translateY(20px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
-
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.4s ease-out both;
-}
-
-/* ── Utility Animations ── */
+/* ─────────────────────────────────────────────────────────
+   UTILITIES — Tailwind v4
+   ───────────────────────────────────────────────────────── */
 @utility animate-sg-float {
   animation: sg-float 6s ease-in-out infinite;
 }
-
 @utility animate-sg-pulse {
   animation: sg-pulse-scale 8s ease-in-out infinite;
 }
-
 @utility animate-sg-glow {
   animation: sg-glow 4s ease-in-out infinite;
 }
-
 @utility animate-sg-fade-in {
   animation: sg-fade-in 0.6s var(--ease-sg-smooth) both;
 }
-
 @utility animate-sg-fade-in-up {
   animation: sg-fade-in-up 0.8s var(--ease-sg-smooth) both;
 }
-
 @utility animate-sg-spin {
   animation: sg-spin 0.8s linear infinite;
 }
-
-/* Stagger utilities */
+@utility animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
+}
 @utility sg-stagger-1 {
   animation: sg-stagger 0.5s var(--ease-sg-spring) 0.1s both;
 }
-
 @utility sg-stagger-2 {
   animation: sg-stagger 0.5s var(--ease-sg-spring) 0.25s both;
 }
-
 @utility sg-stagger-3 {
   animation: sg-stagger 0.5s var(--ease-sg-spring) 0.4s both;
 }
-
 @utility sg-stagger-4 {
   animation: sg-stagger 0.5s var(--ease-sg-spring) 0.55s both;
 }
-
-/* ── Glass Morphism ── */
 @utility sg-glass {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* ─────────────────────────────────────────────────────────
+   BASE — Reset & Global Defaults
+   ───────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply antialiased;
+    font-family: var(--font-sg);
+    background-color: var(--surface-bg);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 rounded-full;
+    transition: background-color 0.2s;
+  }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+  .dark ::-webkit-scrollbar-thumb { @apply bg-slate-700; }
+  .dark ::-webkit-scrollbar-thumb:hover { @apply bg-slate-500; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-sg-red);
+    outline-offset: 2px;
+    border-radius: var(--radius-sg-sm);
+  }
 }

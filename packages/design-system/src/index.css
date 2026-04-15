@@ -1,0 +1,24 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Entry Point
+   
+   Import this single file to get the complete design system.
+   Usage: @import "@sgroup/design-system";
+   ═══════════════════════════════════════════════════════ */
+
+/* Tailwind v4 base */
+@import "tailwindcss";
+
+/* Design Tokens */
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/shadows.css";
+@import "./tokens/radii.css";
+@import "./tokens/animations.css";
+
+/* Themes */
+@import "./themes/light.css";
+@import "./themes/dark.css";
+
+/* Base Styles */
+@import "./base.css";

@@ -1,0 +1,12 @@
+{
+  "name": "@sgroup/web-ui",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "lucide-react": "^0.511.0"
+  },
+  "peerDependencies": {
+    "react": "19.2.x"
+  }
+}

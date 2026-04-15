@@ -85,7 +85,7 @@ func main() {
 
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
-		port = "8082" // Configured to 8082
+		port = "8083"
 	}
 
 	log.Printf("Sales API server starting on :%s", port)

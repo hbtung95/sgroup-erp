@@ -1,0 +1,29 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Spacing Tokens
+   Consistent spatial scale used for padding, margin, and gaps.
+   ═══════════════════════════════════════════════════════ */
+
+@theme {
+  --space-sg-0: 0;
+  --space-sg-px: 1px;
+  --space-sg-0_5: 0.125rem;   /* 2px */
+  --space-sg-1: 0.25rem;      /* 4px */
+  --space-sg-1_5: 0.375rem;   /* 6px */
+  --space-sg-2: 0.5rem;       /* 8px */
+  --space-sg-3: 0.75rem;      /* 12px */
+  --space-sg-4: 1rem;         /* 16px */
+  --space-sg-5: 1.25rem;      /* 20px */
+  --space-sg-6: 1.5rem;       /* 24px */
+  --space-sg-8: 2rem;         /* 32px */
+  --space-sg-10: 2.5rem;      /* 40px */
+  --space-sg-12: 3rem;        /* 48px */
+  --space-sg-16: 4rem;        /* 64px */
+  --space-sg-20: 5rem;        /* 80px */
+  --space-sg-24: 6rem;        /* 96px */
+
+  /* ── Layout-specific ── */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+  --header-height: 64px;
+  --content-max-width: 1440px;
+}

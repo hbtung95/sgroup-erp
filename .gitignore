@@ -1,13 +1,53 @@
+# ═════════════════════════════════════════
+# SGROUP ERP — .gitignore
+# ═════════════════════════════════════════
+
+# ── Dependencies ──
 node_modules/
+.pnp
+.pnp.js
+
+# ── Build Outputs ──
+dist/
+build/
+.next/
+.next*
+.turbo/
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ── Go Build Artifacts ──
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+api_bin
+.gocache/
+
+# ── Environment ──
 .env
 .env.*
 !.env.example
-.gemini/
-dist/
-build/
-.DS_Store
-.expo/
-*.log
 
-.next/
-.next*
+# ── IDE & OS ──
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
+
+# ── Logs ──
+*.log
+npm_debug.log
+
+# ── Debug & Temp ──
+debug_versions.js
+fix.js
+ts_errors.txt
+.dev-run/
+.dev-logs/
+.run-cache/
+
+# ── Misc ──
+.gemini/
+.expo/

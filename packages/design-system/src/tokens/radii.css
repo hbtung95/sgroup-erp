@@ -1,0 +1,13 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Border Radius Tokens
+   Consistent corner roundness scale.
+   ═══════════════════════════════════════════════════════ */
+
+@theme {
+  --radius-sg-sm: 8px;
+  --radius-sg-md: 12px;
+  --radius-sg-lg: 16px;
+  --radius-sg-xl: 24px;
+  --radius-sg-2xl: 32px;
+  --radius-sg-pill: 100px;
+}

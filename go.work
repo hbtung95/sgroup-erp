@@ -8,4 +8,5 @@ use (
 	./modules/project/api
 	./modules/sales/api
 	./packages/go-common
+	./packages/go-kit
 )

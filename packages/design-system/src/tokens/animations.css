@@ -1,0 +1,135 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Animation Tokens
+   Easing functions, keyframes, and animation utilities.
+   ═══════════════════════════════════════════════════════ */
+
+@theme {
+  --ease-sg-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-sg-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-sg-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  --duration-sg-fast: 150ms;
+  --duration-sg-normal: 300ms;
+  --duration-sg-slow: 500ms;
+}
+
+/* ── Keyframe Definitions ── */
+
+@keyframes sg-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes sg-pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes sg-fade-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sg-fade-in-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sg-stagger {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sg-glow {
+  0%, 100% { box-shadow: 0 0 40px rgba(212, 32, 39, 0.3); }
+  50% { box-shadow: 0 0 80px rgba(212, 32, 39, 0.5); }
+}
+
+@keyframes sg-aurora-1 {
+  0%, 100% { transform: translate(-10%, -10%); }
+  50% { transform: translate(20%, 30%); }
+}
+
+@keyframes sg-aurora-2 {
+  0%, 100% { transform: translate(10%, 10%); }
+  50% { transform: translate(-15%, 40%); }
+}
+
+@keyframes sg-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sg-toast-in {
+  from { opacity: 0; transform: translateX(40px) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes sg-toast-progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+@keyframes sg-dialog-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Tailwind v4 Utility Animations ── */
+
+@utility animate-sg-float {
+  animation: sg-float 6s ease-in-out infinite;
+}
+
+@utility animate-sg-pulse {
+  animation: sg-pulse-scale 8s ease-in-out infinite;
+}
+
+@utility animate-sg-glow {
+  animation: sg-glow 4s ease-in-out infinite;
+}
+
+@utility animate-sg-fade-in {
+  animation: sg-fade-in 0.6s var(--ease-sg-smooth) both;
+}
+
+@utility animate-sg-fade-in-up {
+  animation: sg-fade-in-up 0.8s var(--ease-sg-smooth) both;
+}
+
+@utility animate-sg-spin {
+  animation: sg-spin 0.8s linear infinite;
+}
+
+@utility animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out both;
+}
+
+/* ── Stagger delays ── */
+
+@utility sg-stagger-1 {
+  animation: sg-stagger 0.5s var(--ease-sg-spring) 0.1s both;
+}
+
+@utility sg-stagger-2 {
+  animation: sg-stagger 0.5s var(--ease-sg-spring) 0.25s both;
+}
+
+@utility sg-stagger-3 {
+  animation: sg-stagger 0.5s var(--ease-sg-spring) 0.4s both;
+}
+
+@utility sg-stagger-4 {
+  animation: sg-stagger 0.5s var(--ease-sg-spring) 0.55s both;
+}
+
+/* ── Glass Morphism ── */
+
+@utility sg-glass {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}

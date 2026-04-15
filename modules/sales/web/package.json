@@ -1,12 +1,13 @@
 {
-  "name": "web",
+  "name": "@sgroup/sales-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --port 3004",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "ag-grid-community": "^35.2.1",

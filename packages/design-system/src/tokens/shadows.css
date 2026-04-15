@@ -1,0 +1,13 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Shadow Tokens
+   Elevation scale for cards, modals, and interactive states.
+   ═══════════════════════════════════════════════════════ */
+
+@theme {
+  --shadow-sg-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-sg-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-sg-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-sg-xl: 0 25px 70px -10px rgba(0, 0, 0, 0.1);
+  --shadow-sg-brand: 0 8px 32px rgba(212, 32, 39, 0.2);
+  --shadow-sg-card-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
+}

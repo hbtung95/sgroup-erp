@@ -1,0 +1,22 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Light Theme
+   Default light mode semantic token values.
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  --portal-bg: #F8FAFC;
+  --header-bg: rgba(255, 255, 255, 0.7);
+  --border-color: rgba(0, 0, 0, 0.06);
+  --card-bg: rgba(255, 255, 255, 0.6);
+  --card-hover: #FFFFFF;
+  --heading-color: #0F172A;
+  --subtext-color: #64748B;
+  --muted-color: #94A3B8;
+  --btn-bg: rgba(0, 0, 0, 0.03);
+  --surface-bg: #F4F7FB;
+  --surface-main: #FFFFFF;
+  --surface-glass: rgba(255, 255, 255, 0.7);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #94A3B8;
+}

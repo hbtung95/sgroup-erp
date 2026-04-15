@@ -1,0 +1,47 @@
+/* ═══════════════════════════════════════════════════════
+   @sgroup/design-system — Color Tokens
+   Single source of truth for all color values.
+   ═══════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Brand Colors ── */
+  --color-sg-red: #D42027;
+  --color-sg-red-dark: #9F1219;
+  --color-sg-red-light: #F87171;
+  --color-sg-red-50: oklch(0.97 0.01 25);
+  --color-sg-red-100: oklch(0.93 0.03 25);
+
+  /* ── Surface — semantic, resolved by theme ── */
+  --color-sg-bg: var(--surface-bg);
+  --color-sg-surface: var(--surface-main);
+  --color-sg-glass: var(--surface-glass);
+
+  /* ── Portal / Layout ── */
+  --color-sg-portal-bg: var(--portal-bg);
+  --color-sg-header: var(--header-bg);
+  --color-sg-border: var(--border-color);
+  --color-sg-card: var(--card-bg);
+  --color-sg-card-hover: var(--card-hover);
+  --color-sg-heading: var(--heading-color);
+  --color-sg-subtext: var(--subtext-color);
+  --color-sg-muted: var(--muted-color);
+  --color-sg-btn-bg: var(--btn-bg);
+
+  /* ── Text — semantic, resolved by theme ── */
+  --color-sg-text: var(--text-primary);
+  --color-sg-text-secondary: var(--text-secondary);
+  --color-sg-text-tertiary: var(--text-tertiary);
+
+  /* ── Status ── */
+  --color-sg-success: #10B981;
+  --color-sg-warning: #F59E0B;
+  --color-sg-danger: #EF4444;
+  --color-sg-info: #3B82F6;
+
+  /* ── Module Accent Colors ── */
+  --color-mod-hr: #D42027;
+  --color-mod-project: #06B6D4;
+  --color-mod-sales: #10B981;
+  --color-mod-crm: #8B5CF6;
+  --color-mod-accounting: #F59E0B;
+}
