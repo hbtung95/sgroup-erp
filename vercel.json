@@ -1,4 +1,5 @@
 {
+  "installCommand": "npm install --force",
   "buildCommand": "turbo run build --filter=@sgroup/web-host",
   "outputDirectory": "core/web-host/dist",
   "rewrites": [
