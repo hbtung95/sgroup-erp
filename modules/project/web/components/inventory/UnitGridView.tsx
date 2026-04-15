@@ -31,14 +31,87 @@ export function UnitGridView({
   setLockModalOpen
 }: UnitGridViewProps) {
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar pb-12 mt-6 relative z-10 w-full h-full">
-      <div className={`grid gap-8 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+      <div className={viewMode === 'grid' 
+        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" 
+        : "flex flex-col gap-4 max-w-6xl mx-auto"
+      }>
         {filtered.map((item, i) => {
           const statusCfg = RE_INVENTORY_STATUS[item.status] || RE_INVENTORY_STATUS.AVAILABLE;
           const proj = projects.find(p => p.id === item.projectId);
           const typeCfg = RE_PROPERTY_TYPE[proj?.type || 'APARTMENT'] || RE_PROPERTY_TYPE.APARTMENT;
           const projName = proj?.code || 'GL-Project';
           
+          if (viewMode === 'list') {
+            return (
+              <div 
+                key={item.id}
+                onClick={() => setSelectedUnit(item)}
+                className={`bg-white dark:bg-black/30 backdrop-blur-3xl border ${selectedMulti.includes(item.id) ? 'border-cyan-500 ring-1 ring-cyan-500/50' : 'border-slate-200 dark:border-white/5'} rounded-2xl p-4 flex items-center gap-6 transition-all hover:shadow-lg group cursor-pointer`}
+              >
+                {/* Select */}
+                <div onClick={(e) => { e.stopPropagation(); toggleMultiSelect(item.id, e); }}>
+                  {selectedMulti.includes(item.id) ? (
+                    <div className="w-5 h-5 rounded-[4px] bg-cyan-500 flex items-center justify-center">
+                      <CheckSquare size={14} className="text-white" />
+                    </div>
+                  ) : (
+                    <div className="w-5 h-5 rounded-[4px] border border-slate-300 dark:border-white/20 group-hover:border-cyan-500 transition-colors" />
+                  )}
+                </div>
+
+                {/* Code & Project */}
+                <div className="w-24 shrink-0">
+                  <div className="text-[16px] font-black text-sg-heading group-hover:text-cyan-500 transition-colors">{item.code}</div>
+                  <div className="text-[10px] font-bold text-sg-muted uppercase tracking-wider">{projName}</div>
+                </div>
+
+                {/* Info Pills */}
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
+                    {statusCfg.label}
+                  </span>
+                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${typeCfg.bg} ${typeCfg.color} ${typeCfg.border} hidden sm:block`}>
+                    {typeCfg.label}
+                  </span>
+                </div>
+
+                {/* Specs */}
+                <div className="flex-1 flex items-center gap-8 justify-end px-4">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] font-bold text-sg-muted uppercase tracking-wider">Diện tích</span>
+                    <span className="text-[14px] font-black text-sg-heading">{parseFloat(Number(item.area).toFixed(2))} m²</span>
+                  </div>
+                  <div className="flex flex-col items-end min-w-[80px]">
+                    <span className="text-[10px] font-bold text-sg-muted uppercase tracking-wider">Giá bán</span>
+                    <span className="text-[14px] font-black text-emerald-500">{(item.price / 1000000000).toFixed(2)}B</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="relative">
+                  <button onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === item.id ? null : item.id); }} className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-sg-muted hover:text-cyan-500 transition-colors">
+                    {actionLoadingId === item.id ? <Loader2 size={16} className="animate-spin text-cyan-500" /> : <MoreHorizontal size={16} />}
+                  </button>
+                  {menuOpen === item.id && (
+                    <div className="absolute right-0 top-10 w-44 bg-white/90 dark:bg-black/80 backdrop-blur-3xl border border-slate-200 dark:border-sg-border rounded-xl shadow-xl z-50">
+                      {/* Menu items here - repeating same logic for now for speed */}
+                      <div className="flex flex-col">
+                        {item.status === 'AVAILABLE' && (
+                          <button onClick={(e) => { e.stopPropagation(); setLockModalOpen(item.id); setMenuOpen(null); }} className="px-4 py-3 text-[12px] font-black text-orange-500 hover:bg-orange-500/10 text-left border-b border-sg-border/20">Yêu cầu khóa</button>
+                        )}
+                        {(item.status === 'LOCKED' || item.status === 'RESERVED') && (
+                          <button onClick={(e) => { e.stopPropagation(); handleAction(item.id, 'deposit'); }} className="px-4 py-3 text-[12px] font-black text-blue-500 hover:bg-blue-500/10 text-left border-b border-sg-border/20">Vào cọc</button>
+                        )}
+                        <button onClick={(e) => { e.stopPropagation(); setSelectedUnit(item); setMenuOpen(null); }} className="px-4 py-3 text-[12px] font-black text-sg-heading hover:bg-sg-btn-bg text-left">Xem chi tiết</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          // GRID VIEW (Original)
           return (
             <div 
               key={item.id} 
