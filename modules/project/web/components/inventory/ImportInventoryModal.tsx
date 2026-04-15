@@ -175,28 +175,28 @@ export function ImportInventoryModal({ isOpen, onClose, onSuccess, projects }: I
           {tab === 'form' ? (
             <div className="flex flex-col gap-3">
               {/* Column headers */}
-              <div className="grid grid-cols-[1fr_0.7fr_0.5fr_0.7fr_1fr_0.8fr_0.5fr_40px] gap-2 px-1">
-                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider">Mã căn *</span>
-                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider">Block</span>
-                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider">Tầng</span>
-                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider">Diện tích (m²) *</span>
-                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider">Giá bán (VNĐ) *</span>
-                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider">Hướng</span>
-                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider">PN</span>
+              <div className="grid grid-cols-[1.5fr_0.8fr_0.8fr_1fr_1.5fr_1fr_0.7fr_40px] gap-3 px-1">
+                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider pl-3">Mã căn *</span>
+                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider pl-3">Block</span>
+                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider pl-3">Tầng</span>
+                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider pl-3 whitespace-nowrap">Diện tích (m²) *</span>
+                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider pl-3">Giá bán (VNĐ) *</span>
+                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider pl-3">Hướng</span>
+                <span className="text-[10px] font-black text-sg-muted uppercase tracking-wider pl-3">PN</span>
                 <span />
               </div>
 
               {rows.map((row, idx) => (
-                <div key={idx} className="grid grid-cols-[1fr_0.7fr_0.5fr_0.7fr_1fr_0.8fr_0.5fr_40px] gap-2 group">
-                  <input value={row.code} onChange={e => updateRow(idx, 'code', e.target.value)} placeholder="A-01-01" className="h-10 px-3 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
-                  <input value={row.block} onChange={e => updateRow(idx, 'block', e.target.value)} placeholder="A" className="h-10 px-3 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
-                  <input value={row.floor} onChange={e => updateRow(idx, 'floor', e.target.value)} placeholder="1" type="number" className="h-10 px-3 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
-                  <input value={row.area} onChange={e => updateRow(idx, 'area', e.target.value)} placeholder="85.5" type="number" step="0.01" className="h-10 px-3 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
-                  <input value={row.price} onChange={e => updateRow(idx, 'price', e.target.value)} placeholder="5000000000" type="number" className="h-10 px-3 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
-                  <select value={row.direction} onChange={e => updateRow(idx, 'direction', e.target.value)} className="h-10 px-2 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[12px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 appearance-none cursor-pointer">
+                <div key={idx} className="grid grid-cols-[1.5fr_0.8fr_0.8fr_1fr_1.5fr_1fr_0.7fr_40px] gap-3 group">
+                  <input value={row.code} onChange={e => updateRow(idx, 'code', e.target.value)} placeholder="A-01-01" className="h-10 px-3 min-w-0 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
+                  <input value={row.block} onChange={e => updateRow(idx, 'block', e.target.value)} placeholder="A" className="h-10 px-3 min-w-0 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
+                  <input value={row.floor} onChange={e => updateRow(idx, 'floor', e.target.value)} placeholder="1" type="number" className="h-10 px-3 min-w-0 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
+                  <input value={row.area} onChange={e => updateRow(idx, 'area', e.target.value)} placeholder="85.5" type="number" step="0.01" className="h-10 px-3 min-w-0 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
+                  <input value={row.price} onChange={e => updateRow(idx, 'price', e.target.value)} placeholder="5000000000" type="number" className="h-10 px-3 min-w-0 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
+                  <select value={row.direction} onChange={e => updateRow(idx, 'direction', e.target.value)} className="h-10 px-2 min-w-0 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[12px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 appearance-none cursor-pointer">
                     {DIRECTIONS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
-                  <input value={row.bedrooms} onChange={e => updateRow(idx, 'bedrooms', e.target.value)} placeholder="2" type="number" min="1" max="10" className="h-10 px-3 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
+                  <input value={row.bedrooms} onChange={e => updateRow(idx, 'bedrooms', e.target.value)} placeholder="2" type="number" min="1" max="10" className="h-10 px-3 min-w-0 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[13px] font-bold text-sg-heading focus:outline-none focus:border-cyan-500/50 placeholder:text-sg-muted/40" />
                   <button onClick={() => removeRow(idx)} disabled={rows.length <= 1} className="w-10 h-10 rounded-lg flex items-center justify-center text-sg-muted hover:text-rose-500 hover:bg-rose-500/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                     <Trash2 size={16} />
                   </button>
