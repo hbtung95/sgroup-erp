@@ -1,5 +1,5 @@
 {
-  "installCommand": "npm install --force",
+  "installCommand": "rm -rf package-lock.json node_modules && npm install",
   "buildCommand": "turbo run build --filter=@sgroup/web-host",
   "outputDirectory": "core/web-host/dist",
   "rewrites": [
