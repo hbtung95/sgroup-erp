@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Lock, Loader2 } from 'lucide-react';
 
 interface LockModalProps {
@@ -15,8 +16,8 @@ export function LockModal({ unitId, loadingId, onClose, onConfirm, isBulk, bulkC
 
   if (!unitId) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
       <div className="bg-sg-card border border-sg-border rounded-xl w-full max-w-sm p-6 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-1 bg-orange-500" />
         <h3 className="text-lg font-black text-sg-heading mb-4 flex items-center gap-2">
@@ -65,6 +66,7 @@ export function LockModal({ unitId, loadingId, onClose, onConfirm, isBulk, bulkC
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

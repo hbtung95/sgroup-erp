@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, Lock, Banknote, Handshake, Unlock, User, Phone, Clock, DollarSign, Maximize2, Building2, Compass, MapPin, Eye, Bed, TrendingUp, Loader2, Sparkles, LayoutGrid, CheckSquare } from 'lucide-react';
 import { RE_INVENTORY_STATUS, RE_PROPERTY_TYPE } from '../../constants';
 import type { REProduct, REProject } from '../../types';
@@ -20,10 +21,10 @@ export function UnitDrawer({ unit, projects, actionLoadingId, onClose, onAction,
   const typeCfg = RE_PROPERTY_TYPE[proj?.type || 'APARTMENT'] || RE_PROPERTY_TYPE.APARTMENT;
   const pricePerM2 = unit.area > 0 ? unit.price / unit.area : 0;
 
-  return (
+  return createPortal(
     <>
-      <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-[20px] transition-all duration-500" onClick={onClose} />
-      <div className="fixed right-0 top-0 bottom-0 z-[95] w-full max-w-[500px] bg-white dark:bg-black/80 backdrop-blur-3xl border-l border-slate-200 dark:border-white/5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+      <div className="fixed inset-0 z-[190] bg-black/60 backdrop-blur-[20px] transition-all duration-500" onClick={onClose} />
+      <div className="fixed right-0 top-0 bottom-0 z-[200] w-full max-w-[500px] bg-white dark:bg-black/80 backdrop-blur-3xl border-l border-slate-200 dark:border-white/5 shadow-[-20px_0_60px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
         
         {/* Cinematic Backdrop Accents */}
         <div className="absolute inset-0 bg-linear-to-b from-white/5 to-transparent pointer-events-none" />
@@ -78,7 +79,7 @@ export function UnitDrawer({ unit, projects, actionLoadingId, onClose, onAction,
 
           {/* Property Specs Grid */}
           <div className="bg-slate-50 dark:bg-black/30 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[24px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)]">
-            <h4 className="text-[11px] font-black text-sg-subtext uppercase tracking-widest mb-4 flex items-center gap-2"><LayoutGrid size={14}/> Data Center</h4>
+            <h4 className="text-[11px] font-black text-sg-subtext uppercase tracking-widest mb-4 flex items-center gap-2"><LayoutGrid size={14}/> DATA CENTER</h4>
             <div className="grid grid-cols-2 gap-x-4 gap-y-5">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-[14px] bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0"><Maximize2 size={18} className="text-cyan-500" /></div>
@@ -90,7 +91,7 @@ export function UnitDrawer({ unit, projects, actionLoadingId, onClose, onAction,
               </div>
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-[14px] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0"><Compass size={18} className="text-amber-500" /></div>
-                <div className="flex flex-col"><p className="text-[10px] font-extrabold text-sg-muted uppercase tracking-wider">Ban Công</p><p className="text-[15px] font-black text-sg-heading">{unit.direction || 'N/A'}</p></div>
+                <div className="flex flex-col"><p className="text-[10px] font-extrabold text-sg-muted uppercase tracking-wider">Ban công</p><p className="text-[15px] font-black text-sg-heading">{unit.direction || 'N/A'}</p></div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-[14px] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0"><Bed size={18} className="text-rose-500" /></div>
@@ -112,7 +113,7 @@ export function UnitDrawer({ unit, projects, actionLoadingId, onClose, onAction,
             <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-orange-500/20 rounded-[24px] p-6 shadow-[0_4px_24px_rgba(249,115,22,0.05)] relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/20 blur-[40px]" />
               <h4 className="text-[11px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-5 flex items-center gap-2 relative z-10">
-                <User size={14} /> Hồ sơ giao dịch
+                <User size={14} /> HỒ SƠ GIAO DỊCH
               </h4>
               <div className="flex flex-col gap-4 relative z-10">
                 <div className="flex space-x-12">
@@ -141,7 +142,7 @@ export function UnitDrawer({ unit, projects, actionLoadingId, onClose, onAction,
                   )}
                   {unit.lockedUntil && unit.status !== 'SOLD' && unit.status !== 'DEPOSIT' && (
                     <div className="flex flex-col gap-0.5 items-end">
-                       <span className="text-[10px] font-bold text-sg-muted uppercase tracking-wider">Thời gian Lock</span>
+                       <span className="text-[10px] font-bold text-sg-muted uppercase tracking-wider">Thời gian lock</span>
                        <span className="text-[14px] font-black text-rose-500 flex items-center gap-1.5"><Clock size={14}/> {new Date(unit.lockedUntil).toLocaleTimeString('vi-VN')}</span>
                     </div>
                   )}
@@ -200,6 +201,7 @@ export function UnitDrawer({ unit, projects, actionLoadingId, onClose, onAction,
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
