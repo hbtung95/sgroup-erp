@@ -35,8 +35,5 @@
   ],
   "devDependencies": {
     "turbo": "^2.9.5"
-  },
-  "optionalDependencies": {
-    "@next/swc-win32-x64-msvc": "^16.2.3"
   }
 }
