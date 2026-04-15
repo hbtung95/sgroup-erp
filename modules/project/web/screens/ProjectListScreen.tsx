@@ -45,75 +45,90 @@ export function ProjectListScreen() {
        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none -z-10" />
       
       {/* Header Actions */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-10 sg-stagger" style={{ animationDelay: '0ms' }}>
-        <div>
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-linear-to-r from-cyan-500/10 to-blue-500/5 border border-cyan-500/20 w-fit mb-2 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
-             <Building2 size={14} className="text-cyan-500" />
-             <span className="text-[10px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-[0.2em]">Danh mục Dự Án Phân Phối</span>
+      {/* Header Actions - Optimized Layout */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 sg-stagger" style={{ animationDelay: '0ms' }}>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center flex-wrap gap-3">
+            <h2 className="text-[32px] font-black text-sg-heading tracking-tighter leading-none">Quản lý Dự Án</h2>
+            <div className="px-3 py-1 rounded-full bg-linear-to-r from-cyan-500/10 to-blue-500/5 border border-cyan-500/20 shadow-sm flex items-center gap-2">
+               <Building2 size={12} className="text-cyan-500" />
+               <span className="text-[9px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-[1.5px] whitespace-nowrap">Danh mục Phân Phối</span>
+            </div>
           </div>
-          <h2 className="text-[36px] font-black text-transparent bg-clip-text bg-linear-to-r from-sg-heading to-sg-heading/70 tracking-tight drop-shadow-lg">Quản lý Dự Án</h2>
+          <div className="flex items-center gap-4">
+             <span className="text-[13px] font-bold text-sg-subtext">Hệ thống quản lý nguồn hàng & Ráp căn</span>
+             <div className="flex items-center gap-4 pl-4 border-l border-sg-border/60">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-sg-muted uppercase tracking-wider">Tổng:</span>
+                  <span className="text-[13px] font-extrabold text-sg-heading">{projects.length}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-sg-muted uppercase tracking-wider text-emerald-500">Mở bán:</span>
+                  <span className="text-[13px] font-extrabold text-emerald-500">{projects.filter(p=>p.status==='SELLING').length}</span>
+                </div>
+             </div>
+          </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-4">
-          
-          {/* Quick Stats overview inline */}
-          <div className="hidden 2xl:flex items-center gap-6 mr-4 bg-white dark:bg-black/20 backdrop-blur-3xl px-6 py-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-sg-muted uppercase tracking-wider">Total</span>
-              <span className="text-[14px] font-black text-sg-heading">{projects.length}</span>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Action Group */}
+          <div className="flex items-center gap-2 bg-white dark:bg-black/30 backdrop-blur-2xl p-1.5 rounded-[20px] border border-slate-200 dark:border-white/5 shadow-sm">
+            
+            <div className="relative group">
+              <div className="absolute inset-0 bg-linear-to-r from-cyan-500/0 via-cyan-500/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative flex items-center h-10 px-3 bg-sg-bg/50 border border-transparent hover:border-cyan-500/20 rounded-xl transition-all w-full md:w-64">
+                <Search size={15} className="text-sg-muted group-hover:text-cyan-500 transition-colors" />
+                <input 
+                  type="text" 
+                  placeholder="Tìm dự án..." 
+                  className="bg-transparent border-none outline-none ml-2 text-[13px] font-bold text-sg-heading w-full placeholder:text-sg-muted/50"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="w-px h-6 bg-white/10" />
-            <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-sg-muted uppercase tracking-wider">Selling</span>
-              <span className="text-[14px] font-black text-emerald-500">{projects.filter(p=>p.status==='SELLING').length}</span>
-            </div>
-          </div>
 
-          <div className="relative group flex-1 md:flex-none">
-            <div className="absolute inset-0 bg-linear-to-r from-cyan-500/0 via-blue-500/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity" />
-            <div className="relative flex items-center h-12 bg-white dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/5 hover:border-cyan-500/40 rounded-2xl px-4 transition-all w-full md:w-80 shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
-              <Search size={18} className="text-sg-muted group-hover:text-cyan-500 transition-colors" />
-              <input 
-                type="text" 
-                placeholder="Tìm tên, mã dự án..." 
-                className="bg-transparent border-none outline-none ml-3 text-[14px] font-bold text-sg-heading w-full placeholder:text-sg-muted/60"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
+            <div className="relative">
+              <select 
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="h-10 pl-3 pr-8 bg-sg-bg/50 border border-transparent rounded-xl text-[12px] font-bold text-sg-heading appearance-none cursor-pointer focus:outline-none hover:bg-sg-bg transition-all"
+              >
+                <option value="ALL">Tất cả Trạng thái</option>
+                {Object.entries(RE_PROJECT_STATUS).map(([k, v]) => (
+                  <option key={k} value={k}>{v.label}</option>
+                ))}
+              </select>
+              <Filter size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-sg-muted pointer-events-none" />
             </div>
-          </div>
-          
-          <div className="relative flex-1 md:flex-none">
-            <select 
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="h-12 px-5 pr-12 bg-white dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/5 rounded-2xl text-[14px] font-bold text-sg-heading appearance-none cursor-pointer focus:outline-none hover:border-cyan-500/40 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
-            >
-              <option value="ALL">Tất cả Trạng thái</option>
-              {Object.entries(RE_PROJECT_STATUS).map(([k, v]) => (
-                <option key={k} value={k}>{v.label}</option>
-              ))}
-            </select>
-            <Filter size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-sg-muted pointer-events-none" />
-          </div>
 
-          {/* View Toggle */}
-          <div className="hidden sm:flex items-center bg-white dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/5 rounded-2xl p-1 shadow-[0_4px_20px_rgba(0,0,0,0.05)]">
-            <button onClick={() => setViewMode('grid')} className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${viewMode === 'grid' ? 'bg-cyan-500 text-white shadow-md' : 'text-sg-muted hover:text-sg-heading'}`}>
-              <LayoutGrid size={18} />
-            </button>
-            <button onClick={() => setViewMode('list')} className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${viewMode === 'list' ? 'bg-cyan-500 text-white shadow-md' : 'text-sg-muted hover:text-sg-heading'}`}>
-              <List size={18} />
-            </button>
+            <div className="w-px h-6 bg-sg-border/60 mx-1" />
+
+            <div className="flex items-center p-1 bg-sg-bg/50 rounded-lg">
+              <button 
+                onClick={() => setViewMode('grid')} 
+                className={`w-8 h-8 flex items-center justify-center rounded-md transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-sg-card text-cyan-500 shadow-sm border border-sg-border' : 'text-sg-muted hover:text-sg-heading'}`}
+                title="Lưới"
+              >
+                <LayoutGrid size={15} />
+              </button>
+              <button 
+                onClick={() => setViewMode('list')} 
+                className={`w-8 h-8 flex items-center justify-center rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-sg-card text-cyan-500 shadow-sm border border-sg-border' : 'text-sg-muted hover:text-sg-heading'}`}
+                title="Danh sách"
+              >
+                <List size={15} />
+              </button>
+            </div>
           </div>
 
           <button
             onClick={() => { setEditTarget(null); setShowForm(true); }}
-            className="h-12 px-6 flex items-center gap-2 bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-2xl transition-all shadow-[0_8px_24px_rgba(6,182,212,0.3)] hover:shadow-[0_16px_32px_rgba(6,182,212,0.5)] hover:-translate-y-1 relative overflow-hidden group"
+            className="h-12 px-5 flex items-center gap-2 bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-2xl transition-all shadow-sg-brand-lg hover:-translate-y-0.5 relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-white/20 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-2xl" />
-            <Plus size={20} className="text-white relative z-10" />
-            <span className="text-[14px] font-black text-white relative z-10 hidden sm:inline">Khởi Tạo</span>
+            <Plus size={18} className="text-white relative z-10" />
+            <span className="text-[13px] font-black text-white relative z-10">Khởi Tạo</span>
           </button>
         </div>
       </div>
@@ -197,9 +212,9 @@ export function ProjectListScreen() {
                                 <Link to={`/ProjectModule/inventory?project=${proj.id}`} className="bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white border border-cyan-500/20 px-3 py-1.5 rounded-lg text-[11px] font-black transition-colors">
                                     Giỏ Hàng
                                 </Link>
-                                <button onClick={() => handleEdit(proj)} className="bg-slate-100 dark:bg-white/10 text-sg-heading hover:bg-emerald-500 hover:text-white border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-lg text-[11px] font-black transition-colors">
-                                    Settings
-                                </button>
+                                 <button onClick={() => handleEdit(proj)} className="bg-slate-100 dark:bg-white/10 text-sg-heading hover:bg-emerald-500 hover:text-white border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-lg text-[11px] font-black transition-colors">
+                                     Thiết lập
+                                 </button>
                             </div>
                             <button onClick={() => handleDelete(proj)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-colors" title="Delete">
                                  <Trash2 size={16} />
@@ -237,14 +252,14 @@ export function ProjectListScreen() {
                           </button>
                           {menuOpen === proj.id && (
                             <div className="absolute right-0 top-11 w-44 bg-white/90 dark:bg-black/80 backdrop-blur-3xl border border-slate-200 dark:border-sg-border rounded-xl shadow-[0_16px_40px_rgba(0,0,0,0.2)] overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
-                              <button onClick={() => handleEdit(proj)}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-black text-sg-heading hover:bg-cyan-500/10 hover:text-cyan-500 transition-colors">
-                                <Edit2 size={16} /> Configuration
-                              </button>
-                              <button onClick={() => handleDelete(proj)}
-                                className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-black text-rose-500 hover:bg-rose-500/10 transition-colors border-t border-sg-border/50">
-                                <Trash2 size={16} /> Danger: Drop
-                              </button>
+                               <button onClick={() => handleEdit(proj)}
+                                 className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-black text-sg-heading hover:bg-cyan-500/10 hover:text-cyan-500 transition-colors">
+                                 <Edit2 size={16} /> Cấu hình dự án
+                               </button>
+                               <button onClick={() => handleDelete(proj)}
+                                 className="w-full flex items-center gap-3 px-4 py-3 text-[13px] font-black text-rose-500 hover:bg-rose-500/10 transition-colors border-t border-sg-border/50">
+                                 <Trash2 size={16} /> Xoá dữ án
+                               </button>
                             </div>
                           )}
                         </div>
@@ -272,7 +287,7 @@ export function ProjectListScreen() {
                       </div>
                       <div className="bg-slate-50 dark:bg-black/40 px-4 py-4 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
                         <div className="flex items-center justify-between text-[12px] font-bold text-sg-subtext mb-3">
-                          <span className="uppercase tracking-wider text-[10px]">Absorption Limit</span>
+                           <span className="uppercase tracking-wider text-[10px]">Tiến độ hấp thụ</span>
                           <span className="text-sg-heading font-black text-[13px]">{proj.soldUnits} / {proj.totalUnits} <span className="text-cyan-500">({soldPercent}%)</span></span>
                         </div>
                         <div className="h-2 bg-sg-bg rounded-full overflow-hidden shadow-inner">
@@ -291,7 +306,7 @@ export function ProjectListScreen() {
                           <Users size={16} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[10px] font-extrabold text-sg-muted uppercase tracking-wider">PIC Manager</span>
+                           <span className="text-[10px] font-extrabold text-sg-muted uppercase tracking-wider">Người phụ trách</span>
                           <span className="text-[14px] font-black text-sg-heading leading-tight truncate max-w-[140px]">{proj.managerName || 'Chưa gán'}</span>
                         </div>
                       </div>
