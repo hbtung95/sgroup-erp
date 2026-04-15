@@ -56,7 +56,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           return (
             <button onClick={() => setConfirmAction({ type: "lock", id: data.id, message: `Khóa căn ${data.code}?` })}
               className="flex items-center text-xs bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-600 transition-all font-medium">
-              <Lock className="w-3 h-3 mr-1" /> Lock
+              <Lock className="w-3 h-3 mr-1" /> Khóa
             </button>
           );
         }
@@ -207,7 +207,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           </button>
           <button onClick={() => setIsImportOpen(true)} className="flex items-center text-sm px-4 py-2.5 rounded-xl font-medium text-slate-300 bg-slate-800/50 border border-white/10 hover:bg-slate-700/50 transition-all">
             <FileSpreadsheet className="w-4 h-4 mr-2 text-emerald-400" />
-            Import
+            Nhập Excel
           </button>
         </div>
       </div>

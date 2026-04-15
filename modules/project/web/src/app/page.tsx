@@ -39,9 +39,9 @@ export default function Home() {
           </div>
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 dark:from-blue-400 dark:via-cyan-400 dark:to-emerald-400">
-              Project Management
+              Quản Trị Dự Án
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Master Data Hub — Quản lý dự án bất động sản</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Trung tâm Dữ liệu Chính — Quản lý dự án bất động sản</p>
           </div>
         </div>
       </div>
@@ -70,14 +70,14 @@ export default function Home() {
               icon={<TrendingUp className="w-5 h-5" />}
               label="Tỷ Lệ Hấp Thụ"
               value={`${absorptionRate}%`}
-              subtitle="Sold / Total units"
+              subtitle="Đã bán / Tổng số căn"
               color="text-amber-500 dark:text-amber-400"
             />
             <StatCard
               icon={<BarChart3 className="w-5 h-5" />}
               label="Doanh Thu Ước Tính"
               value={`${((stats?.totalRevenue ?? 0)).toLocaleString("vi-VN")} Tỷ`}
-              subtitle="avgPrice × soldUnits"
+              subtitle="Giá TB × Số căn đã bán"
               color="text-purple-500 dark:text-purple-400"
             />
           </>

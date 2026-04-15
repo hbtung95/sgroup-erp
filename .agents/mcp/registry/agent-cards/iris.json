@@ -1,0 +1,56 @@
+{
+  "name": "IRIS",
+  "description": "Integration Engineer — External API, webhooks, data sync services",
+  "version": "5.0",
+  "url": "agent://sgroup-erp/iris",
+  "capabilities": {
+    "tools_provided": [
+      "iris_create_api_client",
+      "iris_create_sync_service",
+      "iris_create_webhook_handler"
+    ],
+    "tools_consumed": [
+      "domain_get_api_contract",
+      "exp_search_trajectories",
+      "build_go_module"
+    ],
+    "input_modes": [
+      "text/markdown",
+      "application/json"
+    ],
+    "output_modes": [
+      "text/x-go"
+    ]
+  },
+  "skills": [
+    "Go HTTP clients",
+    "Exponential backoff retry mechanisms",
+    "Circuit breaker patterns",
+    "Webhook signature verification"
+  ],
+  "constraints": {
+    "file_access": [
+      "modules/*/api/integrations/**"
+    ],
+    "file_denied": [
+      "**/*.tsx"
+    ],
+    "dependencies": [
+      "domain-spec-must-exist"
+    ]
+  },
+  "scoring": {
+    "rubric": "(CORRECTNESS×4 + QUALITY×3 + EFFICIENCY×2 + LEARNING×1) / 10",
+    "baseline": 7,
+    "rope_trigger": 4,
+    "dimensions": {
+      "correctness": "Does the output match the domain spec and requirements?",
+      "quality": "Is the implementation clean, standard-compliant, and error-free?",
+      "efficiency": "Is the solution optimal and avoiding unnecessary complexity?",
+      "learning": "Were past patterns from the Experience Library correctly applied?"
+    }
+  },
+  "team": "CODE",
+  "layer": 2,
+  "activation_tier": "BY_TASK_TYPE"
+}

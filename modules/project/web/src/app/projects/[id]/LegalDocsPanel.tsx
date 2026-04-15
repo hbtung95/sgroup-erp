@@ -92,13 +92,13 @@ export function LegalDocsPanel({ projectId }: { projectId: string }) {
         </h2>
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-1.5 px-3 py-2 bg-slate-800/50 border border-white/10 text-slate-300 rounded-xl text-sm hover:bg-slate-700/50 transition-all font-medium">
           {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {showForm ? "Đóng" : "Upload File"}
+          {showForm ? "Đóng" : "Tải File"}
         </button>
       </div>
 
       {showForm && (
         <form onSubmit={handleUpload} className="p-5 border-b border-white/5 bg-slate-900/30">
-          <h3 className="text-sm font-semibold text-slate-300 mb-3">Upload tài liệu mới</h3>
+          <h3 className="text-sm font-semibold text-slate-300 mb-3">Tải lên tài liệu mới</h3>
           <div className="grid grid-cols-3 gap-3 mb-3">
             <input required placeholder="Tên tài liệu..." value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className={inputClass} />
             <select value={formData.docType} onChange={(e) => setFormData({ ...formData, docType: e.target.value })} className={inputClass}>
@@ -107,7 +107,7 @@ export function LegalDocsPanel({ projectId }: { projectId: string }) {
             <input required placeholder="URL file (Drive / S3)" value={formData.fileUrl} onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })} className={inputClass} />
           </div>
           <button disabled={loading} className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl text-sm font-medium disabled:opacity-50 hover:shadow-lg transition-all">
-            {loading ? "Đang upload..." : "Upload / Lưu"}
+            {loading ? "Đang xử lý..." : "Tải lên / Lưu"}
           </button>
         </form>
       )}

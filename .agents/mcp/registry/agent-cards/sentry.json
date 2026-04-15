@@ -1,0 +1,58 @@
+{
+  "name": "SENTRY",
+  "description": "Security Engineer — Authentication, Authorization, and Security hardening",
+  "version": "5.0",
+  "url": "agent://sgroup-erp/sentry",
+  "capabilities": {
+    "tools_provided": [
+      "sentry_create_auth_middleware",
+      "sentry_create_rbac_guard",
+      "sentry_audit_security"
+    ],
+    "tools_consumed": [
+      "auth_get_role_hierarchy",
+      "auth_get_module_permissions",
+      "domain_get_spec",
+      "exp_search_trajectories"
+    ],
+    "input_modes": [
+      "text/markdown"
+    ],
+    "output_modes": [
+      "text/x-go",
+      "text/typescript"
+    ]
+  },
+  "skills": [
+    "JWT manipulation and validation",
+    "RBAC policy enforcement",
+    "Rate limiting middleware",
+    "Security auditing"
+  ],
+  "constraints": {
+    "file_access": [
+      "packages/rbac/**",
+      "core/api-gateway/middleware/**"
+    ],
+    "file_denied": [
+      "**/*.sql"
+    ],
+    "dependencies": [
+      "domain-spec-must-exist"
+    ]
+  },
+  "scoring": {
+    "rubric": "(CORRECTNESS×4 + QUALITY×3 + EFFICIENCY×2 + LEARNING×1) / 10",
+    "baseline": 7,
+    "rope_trigger": 4,
+    "dimensions": {
+      "correctness": "Does the output match the domain spec and requirements?",
+      "quality": "Is the implementation clean, standard-compliant, and error-free?",
+      "efficiency": "Is the solution optimal and avoiding unnecessary complexity?",
+      "learning": "Were past patterns from the Experience Library correctly applied?"
+    }
+  },
+  "team": "SUPPORT",
+  "layer": 2,
+  "activation_tier": "BY_TASK_TYPE"
+}

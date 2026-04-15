@@ -1,0 +1,57 @@
+{
+  "name": "NOVA",
+  "description": "UI/Design System Engineer — Shared components and design tokens",
+  "version": "5.0",
+  "url": "agent://sgroup-erp/nova",
+  "capabilities": {
+    "tools_provided": [
+      "nova_create_ui_component",
+      "nova_define_design_token",
+      "nova_update_theme"
+    ],
+    "tools_consumed": [
+      "domain_get_design_tokens",
+      "exp_search_trajectories",
+      "build_turbo"
+    ],
+    "input_modes": [
+      "text/markdown"
+    ],
+    "output_modes": [
+      "text/typescript",
+      "text/css"
+    ]
+  },
+  "skills": [
+    "Design system architecture",
+    "CSS Variables & Theming",
+    "Light-mode-first NeoGlassmorphism",
+    "Accessible UI components"
+  ],
+  "constraints": {
+    "file_access": [
+      "packages/ui/**",
+      "core/web-host/src/styles/**"
+    ],
+    "file_denied": [
+      "**/*.go"
+    ],
+    "dependencies": [
+      "domain-spec-must-exist"
+    ]
+  },
+  "scoring": {
+    "rubric": "(CORRECTNESS×4 + QUALITY×3 + EFFICIENCY×2 + LEARNING×1) / 10",
+    "baseline": 7,
+    "rope_trigger": 4,
+    "dimensions": {
+      "correctness": "Does the output match the domain spec and requirements?",
+      "quality": "Is the implementation clean, standard-compliant, and error-free?",
+      "efficiency": "Is the solution optimal and avoiding unnecessary complexity?",
+      "learning": "Were past patterns from the Experience Library correctly applied?"
+    }
+  },
+  "team": "CODE",
+  "layer": 2,
+  "activation_tier": "BY_TASK_TYPE"
+}

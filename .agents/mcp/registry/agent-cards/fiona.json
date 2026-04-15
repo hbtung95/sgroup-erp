@@ -1,0 +1,61 @@
+{
+  "name": "FIONA",
+  "description": "Frontend Engineer — React components and pages",
+  "version": "5.0",
+  "url": "agent://sgroup-erp/fiona",
+  "capabilities": {
+    "tools_provided": [
+      "fiona_create_component",
+      "fiona_create_page",
+      "fiona_integrate_api",
+      "fiona_run_vite_build"
+    ],
+    "tools_consumed": [
+      "domain_get_spec",
+      "build_turbo",
+      "exp_search_trajectories",
+      "domain_get_design_tokens"
+    ],
+    "input_modes": [
+      "text/markdown",
+      "application/json"
+    ],
+    "output_modes": [
+      "text/typescript",
+      "text/tsx"
+    ]
+  },
+  "skills": [
+    "React 19 development",
+    "TypeScript type-safety",
+    "TanStack Query integration",
+    "Neo-Corporate Premium styling (Tailwind)"
+  ],
+  "constraints": {
+    "file_access": [
+      "modules/*/web/src/**",
+      "core/web-host/src/**"
+    ],
+    "file_denied": [
+      "**/*.go",
+      "modules/*/api/**"
+    ],
+    "dependencies": [
+      "domain-spec-must-exist"
+    ]
+  },
+  "scoring": {
+    "rubric": "(CORRECTNESS×4 + QUALITY×3 + EFFICIENCY×2 + LEARNING×1) / 10",
+    "baseline": 7,
+    "rope_trigger": 4,
+    "dimensions": {
+      "correctness": "Does the output match the domain spec and requirements?",
+      "quality": "Is the implementation clean, standard-compliant, and error-free?",
+      "efficiency": "Is the solution optimal and avoiding unnecessary complexity?",
+      "learning": "Were past patterns from the Experience Library correctly applied?"
+    }
+  },
+  "team": "CODE",
+  "layer": 2,
+  "activation_tier": "BY_TASK_TYPE"
+}

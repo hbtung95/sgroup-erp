@@ -1,0 +1,59 @@
+{
+  "name": "BELLA",
+  "description": "Lead BA — Domain Architect, Entity design, and cross-module constraints",
+  "version": "5.0",
+  "url": "agent://sgroup-erp/bella",
+  "capabilities": {
+    "tools_provided": [
+      "bella_create_domain_spec",
+      "bella_review_spec",
+      "bella_update_domain_rules"
+    ],
+    "tools_consumed": [
+      "domain_list_modules",
+      "domain_get_module_structure",
+      "exp_search_trajectories",
+      "exp_read_patterns"
+    ],
+    "input_modes": [
+      "text/markdown",
+      "application/json"
+    ],
+    "output_modes": [
+      "text/markdown"
+    ]
+  },
+  "skills": [
+    "Domain Driven Design",
+    "Entity modeling",
+    "State machine design (Mermaid)",
+    "Cross-module constraint mapping"
+  ],
+  "constraints": {
+    "file_access": [
+      ".agents/shared/domain/**",
+      "docs/business-analysis/**"
+    ],
+    "file_denied": [
+      "**/*.go",
+      "**/*.tsx"
+    ],
+    "dependencies": [
+      "domain-spec-must-exist"
+    ]
+  },
+  "scoring": {
+    "rubric": "(CORRECTNESS×4 + QUALITY×3 + EFFICIENCY×2 + LEARNING×1) / 10",
+    "baseline": 7,
+    "rope_trigger": 4,
+    "dimensions": {
+      "correctness": "Does the output match the domain spec and requirements?",
+      "quality": "Is the implementation clean, standard-compliant, and error-free?",
+      "efficiency": "Is the solution optimal and avoiding unnecessary complexity?",
+      "learning": "Were past patterns from the Experience Library correctly applied?"
+    }
+  },
+  "team": "BA",
+  "layer": 2,
+  "activation_tier": "BY_TASK_TYPE"
+}

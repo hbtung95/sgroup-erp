@@ -97,8 +97,8 @@ export function ImportExcelModal({ isOpen, onClose, projectId, onSuccess }: {
               <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-100">Import Bảng Hàng</h2>
-              <p className="text-xs text-slate-500">Hỗ trợ .xlsx, .xls — Batch insert</p>
+              <h2 className="text-lg font-bold text-slate-100">Nhập Bảng Hàng</h2>
+              <p className="text-xs text-slate-500">Hỗ trợ file .xlsx, .xls — Nhập toàn bộ dữ liệu</p>
             </div>
           </div>
           <button onClick={handleClose} className="text-slate-500 hover:text-slate-300 p-2 rounded-xl hover:bg-white/5 transition-all">

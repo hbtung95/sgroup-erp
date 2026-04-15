@@ -50,8 +50,8 @@ export default function HRAdminDashboard() {
       const mockData: Employee[] = [
         { id: '1', code: 'SGR-001', name: 'Tuan Huynh Bao', dept: 'Dự Án', pos: 'Giám đốc Dự án', status: 'Active', salary: '35,000,000' },
         { id: '2', code: 'SGR-002', name: 'Oanh Nguyen Hoang', dept: 'Nhân Sự', pos: 'Trưởng phòng HR', status: 'Active', salary: '28,000,000' },
-        { id: '3', code: 'SGR-003', name: 'Khoi Tran Minh', dept: 'Kinh Doanh', pos: 'Chuyên viên', status: 'Active', salary: '18,000,000' },
-        { id: '4', code: 'SGR-004', name: 'Nhung Le Thi Hong', dept: 'Marketing', pos: 'Nhân viên Marketing', status: 'Probation', salary: '12,000,000' }
+        { id: '3', code: 'SGR-003', name: 'Trần Minh Khôi', dept: 'Kinh Doanh', pos: 'Chuyên viên Kinh doanh', status: 'Active', salary: '18,500,000' },
+        { id: '4', code: 'SGR-004', name: 'Lê Thị Hồng Nhung', dept: 'Kinh Doanh', pos: 'Chuyên viên Kinh doanh', status: 'Probation', salary: '12,000,000' }
       ];
       
       setRowData(mockData);

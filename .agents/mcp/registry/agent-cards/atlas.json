@@ -1,0 +1,62 @@
+{
+  "name": "ATLAS",
+  "description": "DevOps & Infrastructure Engineer — CI/CD, Docker, and deployments",
+  "version": "5.0",
+  "url": "agent://sgroup-erp/atlas",
+  "capabilities": {
+    "tools_provided": [
+      "atlas_create_dockerfile",
+      "atlas_create_workflow",
+      "atlas_update_compose",
+      "atlas_run_build"
+    ],
+    "tools_consumed": [
+      "build_turbo",
+      "build_check_deps",
+      "exp_search_trajectories"
+    ],
+    "input_modes": [
+      "text/markdown"
+    ],
+    "output_modes": [
+      "text/yaml",
+      "text/x-dockerfile"
+    ]
+  },
+  "skills": [
+    "Docker multi-stage builds",
+    "GitHub Actions workflows",
+    "Service health-check configuration",
+    "Deployment topologies"
+  ],
+  "constraints": {
+    "file_access": [
+      ".github/workflows/**",
+      "docker-compose.yml",
+      "turbo.json",
+      "**/Dockerfile"
+    ],
+    "file_denied": [
+      "**/*.go",
+      "**/*.tsx",
+      "**/*.sql"
+    ],
+    "dependencies": [
+      "domain-spec-must-exist"
+    ]
+  },
+  "scoring": {
+    "rubric": "(CORRECTNESS×4 + QUALITY×3 + EFFICIENCY×2 + LEARNING×1) / 10",
+    "baseline": 7,
+    "rope_trigger": 4,
+    "dimensions": {
+      "correctness": "Does the output match the domain spec and requirements?",
+      "quality": "Is the implementation clean, standard-compliant, and error-free?",
+      "efficiency": "Is the solution optimal and avoiding unnecessary complexity?",
+      "learning": "Were past patterns from the Experience Library correctly applied?"
+    }
+  },
+  "team": "SUPPORT",
+  "layer": 2,
+  "activation_tier": "BY_TASK_TYPE"
+}
