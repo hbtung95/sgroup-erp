@@ -24,7 +24,6 @@ export function InventoryGrid() {
     search: '',
     statusFilter: 'ALL',
     projectFilter: 'ALL',
-    projectSearch: '',
     directionFilter: 'ALL',
     bedroomFilter: 'ALL',
     minPrice: '',
@@ -83,14 +82,18 @@ export function InventoryGrid() {
   }, [selectedMulti, refetch]);
 
   const filtered = useMemo(() => inventory.filter(inv => {
-    const matchSearch = inv.code.toLowerCase().includes(filters.search.toLowerCase());
+    const s = filters.search.toLowerCase();
+    const proj = projects.find(p => p.id === inv.projectId);
+    
+    // Unified Search: Match Code OR Project Name
+    const matchSearch = !s || 
+      inv.code.toLowerCase().includes(s) || 
+      (proj?.name || '').toLowerCase().includes(s);
+
     const matchStatus = filters.statusFilter === 'ALL' || inv.status === filters.statusFilter;
     const matchProjId = filters.projectFilter === 'ALL' || inv.projectId === filters.projectFilter;
     
-    // Project Name Search
-    const proj = projects.find(p => p.id === inv.projectId);
-    const matchProjName = !filters.projectSearch || (proj?.name || '').toLowerCase().includes(filters.projectSearch.toLowerCase());
-    const matchProj = matchProjId && matchProjName;
+    const matchProj = matchProjId; // Project Filter (Select) still works independently if needed
 
     const matchDir = filters.directionFilter === 'ALL' || inv.direction === filters.directionFilter;
     const matchBed = filters.bedroomFilter === 'ALL' || inv.bedrooms.toString() === filters.bedroomFilter;
