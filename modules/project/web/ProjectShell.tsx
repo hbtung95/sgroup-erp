@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProjectSidebar } from './components/ProjectSidebar';
 import { Search, Sun, Moon, Briefcase } from 'lucide-react';
+import { ProjectSearchModal } from './components/ProjectSearchModal';
 import { useAuthStore } from '@sgroup/platform';
 
 import { ProjectDashboardScreen } from './screens/ProjectDashboardScreen';
@@ -34,6 +35,21 @@ import { ReportsScreen } from './screens/ReportsScreen';
 export function ProjectShell() {
   const { user } = useAuthStore();
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+      if (e.key === 'Escape') {
+        setIsSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const toggleTheme = () => {
     const root = document.documentElement;
@@ -90,8 +106,11 @@ export function ProjectShell() {
             {/* Context Search Box */}
             <div className="relative group hidden md:block w-72">
                <div className="absolute inset-0 bg-linear-to-r from-cyan-500/0 via-blue-500/10 to-indigo-500/0 rounded-xl opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-500"></div>
-               <div className="relative flex items-center h-11 bg-sg-btn-bg border border-sg-border hover:border-blue-500/30 rounded-xl px-4 transition-colors">
-                  <Search size={16} className="text-sg-muted group-hover:text-blue-500 transition-colors" />
+               <div 
+                  className="relative flex items-center h-11 bg-sg-btn-bg border border-sg-border hover:border-cyan-500/30 rounded-xl px-4 transition-colors cursor-pointer"
+                  onClick={() => setIsSearchOpen(true)}
+               >
+                  <Search size={16} className="text-sg-muted group-hover:text-cyan-500 transition-colors" />
                   <span className="ml-3 text-[13px] font-semibold text-sg-muted group-hover:text-sg-heading transition-colors cursor-text">Tìm dự án, mã căn, giỏ hàng...</span>
                   <div className="ml-auto flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
                     <kbd className="px-1.5 py-0.5 rounded bg-sg-card border border-sg-border text-[9px] font-extrabold text-sg-heading shadow-sm uppercase">Cmd</kbd>
@@ -147,6 +166,8 @@ export function ProjectShell() {
           </Routes>
         </main>
       </div>
+
+      <ProjectSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );
 }
