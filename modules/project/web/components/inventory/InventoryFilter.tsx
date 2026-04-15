@@ -7,6 +7,7 @@ export interface InventoryFiltersType {
   search: string;
   statusFilter: string;
   projectFilter: string;
+  projectSearch: string;
   directionFilter: string;
   bedroomFilter: string;
   minPrice: string;
@@ -82,17 +83,28 @@ export function InventoryFilter({
           </div>
         </div>
         
-        {/* Project Select */}
-        <select 
-          value={filters.projectFilter}
-          onChange={e => h('projectFilter', e.target.value)}
-          className="h-12 px-4 pr-10 bg-white dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-sg-border rounded-xl text-[14px] font-bold text-sg-heading appearance-none cursor-pointer focus:outline-none hover:border-cyan-500/30 transition-colors shadow-sm"
-        >
-          <option value="ALL">Tất cả Dự án</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
+        {/* Project Search */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-linear-to-r from-blue-500/0 via-blue-500/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 blur transition-opacity" />
+          <div className="relative flex items-center h-12 bg-white dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-sg-border hover:border-blue-500/30 rounded-xl px-4 transition-colors w-64 shadow-sm">
+            <Building2 size={18} className="text-sg-muted group-hover:text-blue-500 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Gõ tên dự án..." 
+              className="bg-transparent border-none outline-none ml-3 text-[14px] font-bold text-sg-heading w-full placeholder:text-sg-muted"
+              value={filters.projectSearch}
+              onChange={e => h('projectSearch', e.target.value)}
+            />
+            {filters.projectSearch && (
+              <button 
+                onClick={() => h('projectSearch', '')}
+                className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-sg-muted hover:text-rose-500"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Status Select */}
         <select 

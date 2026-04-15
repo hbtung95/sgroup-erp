@@ -24,6 +24,7 @@ export function InventoryGrid() {
     search: '',
     statusFilter: 'ALL',
     projectFilter: 'ALL',
+    projectSearch: '',
     directionFilter: 'ALL',
     bedroomFilter: 'ALL',
     minPrice: '',
@@ -84,7 +85,13 @@ export function InventoryGrid() {
   const filtered = useMemo(() => inventory.filter(inv => {
     const matchSearch = inv.code.toLowerCase().includes(filters.search.toLowerCase());
     const matchStatus = filters.statusFilter === 'ALL' || inv.status === filters.statusFilter;
-    const matchProj = filters.projectFilter === 'ALL' || inv.projectId === filters.projectFilter;
+    const matchProjId = filters.projectFilter === 'ALL' || inv.projectId === filters.projectFilter;
+    
+    // Project Name Search
+    const proj = projects.find(p => p.id === inv.projectId);
+    const matchProjName = !filters.projectSearch || (proj?.name || '').toLowerCase().includes(filters.projectSearch.toLowerCase());
+    const matchProj = matchProjId && matchProjName;
+
     const matchDir = filters.directionFilter === 'ALL' || inv.direction === filters.directionFilter;
     const matchBed = filters.bedroomFilter === 'ALL' || inv.bedrooms.toString() === filters.bedroomFilter;
     const invPriceB = inv.price / 1000000000;

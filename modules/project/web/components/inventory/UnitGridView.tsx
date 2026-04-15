@@ -32,7 +32,7 @@ export function UnitGridView({
 }: UnitGridViewProps) {
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar pb-12 mt-6 relative z-10 w-full h-full">
-      <div className={`grid gap-5 ${viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+      <div className={`grid gap-8 ${viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
         {filtered.map((item, i) => {
           const statusCfg = RE_INVENTORY_STATUS[item.status] || RE_INVENTORY_STATUS.AVAILABLE;
           const proj = projects.find(p => p.id === item.projectId);
