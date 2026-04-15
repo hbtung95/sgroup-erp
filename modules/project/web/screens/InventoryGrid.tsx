@@ -10,7 +10,8 @@ import {
   UnitGridView,
   UnitDrawer,
   LockModal,
-  BulkActionBar
+  BulkActionBar,
+  ImportInventoryModal
 } from '../components/inventory';
 
 export function InventoryGrid() {
@@ -37,6 +38,7 @@ export function InventoryGrid() {
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<REProduct | null>(null);
   const [selectedMulti, setSelectedMulti] = useState<string[]>([]);
+  const [importOpen, setImportOpen] = useState(false);
 
   const toggleMultiSelect = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -123,6 +125,7 @@ export function InventoryGrid() {
         setViewMode={setViewMode}
         projects={projects}
         stats={stats}
+        onImport={() => setImportOpen(true)}
       />
 
       {viewMode === 'floor' ? (
@@ -180,6 +183,13 @@ export function InventoryGrid() {
         onClose={() => setSelectedUnit(null)}
         onAction={handleAction}
         onOpenLockModal={setLockModalOpen}
+      />
+
+      <ImportInventoryModal
+        isOpen={importOpen}
+        onClose={() => setImportOpen(false)}
+        onSuccess={refetch}
+        projects={projects}
       />
 
     </div>

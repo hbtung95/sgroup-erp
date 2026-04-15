@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Grid, LayoutList, Download, Building2, X } from 'lucide-react';
+import { Search, Grid, LayoutList, Download, Upload, Building2, X } from 'lucide-react';
 import { RE_INVENTORY_STATUS } from '../../constants';
 import type { REProject } from '../../types';
 
@@ -27,6 +27,7 @@ interface InventoryFilterProps {
     locked: number;
     sold: number;
   };
+  onImport?: () => void;
 }
 
 export function InventoryFilter({
@@ -35,7 +36,8 @@ export function InventoryFilter({
   viewMode,
   setViewMode,
   projects,
-  stats
+  stats,
+  onImport
 }: InventoryFilterProps) {
   
   const h = (key: keyof InventoryFiltersType, value: string) => {
@@ -138,6 +140,16 @@ export function InventoryFilter({
            </button>
         </div>
         
+        {onImport && (
+          <button
+            onClick={onImport}
+            className="h-12 px-5 flex items-center gap-2 bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-xl transition-all shadow-lg hover:-translate-y-0.5 relative overflow-hidden group"
+          >
+            <Upload size={18} className="text-white" />
+            <span className="text-[13px] font-black text-white hidden sm:inline">Nhập hàng</span>
+          </button>
+        )}
+
         <button className="h-12 w-12 flex items-center justify-center bg-white dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-sg-border hover:border-cyan-500/30 rounded-xl transition-all shadow-sm group">
           <Download size={20} className="text-cyan-500 group-hover:scale-110 transition-transform" />
         </button>

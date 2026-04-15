@@ -221,7 +221,6 @@ export function UnitGridView({
             </div>
           );
         })}
-      </div>
-    </div>
+     </div>
   );
 }

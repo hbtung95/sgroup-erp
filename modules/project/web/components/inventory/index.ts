@@ -4,3 +4,4 @@ export * from './UnitGridView';
 export * from './UnitDrawer';
 export * from './LockModal';
 export * from './BulkActionBar';
+export * from './ImportInventoryModal';
