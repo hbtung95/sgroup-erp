@@ -61,8 +61,8 @@ export function ProjectFormModal({ isOpen, onClose, onSuccess, editProject }: Pr
       }
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Có lỗi xảy ra');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra');
     } finally {
       setSaving(false);
     }

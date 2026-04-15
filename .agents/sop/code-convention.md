@@ -52,6 +52,11 @@ types/transaction.types.ts         # lowercase.types.ts
 - Constants: `SCREAMING_SNAKE_CASE` — `MAX_BOOKING_DURATION`, `API_BASE_URL`
 - Functions: `camelCase` — `formatCurrency()`, `calculateCommission()`
 
+### Tailwind CSS & UI Styling
+- **No Arbitrary Values**: Avoid brackets for standard dimensions (e.g., `w-[150px]`, `rounded-[16px]`). Use predefined tokens in Tailwind config (e.g., `rounded-sg-16px`, `w-40`).
+- **Tailwind v4 Syntax**: Use modern Tailwind styling (e.g., `bg-linear-to-br` instead of `bg-gradient-to-br`).
+- **Design System Consistency**: Always stick to the brand tokens (`sg-heading`, `sg-bg`, `sg-subtext`) for styling strings, avoiding raw arbitrary colors (like `text-[#112233]`).
+
 ### Module Structure
 ```
 modules/{name}/web/src/
@@ -61,6 +66,17 @@ modules/{name}/web/src/
 ├── types/{name}.types.ts         # TypeScript types
 └── index.ts                      # Module barrel export
 ```
+
+### TypeScript ESLint Strict Rules
+> **Reference:** https://typescript-eslint.io/rules/
+Agents MUST follow these strict TypeScript code rules to prevent runtime bugs:
+1. **Never use `any`**: Strictly type all variables and returns (`@typescript-eslint/no-explicit-any`).
+2. **Strict Null Checks**: Always handle `null` and `undefined` safely (`@typescript-eslint/strict-boolean-expressions`).
+3. **No Unused Variables**: Clean up unused imports and variables (`@typescript-eslint/no-unused-vars`).
+4. **Explicit Return Types**: Functions and hooks should have explicit return types where inference is ambiguous (`@typescript-eslint/explicit-module-boundary-types`).
+5. **No Non-null Assertions**: Do not bypass type safety with `!` (`@typescript-eslint/no-non-null-assertion`).
+6. **Consistent Type Definitions**: Prefer `interface` for objects, `type` for unions/primitives (`@typescript-eslint/consistent-type-definitions`).
+7. **No Floating Promises**: All async functions must be awaited or properly handled (`@typescript-eslint/no-floating-promises`).
 
 ## SQL (Database) Conventions
 - Tables: `snake_case` plural — `transactions`, `commission_records`

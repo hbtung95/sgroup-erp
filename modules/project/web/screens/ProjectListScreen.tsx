@@ -33,8 +33,8 @@ export function ProjectListScreen() {
     try {
       await projectApi.delete(proj.id);
       refetch();
-    } catch (err: any) {
-      alert(err.message || 'Không thể xoá dự án');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Không thể xoá dự án');
     }
     setMenuOpen(null);
   };
@@ -152,12 +152,12 @@ export function ProjectListScreen() {
                   // LIST VIEW
                   return (
                       <div key={proj.id} className="sg-stagger bg-white dark:bg-black/30 backdrop-blur-2xl rounded-2xl border border-slate-200 dark:border-white/5 p-4 flex flex-col md:flex-row items-center gap-6 shadow-md hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden focus-within:ring-2 focus-within:ring-cyan-500/50" style={{ animationDelay: `${(idx % 10) * 50}ms` }}>
-                         <div className="absolute inset-0 bg-linear-to-r from-transparent via-cyan-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[1500ms]" />
+                         <div className="absolute inset-0 bg-linear-to-r from-transparent via-cyan-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500" />
                          
                          {/* Icon */}
                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center relative shrink-0 border shadow-inner ${statusCfg.bg.replace('/10', '/20')} ${statusCfg.color} group-hover:scale-110 transition-transform`}>
                              <Target size={24} strokeWidth={2.5} />
-                             <div className={`absolute -inset-2 rounded-[24px] border border-${statusCfg.color.replace('text-', '')}/30 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse`} />
+                             <div className={`absolute -inset-2 rounded-sg-xl border border-${statusCfg.color.replace('text-', '')}/30 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse`} />
                          </div>
 
                          {/* Info */}
@@ -211,8 +211,8 @@ export function ProjectListScreen() {
 
               // GRID VIEW
               return (
-                <div key={proj.id} className="relative group perspective-[1200px] sg-stagger" style={{ animationDelay: `${(idx % 10) * 100}ms` }}>
-                  <div className="bg-white dark:bg-black/30 backdrop-blur-3xl rounded-[32px] border border-slate-200 dark:border-white/5 p-8 flex flex-col gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.04)] transition-all duration-700 hover:shadow-[0_24px_60px_rgba(0,0,0,0.12)] group-hover:-translate-y-3 relative overflow-hidden">
+                <div key={proj.id} className="relative group perspective-distant sg-stagger" style={{ animationDelay: `${(idx % 10) * 100}ms` }}>
+                  <div className="bg-white dark:bg-black/30 backdrop-blur-3xl rounded-sg-2xl border border-slate-200 dark:border-white/5 p-8 flex flex-col gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.04)] transition-all duration-700 hover:shadow-[0_24px_60px_rgba(0,0,0,0.12)] group-hover:-translate-y-3 relative overflow-hidden">
                     
                     {/* Glass Shimmers */}
                     <div className="absolute top-0 left-0 right-0 h-[2px] bg-linear-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
@@ -221,11 +221,11 @@ export function ProjectListScreen() {
                     
                     {/* Status Banner Area */}
                     <div className="flex items-start justify-between relative z-10 w-full cursor-default">
-                      <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center border shadow-inner ${statusCfg.bg.replace('/10', '/20')} ${statusCfg.border} ${statusCfg.color} transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-6`}>
+                      <div className={`w-16 h-16 rounded-sg-xl flex items-center justify-center border shadow-inner ${statusCfg.bg.replace('/10', '/20')} ${statusCfg.border} ${statusCfg.color} transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-6`}>
                         <Target size={28} strokeWidth={2.5} />
                       </div>
                       <div className="flex gap-2 items-center">
-                        <span className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] border shadow-xs ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
+                        <span className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-xs ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
                           {statusCfg.label}
                         </span>
                         <div className="relative">
@@ -287,7 +287,7 @@ export function ProjectListScreen() {
                     {/* Footer */}
                     <div className="pt-6 mt-auto border-t border-white/10 dark:border-white/5 flex items-center justify-between relative z-10 pointer-events-none">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-[12px] bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[12px] font-black shadow-lg border border-white/20">
+                        <div className="w-10 h-10 rounded-sg-md bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[12px] font-black shadow-lg border border-white/20">
                           <Users size={16} />
                         </div>
                         <div className="flex flex-col">

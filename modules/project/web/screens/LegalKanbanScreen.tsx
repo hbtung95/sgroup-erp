@@ -52,8 +52,8 @@ export function LegalKanbanScreen() {
       setIsUpdating(true);
       await legalDocApi.updateStatus(projectId, docId, newStatus);
       refetch();
-    } catch(err: any) {
-      alert(err.message || "Không thể cập nhật trạng thái");
+    } catch(err) {
+      alert(err instanceof Error ? err.message : "Không thể cập nhật trạng thái");
     } finally {
       setIsUpdating(false);
     }
@@ -103,7 +103,7 @@ export function LegalKanbanScreen() {
       <div className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
         <div className="h-full px-6 sm:px-10 lg:px-12 py-8 min-w-max flex gap-8 items-start">
           
-          {(Object.entries(RE_LEGAL_PROCEDURE_STATUS) as [RELegalProcedureStatus, any][]).map(([statusString, statusCfg], colIdx) => {
+          {(Object.entries(RE_LEGAL_PROCEDURE_STATUS) as [RELegalProcedureStatus, { label: string; bg: string; color: string; border: string }][]).map(([statusString, statusCfg], colIdx) => {
             const status = statusString as RELegalProcedureStatus;
             const columnDocs = columns[status] || [];
 
@@ -112,7 +112,7 @@ export function LegalKanbanScreen() {
                 key={status} 
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, status)}
-                className={`sg-stagger w-[380px] flex flex-col h-full bg-slate-50 dark:bg-black/30 backdrop-blur-3xl rounded-[32px] border border-slate-200 dark:border-white/5 shadow-md overflow-hidden transition-all duration-500 relative group/col ${isUpdating ? 'opacity-50 pointer-events-none' : ''}`}
+                className={`sg-stagger w-[380px] flex flex-col h-full bg-slate-50 dark:bg-black/30 backdrop-blur-3xl rounded-sg-2xl border border-slate-200 dark:border-white/5 shadow-md overflow-hidden transition-all duration-500 relative group/col ${isUpdating ? 'opacity-50 pointer-events-none' : ''}`}
                 style={{ animationDelay: `${colIdx * 100}ms` }}
               >
                 {/* Drag Target Glow */}
@@ -125,7 +125,7 @@ export function LegalKanbanScreen() {
                 <div className="p-6 flex items-center justify-between border-b border-slate-200 dark:border-white/5 relative z-10">
                    <div className={`absolute top-0 left-0 right-0 h-1.5 ${statusCfg.bg} opacity-80`} />
                    <div className="flex items-center gap-4">
-                     <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center shadow-lg ${statusCfg.bg.replace('/10', '/20')} ${statusCfg.color} border ${statusCfg.border}`}>
+                     <div className={`w-12 h-12 rounded-sg-lg flex items-center justify-center shadow-lg ${statusCfg.bg.replace('/10', '/20')} ${statusCfg.color} border ${statusCfg.border}`}>
                        <FolderClock size={20} strokeWidth={2.5} />
                      </div>
                      <h3 className="text-[17px] font-black text-sg-heading tracking-tight drop-shadow-sm line-clamp-1">{statusCfg.label}</h3>
@@ -154,13 +154,13 @@ export function LegalKanbanScreen() {
                         draggable
                         onDragStart={(e) => handleDragStart(e, doc.id, doc.projectId)}
                         onDragEnd={handleDragEnd}
-                        className={`bg-white dark:bg-black/40 backdrop-blur-2xl border ${isDragged ? 'border-rose-500 opacity-50 scale-95' : 'border-slate-200 dark:border-white/5'} rounded-[24px] p-6 flex flex-col gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(0,0,0,0.12)] hover:border-${statusCfg.color.replace('text-', '')}/40 transition-all duration-300 cursor-grab active:cursor-grabbing group hover:-translate-y-2 relative overflow-hidden`}
+                        className={`bg-white dark:bg-black/40 backdrop-blur-2xl border ${isDragged ? 'border-rose-500 opacity-50 scale-95' : 'border-slate-200 dark:border-white/5'} rounded-sg-xl p-6 flex flex-col gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(0,0,0,0.12)] hover:border-${statusCfg.color.replace('text-', '')}/40 transition-all duration-300 cursor-grab active:cursor-grabbing group hover:-translate-y-2 relative overflow-hidden`}
                       >
                         {/* Hover blob */}
                         <div className={`absolute -right-8 -top-8 w-24 h-24 rounded-full ${statusCfg.bg} blur-[36px] opacity-0 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none`} />
 
                         <div className="flex items-start justify-between relative z-10">
-                          <span className={`px-2.5 py-1 rounded-[8px] text-[10px] font-black uppercase tracking-[0.1em] border shadow-xs ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
+                          <span className={`px-2.5 py-1 rounded-sg-sm text-[10px] font-black uppercase tracking-widest border shadow-xs ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
                             {docProject?.code || 'N/A'}
                           </span>
                         </div>

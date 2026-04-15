@@ -5,9 +5,9 @@ export const MENU_GROUPS = [
   {
     title: 'QUẢN LÝ NGUỒN HÀNG',
     items: [
-      { path: 'dashboard', label: 'Dashboard Điều Hành', icon: LayoutDashboard },
+      { path: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { path: 'list', label: 'Danh mục Dự án', icon: Building2 },
-      { path: 'inventory', label: 'Rổ hàng Tổng (Master)', icon: Grid },
+      { path: 'inventory', label: 'Rổ hàng Tổng', icon: Grid },
       { path: 'legal', label: 'Kho Sales Kit & Pháp lý', icon: FileText },
     ]
   },
@@ -27,12 +27,12 @@ export function ProjectSidebar() {
       {/* Module Title */}
       <div className="px-6 pb-8">
         <div className="flex items-center gap-4 bg-sg-bg/40 p-3.5 rounded-[20px] border border-sg-border shadow-sm">
-          <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shrink-0 shadow-[0_8px_16px_rgba(6,182,212,0.3)] border border-white/10">
+          <div className="w-12 h-12 rounded-[14px] bg-linear-to-br from-cyan-400 to-blue-600 flex items-center justify-center shrink-0 shadow-[0_8px_16px_rgba(6,182,212,0.3)] border border-white/10">
             <Building2 size={24} className="text-white drop-shadow-md" />
           </div>
           <div>
-            <h1 className="text-[17px] font-black tracking-tight text-sg-heading drop-shadow-sm leading-none">BROKERAGE</h1>
-            <p className="text-[11px] font-extrabold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest mt-1">Center</p>
+            <h1 className="text-[17px] font-black tracking-tight text-sg-heading drop-shadow-sm leading-none">DỰ ÁN</h1>
+            <p className="text-[11px] font-extrabold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest mt-1">Quản lý nguồn hàng</p>
           </div>
         </div>
       </div>
@@ -49,9 +49,9 @@ export function ProjectSidebar() {
                   key={item.path}
                   to={`/ProjectModule/${item.path}`}
                   className={({ isActive }) =>
-                    `flex items-center gap-4 px-4 py-3 rounded-[16px] transition-all duration-300 group relative overflow-hidden ${
+                    `flex items-center gap-4 px-4 py-3 rounded-sg-16px transition-all duration-300 group relative overflow-hidden ${
                       isActive 
-                        ? 'bg-gradient-to-r from-cyan-500/15 to-blue-600/5 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 shadow-[0_4px_24px_rgba(6,182,212,0.15)] pointer-events-none z-10' 
+                        ? 'bg-linear-to-r from-cyan-500/15 to-blue-600/5 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 shadow-[0_4px_24px_rgba(6,182,212,0.15)] pointer-events-none z-10' 
                         : 'text-sg-subtext border border-transparent hover:bg-sg-bg/50 hover:border-sg-border hover:shadow-sm hover:text-sg-heading'
                     }`
                   }
@@ -79,7 +79,7 @@ export function ProjectSidebar() {
         <NavLink
             to="/ProjectModule/settings"
             className={({ isActive }) =>
-              `flex items-center gap-4 px-4 py-3.5 rounded-[16px] transition-all duration-300 group ${
+              `flex items-center gap-4 px-4 py-3.5 rounded-sg-16px transition-all duration-300 group ${
                 isActive 
                   ? 'bg-sg-btn-bg text-sg-heading font-black border border-sg-border shadow-sm' 
                   : 'text-sg-subtext hover:bg-sg-bg/50 hover:border-sg-border border border-transparent hover:shadow-sm hover:text-sg-heading font-bold'
