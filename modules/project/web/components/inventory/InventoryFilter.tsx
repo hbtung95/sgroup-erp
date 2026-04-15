@@ -67,28 +67,7 @@ export function InventoryFilter({
       </div>
       
       <div className="flex flex-wrap items-center gap-3">
-        {/* Unified Search */}
-        <div className="relative group flex-1 max-w-md">
-          <div className="absolute inset-0 bg-linear-to-r from-cyan-500/0 via-cyan-500/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 blur transition-opacity" />
-          <div className="relative flex items-center h-12 bg-white dark:bg-black/40 backdrop-blur-xl border border-slate-200 dark:border-sg-border hover:border-cyan-500/30 rounded-xl px-4 transition-colors shadow-sm">
-            <Search size={18} className="text-sg-muted group-hover:text-cyan-500 transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Tìm dự án hoặc mã căn..." 
-              className="bg-transparent border-none outline-none ml-3 text-[14px] font-bold text-sg-heading w-full placeholder:text-sg-muted"
-              value={filters.search}
-              onChange={e => h('search', e.target.value)}
-            />
-            {filters.search && (
-              <button 
-                onClick={() => h('search', '')}
-                className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-sg-muted hover:text-rose-500"
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
-        </div>
+
 
         {/* Status Select */}
         <select 
