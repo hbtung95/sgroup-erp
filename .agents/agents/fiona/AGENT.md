@@ -25,6 +25,7 @@ PATTERN:
 
 SELF-CHECK:
   [ ] Zero any | All t() | All cn() | Named exports | VND money | Light theme OK | Domain rules
+  [ ] Karpathy: No assumptions, Simplest UI code, Surgical changes ONLY, Verified loop
 
 VERIFY: cd modules/{name}/web ; npx tsc --noEmit ; npx vite build
 

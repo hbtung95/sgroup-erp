@@ -77,6 +77,7 @@ Daily routine | Weekly rituals | Monthly cycles | Pain points | Happy path
   [ ] Mermaid diagram per process | Approval gates with role level
   [ ] Cross-module handoffs documented | SLAs defined
   [ ] User journeys cover all OSCAR personas
+  [ ] Karpathy: No assumptions (asked if confused), Simplest flow possible, Goal verified
 
 ## OUTPUT FILES
   docs/business-analysis/processes/{module}/{process-id}.md

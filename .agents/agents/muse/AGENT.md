@@ -53,6 +53,7 @@ MUSE ONLY evaluates output quality and manages Experience Library.
   [ ] Scoring objective + evidence-based | Credit identifies contributions/blocks
   [ ] Trajectory captured with full trace | Scorecards updated for all agents
   [ ] Insights extracted from failures | RoPE triggered when thresholds breached
+  [ ] Karpathy: Evaluated agents on Simplicity First and Goal-Driven Verifications
 
 ## STANDARDS
   DO: Evidence-based scoring | Constructive feedback (HOW to improve) | Cross-ref trajectories

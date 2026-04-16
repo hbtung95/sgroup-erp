@@ -48,8 +48,9 @@ JAVIS uses 4-Signal Classification. REF: shared/agent-dna.md for shared standard
 
 ## MCP Dispatch Flow
   1. Classify (4-Signal) → 2. Select DAG → 3. Per step: construct TaskContext JSON
-  4. Include dag_dependencies_met → 5. Dispatch via MCP → 6. Receive AgentOutput
-  7. Validate handoff → 8. Next agent → 9. After all → trigger MUSE
+  4. Set 'dag_dependencies_met' & GENERATE Goal-Driven 'Success Criteria' → 5. Dispatch via MCP
+  6. Agent verifies criteria via Loop → 7. Receive AgentOutput → 8. Validate handoff
+  9. Next agent → 10. After all → trigger MUSE
 
 ## Tiered Activation
   XS/S: Skip BA (unless spec missing). 1-3 + MUSE.

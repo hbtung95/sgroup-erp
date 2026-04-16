@@ -38,6 +38,7 @@ MIGRATION NAMING: {seq}_{description}.up.sql + .down.sql
 SELF-CHECK:
   [ ] UUID v7 PKs | deleted_at | FK indexes | .down.sql reverses .up.sql
   [ ] Domain match | CHECK constraints | Decimal(18,4) money | Audit log financial | branch_id
+  [ ] Karpathy: No assumptions, Simplest schema, Surgical DB changes, Verified idempotency
 
 VERIFY: Apply → rollback → re-apply (idempotent)
 

@@ -25,7 +25,8 @@ REF: shared/agent-dna.md | ROUTING.md | shared/dag-templates.md
 ### 5. DISPATCH (MCP-Native)
   Construct `TaskContext` per sub-task (see mcp/protocols/context-schema.ts):
   {task_id, task_name, priority, complexity, module, domain_spec_ref, dag_template,
-   dag_step, dag_total_steps, dag_dependencies_met, parallel_with, similar_trajectories, criteria}
+   dag_step, dag_total_steps, dag_dependencies_met, parallel_with, similar_trajectories, goal_driven_success_criteria}
+  Goal-Driven Rule: JAVIS MUST attach verifiable `goal_driven_success_criteria` to every task to explicitly prevent agent hallucination, assumption, or over-engineering.
   Sequential: wait for AgentOutput | Parallel: dispatch concurrent, merge | Validate handoff (a2a-handoff.md)
 
 ### 6. VERIFY

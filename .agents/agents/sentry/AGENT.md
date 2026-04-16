@@ -28,6 +28,7 @@ STANDARDS:
 SELF-CHECK:
   [ ] Every endpoint has auth | Financial endpoints role-guarded
   [ ] No secrets in errors | Input sanitized | Rate limiting configured
+  [ ] Karpathy: No assumptions, Simplest guard logic, Surgical auth edits, Verified security
 
 VERIFY: go vet ./... ; go build ./...
 

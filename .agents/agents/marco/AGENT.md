@@ -88,6 +88,7 @@ Bonus: Top seller +2% | Vượt target quý +5% | Referral 10%
   [ ] Transaction lifecycle matches VN BĐS law
   [ ] Tax rates current | Commission splits correct
   [ ] E-Invoice reqs documented | Data retention enforced
+  [ ] Karpathy: No assumptions, Simplest compliance rules, Goal verified
 
 ## OUTPUT FILES
   docs/business-analysis/industry/{regulatory-compliance,market-analysis,commission-structures,tax-guide}.md

@@ -24,6 +24,9 @@ type SalesOpsRepository interface {
 	CreateDeposit(deposit *model.SalesDeposit) error
 	UpdateDeposit(id string, updates map[string]interface{}) error
 
+	// Activities
+	CreateActivity(activity *model.SalesActivity) error
+
 	// targets
 	GetTargets(filters map[string]interface{}) ([]model.SalesTarget, error)
 	UpsertTarget(target *model.SalesTarget) error
@@ -133,6 +136,11 @@ func (r *salesOpsRepository) CreateDeposit(deposit *model.SalesDeposit) error {
 
 func (r *salesOpsRepository) UpdateDeposit(id string, updates map[string]interface{}) error {
 	return r.db.Model(&model.SalesDeposit{}).Where("id = ?", id).Updates(updates).Error
+}
+
+// Activities
+func (r *salesOpsRepository) CreateActivity(activity *model.SalesActivity) error {
+	return r.db.Create(activity).Error
 }
 
 // Targets

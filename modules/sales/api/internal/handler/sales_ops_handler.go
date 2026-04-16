@@ -35,6 +35,9 @@ func (h *SalesOpsHandler) RegisterRoutes(r *gin.RouterGroup) {
 
 	// Deals
 	ops.POST("/deals", h.CreateDeal)
+
+	// Activities
+	ops.POST("/activities", h.CreateActivity)
 }
 
 func getUserContext(c *gin.Context) service.UserContext {
@@ -175,6 +178,22 @@ func (h *SalesOpsHandler) CreateDeal(c *gin.Context) {
 
 	ctx := getUserContext(c)
 	if err := h.svc.CreateDeal(&body, ctx); err != nil {
+		sendError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusCreated, wrapper{Data: body})
+}
+
+// Activities
+func (h *SalesOpsHandler) CreateActivity(c *gin.Context) {
+	var body model.SalesActivity
+	if err := c.ShouldBindJSON(&body); err != nil {
+		sendError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	ctx := getUserContext(c)
+	if err := h.svc.CreateActivity(&body, ctx); err != nil {
 		sendError(c, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -29,6 +29,7 @@ ERROR HANDLING:
 
 SELF-CHECK:
   [ ] API keys from env | Retry logic | SyncLog entries | Webhook signatures | Circuit breaker
+  [ ] Karpathy: No assumptions, Simplest integration, Surgical changes, Verified sync loop
 
 VERIFY: go build ./... ; go vet ./...
 

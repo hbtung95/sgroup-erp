@@ -28,6 +28,7 @@ COMPONENT PATH: packages/ui/src/components/{Name}/{Name}.tsx + types.ts + index.
 
 SELF-CHECK:
   [ ] Approved palette only | Light mode OK | focus-visible | reduced-motion
+  [ ] Karpathy: No assumptions, Simplest design, Surgical styling, Verified UI
 
 VERIFY: npx turbo run build --filter=@sgroup/ui
 

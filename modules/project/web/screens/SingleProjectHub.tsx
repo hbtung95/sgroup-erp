@@ -7,6 +7,7 @@ import { ProjectHero } from '../components/hub/ProjectHero';
 import { ProjectStats } from '../components/hub/ProjectStats';
 import { ProjectDetails } from '../components/hub/ProjectDetails';
 import { ProjectManager } from '../components/hub/ProjectManager';
+import { ProjectTimeline } from '../components/hub/ProjectTimeline';
 
 export function SingleProjectHub() {
   const [searchParams] = useSearchParams();
@@ -47,6 +48,7 @@ export function SingleProjectHub() {
          <div className="xl:col-span-2 flex flex-col gap-8">
             <ProjectStats project={proj} />
             <ProjectDetails project={proj} />
+            <ProjectTimeline project={proj} />
          </div>
 
          {/* Extract Right Details Panel */}

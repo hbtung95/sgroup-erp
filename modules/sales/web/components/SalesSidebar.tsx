@@ -1,185 +1,152 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, UserCog, Briefcase, Building2,
-  ChevronLeft, ChevronRight, UserCircle, TrendingUp,
-  Handshake, BarChart4, Settings, Target
+  BarChart3, Users, Layers, Building2, UserCheck,
+  FileText, TrendingUp, Settings, ChevronLeft, ChevronRight,
+  Sparkles, DollarSign, Calculator, Grid
 } from 'lucide-react';
-import { useAuthStore } from '@sgroup/platform';
+import { useSalesRole } from './shared/RoleContext';
 
-/* ════════════════════════════════════════════════════════
-   TYPES & CONFIG
-   ════════════════════════════════════════════════════════ */
+// ═══════════════════════════════════════════════════════════
+// SALES SIDEBAR — URL-based navigation with RBAC + Sections
+// ═══════════════════════════════════════════════════════════
 
-export type SalesRole = 'sales_staff' | 'sales_manager' | 'sales_director' | 'admin';
-
-export interface SalesSidebarItem {
-  key: string;
+interface SidebarItem {
+  id: string;
   label: string;
-  icon: any;
-  section: 'dashboard' | 'crm' | 'pipeline' | 'team' | 'director';
-  minRole: SalesRole[];
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  path: string;
+  badge?: number;
+  roles?: string[]; // If empty, visible to all
+  section?: string; // Section divider label
 }
 
-const ALL_ROLES: SalesRole[] = ['sales_staff', 'sales_manager', 'sales_director', 'admin'];
-const MANAGER_UP: SalesRole[] = ['sales_manager', 'sales_director', 'admin'];
-const DIRECTOR_UP: SalesRole[] = ['sales_director', 'admin'];
-
-const SIDEBAR_ITEMS: SalesSidebarItem[] = [
-  { key: 'SALES_DASHBOARD', label: 'Tổng quan Doanh số', icon: LayoutDashboard, section: 'dashboard', minRole: ALL_ROLES },
-  { key: 'SALES_CUSTOMERS', label: 'Khách hàng (CRM)', icon: Users, section: 'crm', minRole: ALL_ROLES },
-  { key: 'SALES_PIPELINE', label: 'Pipeline Giao Dịch', icon: Handshake, section: 'pipeline', minRole: ALL_ROLES },
-  { key: 'SALES_TEAM', label: 'Quản lý Đội Nhóm', icon: Target, section: 'team', minRole: MANAGER_UP },
-  { key: 'SALES_DEPARTMENT', label: 'Phòng Ban KD', icon: Building2, section: 'director', minRole: DIRECTOR_UP },
-  { key: 'SALES_REPORTS', label: 'Báo cáo & Phân tích', icon: BarChart4, section: 'director', minRole: DIRECTOR_UP },
-  { key: 'SALES_SETTINGS', label: 'Cài đặt Module', icon: Settings, section: 'director', minRole: DIRECTOR_UP },
+const SIDEBAR_ITEMS: SidebarItem[] = [
+  // ─── Vận Hành ───
+  { id: 'dashboard',     label: 'Dashboard',      icon: BarChart3,   path: 'dashboard',    section: 'Vận Hành' },
+  { id: 'customers',     label: 'Khách Hàng',     icon: Users,       path: 'customers' },
+  { id: 'transactions',  label: 'Giao Dịch',      icon: Layers,      path: 'transactions', badge: 3 },
+  { id: 'inventory',     label: 'Bảng Hàng',      icon: Grid,        path: 'inventory' },
+  { id: 'commission',    label: 'Hoa Hồng',       icon: DollarSign,  path: 'commission' },
+  // ─── Công Cụ ───
+  { id: 'loan-calculator', label: 'Tính Khoản Vay', icon: Calculator, path: 'loan-calculator', section: 'Công Cụ' },
+  // ─── Quản Lý ───
+  { id: 'team',          label: 'Đội Ngũ',        icon: UserCheck,   path: 'team',          roles: ['sales_manager', 'sales_director', 'admin'], section: 'Quản Lý' },
+  { id: 'departments',   label: 'Phòng Ban',      icon: Building2,   path: 'departments',   roles: ['sales_director', 'admin'] },
+  { id: 'reports',       label: 'Báo Cáo',        icon: FileText,    path: 'reports',       roles: ['sales_manager', 'sales_director', 'admin'] },
+  // ─── Hệ Thống ───
+  { id: 'settings',      label: 'Cài Đặt',        icon: Settings,    path: 'settings',      roles: ['sales_director', 'admin'], section: 'Hệ Thống' },
 ];
 
-const SECTIONS = [
-  { key: 'dashboard', label: '' },
-  { key: 'crm', label: 'QUẢN LÝ KHÁCH HÀNG' },
-  { key: 'pipeline', label: 'GIAO DỊCH' },
-  { key: 'team', label: 'QUẢN LÝ ĐỘI NHÓM' },
-  { key: 'director', label: 'ĐIỀU HÀNH CẤP CAO' },
-];
+// Props removed as we use context
 
-/* ════════════════════════════════════════════════════════
-   COMPONENT
-   ════════════════════════════════════════════════════════ */
+export function SalesSidebar() {
+  const { role: userRole } = useSalesRole();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-interface Props {
-  activeKey: string;
-  onSelect: (item: SalesSidebarItem) => void;
-  collapsed: boolean;
-  onToggleCollapse: () => void;
-  userRole?: SalesRole;
-}
+  const currentPath = location.pathname.split('/').pop() || 'dashboard';
 
-export function SalesSidebar({ activeKey, onSelect, collapsed, onToggleCollapse, userRole = 'sales_staff' }: Props) {
-  const { user } = useAuthStore();
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
-
-  const visibleItems = SIDEBAR_ITEMS.filter(item => item.minRole.includes(userRole));
-
-  const renderItem = (item: SalesSidebarItem) => {
-    const isActive = activeKey === item.key;
-    const IconComp = item.icon;
-    return (
-      <button
-        key={item.key}
-        onClick={() => onSelect(item)}
-        className={`w-[calc(100%-24px)] flex items-center mx-3 mb-1 px-3 py-3 rounded-2xl transition-all duration-300 border border-transparent
-          ${isActive
-            ? (isDark
-              ? 'bg-emerald-500/15 border-emerald-500/20'
-              : 'bg-emerald-50 shadow-[0_4px_14px_rgba(16,185,129,0.12)] border-emerald-100')
-            : 'hover:bg-sg-btn-bg'
-          }
-        `}
-      >
-        <div className="w-6 flex items-center justify-center flex-shrink-0">
-          <IconComp size={20} className={isActive ? 'text-emerald-500' : 'text-sg-muted'} strokeWidth={isActive ? 2.5 : 2} />
-        </div>
-        {!collapsed && (
-          <span className={`ml-3.5 text-sm truncate flex-1 text-left tracking-[0.2px]
-            ${isActive ? 'font-extrabold text-emerald-600 dark:text-emerald-400' : 'font-semibold text-sg-subtext'}
-          `}>
-            {item.label}
-          </span>
-        )}
-      </button>
-    );
-  };
+  const filteredItems = SIDEBAR_ITEMS.filter(
+    item => !item.roles || item.roles.includes(userRole)
+  );
 
   return (
-    <aside className={`
-      relative h-screen flex flex-col border-r transition-all duration-300
-      bg-sg-card border-sg-border
-      ${collapsed ? 'w-20' : 'w-[260px]'}
-    `}>
-      {/* ═══ Brand Header ═══ */}
-      <div className="h-20 flex flex-row justify-between items-center px-4 border-b border-sg-border">
-        <div className={`flex flex-row items-center overflow-hidden ${collapsed ? 'gap-0 flex-none' : 'gap-3 flex-1'}`}>
-          <div className="w-[38px] h-[38px] rounded-xl flex justify-center items-center flex-shrink-0 bg-gradient-to-br from-emerald-400 to-amber-500 shadow-[0_4px_16px_rgba(16,185,129,0.3)]">
-            <span className="text-[15px] font-black text-white tracking-[1.5px]">KD</span>
-          </div>
-          <div className={`flex flex-col flex-1 transition-opacity duration-300 ${collapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
-            <span className="text-sm font-extrabold text-sg-heading tracking-[0.8px] truncate">KINH DOANH</span>
-            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tracking-[2px] mt-0.5 whitespace-nowrap">SALES MODULE</span>
-          </div>
+    <aside className={`h-full flex flex-col transition-all duration-300 ${isCollapsed ? 'w-[72px]' : 'w-[260px]'}`}>
+
+      {/* ── Logo ── */}
+      <div className={`h-[84px] flex items-center border-b border-slate-100 dark:border-sg-border/40 ${isCollapsed ? 'justify-center px-2' : 'px-5 gap-3'}`}>
+        <div className="w-11 h-11 rounded-[14px] bg-linear-to-br from-emerald-500 to-amber-500 flex items-center justify-center shadow-[0_8px_24px_rgba(16,185,129,0.25)] shrink-0">
+          <TrendingUp size={20} className="text-white drop-shadow-md" />
         </div>
+        {!isCollapsed && (
+          <div className="flex flex-col min-w-0">
+            <span className="text-[16px] font-black text-sg-heading tracking-tight truncate">SGroup</span>
+            <span className="text-[9px] font-bold text-sg-subtext uppercase tracking-[2px]">Sales Module</span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Navigation Items ── */}
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        {filteredItems.map(item => {
+          const isActive = currentPath === item.path;
+          const Icon = item.icon;
+          return (
+            <React.Fragment key={item.id}>
+              {/* Section divider */}
+              {item.section && !isCollapsed && (
+                <div className="pt-3 pb-1 px-4 first:pt-0">
+                  <span className="text-[9px] font-black text-sg-muted/70 uppercase tracking-[2px]">{item.section}</span>
+                </div>
+              )}
+              {item.section && isCollapsed && (
+                <div className="my-1.5 mx-2 h-px bg-sg-border/30" />
+              )}
+              <button
+               onClick={() => navigate(`/SalesModule/${item.path}`)}
+               title={isCollapsed ? item.label : undefined}
+               className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 group relative ${
+                 isCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'
+               } ${
+                 isActive
+                   ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shadow-[0_2px_12px_rgba(16,185,129,0.1)]'
+                   : 'border border-transparent text-sg-muted hover:bg-sg-card/60 hover:text-sg-heading hover:border-sg-border/50'
+               }`}
+             >
+              {/* Active indicator bar */}
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-emerald-500 rounded-r-full shadow-[2px_0_8px_rgba(16,185,129,0.4)]" />
+              )}
+
+              <Icon size={18} className={`shrink-0 transition-colors ${
+                isActive ? 'text-emerald-500 drop-shadow-[0_2px_4px_rgba(16,185,129,0.4)]' : 'group-hover:text-sg-heading'
+              }`} />
+
+              {!isCollapsed && (
+                <>
+                  <span className={`text-[13px] font-bold truncate ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
+                    {item.label}
+                  </span>
+                  {item.badge && item.badge > 0 && (
+                    <span className="ml-auto px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-[10px] font-black text-rose-500">
+                      {item.badge}
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
+            </React.Fragment>
+          );
+        })}
+      </nav>
+
+      {/* ── AI Copilot Button ── */}
+      <div className="px-3 pb-3">
         <button
-          onClick={onToggleCollapse}
-          className="w-8 h-8 rounded-lg flex items-center justify-center bg-sg-btn-bg border border-sg-border hover:bg-sg-border transition-colors flex-shrink-0 z-10"
+          className={`w-full flex items-center gap-3 rounded-xl py-3 bg-linear-to-r from-emerald-500/10 to-amber-500/10 border border-emerald-500/20 hover:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 transition-all group ${isCollapsed ? 'justify-center px-0' : 'px-4'}`}
+          title={isCollapsed ? 'Sales Copilot (Cmd+J)' : undefined}
         >
-          {collapsed ? <ChevronRight size={14} className="text-sg-muted" strokeWidth={2.5} /> : <ChevronLeft size={14} className="text-sg-muted" strokeWidth={2.5} />}
+          <Sparkles size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+          {!isCollapsed && (
+            <>
+              <span className="text-[13px] font-bold">Copilot</span>
+              <kbd className="ml-auto px-1.5 py-0.5 bg-sg-btn-bg border border-sg-border rounded text-[9px] font-bold text-sg-muted">⌘J</kbd>
+            </>
+          )}
         </button>
       </div>
 
-      {/* ═══ Navigation Menu ═══ */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar py-2">
-        {SECTIONS.map(sec => {
-          const sectionItems = visibleItems.filter(i => i.section === sec.key);
-          if (sectionItems.length === 0) return null;
-          return (
-            <div key={sec.key}>
-              {!collapsed && sec.label && (
-                <div className="text-[11px] font-extrabold tracking-[1.8px] uppercase text-sg-muted px-6 mt-4 mb-2.5 truncate">
-                  {sec.label}
-                </div>
-              )}
-              {sectionItems.map(renderItem)}
-              <div className="h-px mx-6 my-1.5 bg-sg-border" />
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ═══ Footer: User Profile ═══ */}
-      <div className="p-3 border-t border-sg-border flex flex-col gap-2">
-        <div className={`flex items-center ${collapsed ? 'justify-center mx-auto' : 'justify-between'}`}>
-          <div className={`flex items-center flex-1 rounded-xl transition-all border border-transparent overflow-hidden ${collapsed ? 'p-0 w-9 h-9 justify-center' : 'p-2 mr-2'} hover:bg-sg-btn-bg`}>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-amber-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <span className="text-[13px] font-black text-white">{user?.name ? user.name[0].toUpperCase() : 'U'}</span>
-            </div>
-            {!collapsed && (
-              <div className="ml-2.5 flex flex-col text-left truncate flex-1 min-w-0 pointer-events-none">
-                <span className="text-[12px] font-extrabold text-sg-heading truncate">{user?.name || 'User'}</span>
-                <span className="text-[9px] font-bold text-sg-subtext uppercase tracking-[1px] truncate mt-0.5">{userRole.replace(/_/g, ' ')}</span>
-              </div>
-            )}
-          </div>
-
-          {!collapsed && (
-            <button
-              onClick={() => window.location.href = '/'}
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-sg-btn-bg hover:bg-sg-border border border-sg-border transition-colors group shadow-sm"
-              title="Về Workspace"
-            >
-              <LayoutDashboard size={15} className="text-sg-muted group-hover:text-sg-heading" />
-            </button>
-          )}
-        </div>
-
-        {collapsed && (
-          <button
-            onClick={() => window.location.href = '/'}
-            className="w-9 h-9 mt-1 rounded-xl flex items-center justify-center flex-shrink-0 bg-sg-btn-bg hover:bg-sg-border border border-sg-border transition-colors group mx-auto shadow-sm"
-            title="Về Workspace"
-          >
-            <LayoutDashboard size={15} className="text-sg-muted group-hover:text-sg-heading" />
-          </button>
-        )}
+      {/* ── Collapse Toggle ── */}
+      <div className="border-t border-slate-100 dark:border-sg-border/40 p-3">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="w-full flex items-center justify-center py-2.5 rounded-xl bg-sg-btn-bg border border-sg-border hover:bg-sg-card transition-colors"
+        >
+          {isCollapsed ? <ChevronRight size={16} className="text-sg-muted" /> : <ChevronLeft size={16} className="text-sg-muted" />}
+        </button>
       </div>
     </aside>
   );
 }
-
-export { SIDEBAR_ITEMS };

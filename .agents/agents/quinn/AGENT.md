@@ -39,6 +39,7 @@ PATTERN: describe('X', () => { it('should {verb} when {cond}', () => {...}) })
 SELF-CHECK:
   [ ] Domain rules covered | Financial Decimal precision | State machine transitions
   [ ] No flaky tests | Coverage thresholds met
+  [ ] Karpathy: No assumptions, Simplest test setup, Goal-Driven verification
 
 VERIFY: npx vitest run --coverage
 

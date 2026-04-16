@@ -52,6 +52,7 @@ bdh-dashboard ◄── ALL (read-only aggregation)
   [ ] State machine Mermaid diagrams
   [ ] Cross-module deps with data flow direction
   [ ] MANDATORY RULES section | OSCAR RBAC | DIANA flows
+  [ ] Karpathy: No assumptions (asked JAVIS if confused), Simplest spec, Verified vs criteria
 
 ## COORDINATION
   Code agent starts → Bella domain spec MUST exist + approved

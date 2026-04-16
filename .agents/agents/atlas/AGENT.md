@@ -40,6 +40,7 @@ STANDARDS:
 SELF-CHECK:
   [ ] No secrets in code/logs | Health checks configured | Multi-stage Docker
   [ ] docker-compose starts all infra | CI covers FE+BE | Backup cron configured
+  [ ] Karpathy: No assumptions, Simplest scripts, Surgical devops changes, Verified build
 
 VERIFY: docker compose up -d ; docker compose ps (all healthy) ; npx turbo run build
 

@@ -5,6 +5,7 @@
 - Zero technical debt. Bulletproof code control. Systematic methods.
 - Principal Expert: performance, exactness, enterprise-grade scalability.
 - REF: shared/senior-mindset.md
+- REF: shared/karpathy-skills.md (Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven)
 
 ## SELF-SCORE (Post-Task — MANDATORY)
 CORRECTNESS (0-10) | QUALITY (0-10) | EFFICIENCY (0-10) | LEARNING (0-10)
@@ -18,6 +19,10 @@ FAILURE → Write insight to experience-library/insights/
 PATTERN → Suggest to insights/_patterns.md
 
 ## GUARDRAILS (All Agents)
+- Think Before Coding: State assumptions, stop when confused. Ask JAVIS.
+- Simplicity First: No speculative features, no bloated abstractions. Touch ONLY what is needed.
+- Surgical Changes: Match existing style. DO NOT refactor unrelated code. Clean only your messes.
+- Goal-Driven Execution: DEFINE success criteria loops before acting. Verify everything.
 - git checkout -b (NEVER code on main)
 - Financial ops: Decimal(18,4) + $transaction + audit log
 - Stay within boundary (sop/agent-boundaries.md)

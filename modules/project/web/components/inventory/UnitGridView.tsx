@@ -122,9 +122,9 @@ export function UnitGridView({
               <div className={`bg-white dark:bg-black/30 backdrop-blur-3xl border animate-in zoom-in-95 fade-in duration-500 fill-mode-both ${selectedMulti.includes(item.id) ? 'border-cyan-500 ring-2 ring-cyan-500/50 shadow-[0_16px_40px_rgba(6,182,212,0.2)] -translate-y-2' : 'border-slate-200 dark:border-white/5 shadow-md hover:shadow-xl hover:-translate-y-2'} rounded-3xl p-6 flex flex-col gap-4 transition-all duration-500 relative overflow-hidden h-full flex`}>
                 
                 {/* 3D Ambient Lighting Core */}
-                <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-[32px]" />
+                <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-sg-2xl" />
                 <div className={`absolute -right-8 -top-8 w-28 h-28 rounded-full ${statusCfg.bg} blur-[36px] opacity-20 group-hover:opacity-60 group-hover:scale-125 transition-all duration-1000 pointer-events-none`} />
-                <div className={`absolute -left-10 -bottom-10 w-32 h-32 rounded-full ${typeCfg.bg} blur-[40px] opacity-10 group-hover:opacity-30 group-hover:translate-x-4 transition-all duration-1000 pointer-events-none`} />
+                <div className={`absolute -left-10 -bottom-10 w-32 h-32 rounded-full ${typeCfg.bg} blur-2xl opacity-10 group-hover:opacity-30 group-hover:translate-x-4 transition-all duration-1000 pointer-events-none`} />
                 
                 {/* Checkbox */}
                 <div 
@@ -182,7 +182,7 @@ export function UnitGridView({
                 </div>
 
                 {/* Data Tags */}
-                <div className="mt-1 flex flex-col gap-2.5 relative z-10 w-full overflow-hidden bg-slate-50 dark:bg-black/40 rounded-[16px] p-3 border border-slate-200 dark:border-white/5">
+                <div className="mt-1 flex flex-col gap-2.5 relative z-10 w-full overflow-hidden bg-slate-50 dark:bg-black/40 rounded-sg-lg p-3 border border-slate-200 dark:border-white/5">
                   <div className="flex items-center justify-between w-full">
                     <span className="text-[11px] font-bold text-sg-subtext uppercase tracking-wider">Diện tích</span>
                     <span className="text-[13px] font-black text-sg-heading">{parseFloat(Number(item.area).toFixed(2))} m²</span>
@@ -204,16 +204,16 @@ export function UnitGridView({
                 <div className="mt-auto pt-4 relative z-10 flex items-center justify-between">
                    <div className="flex flex-col flex-1 min-w-0 pr-2">
                      {item.status === 'SOLD' && item.salespersonId ? (
-                       <span className="text-[10px] font-black text-sg-heading tracking-[0.1em] uppercase flex items-center gap-1"><ArrowUpRight size={12} className="text-emerald-500"/> ID {item.salespersonId}</span>
+                       <span className="text-[10px] font-black text-sg-heading tracking-widest uppercase flex items-center gap-1"><ArrowUpRight size={12} className="text-emerald-500"/> ID {item.salespersonId}</span>
                      ) : item.status === 'RESERVED' ? (
-                       <span className="text-[10px] font-black text-amber-500 tracking-[0.1em] uppercase drop-shadow-sm">Đã cọc giữ: 50Tr</span>
+                       <span className="text-[10px] font-black text-amber-500 tracking-widest uppercase drop-shadow-sm">Đã cọc giữ: 50Tr</span>
                      ) : (
-                       <span className={`px-2.5 py-1 rounded-[8px] text-[9px] w-fit font-black uppercase tracking-[0.1em] border shadow-xs ${typeCfg.bg} ${typeCfg.color} ${typeCfg.border}`}>
+                       <span className={`px-2.5 py-1 rounded-sg-sm text-[9px] w-fit font-black uppercase tracking-widest border shadow-xs ${typeCfg.bg} ${typeCfg.color} ${typeCfg.border}`}>
                          {typeCfg.label}
                        </span>
                      )}
                    </div>
-                   <span className={`px-2.5 py-1 rounded-[8px] text-[9px] font-bold tracking-[0.1em] uppercase border shadow-xs flex-none ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
+                   <span className={`px-2.5 py-1 rounded-sg-sm text-[9px] font-bold tracking-widest uppercase border shadow-xs flex-none ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
                      {statusCfg.label}
                    </span>
                 </div>

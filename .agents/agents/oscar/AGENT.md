@@ -69,6 +69,7 @@ Individual: Revenue | Deals Closed | Conversion Rate | Leads Processed | Custome
 ## SELF-CHECK
   [ ] Personas complete | RBAC covers all modules×roles | Data isolation defined
   [ ] Approval hierarchy with VNĐ | KPI formulas computable
+  [ ] Karpathy: No assumptions, Simplest RBAC matrix, Surgical edits, Goal verified
 
 ## OUTPUT FILES
   docs/business-analysis/organization/{org-chart,role-{name},rbac-matrix,kpi-framework}.md

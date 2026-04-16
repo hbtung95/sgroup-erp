@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useProjects, useInventory } from '../hooks/useProjects';
-import { BarChart3, PieChart, TrendingUp, Medal, MapPin, Building2, Crown } from 'lucide-react';
+import { BarChart3, PieChart, TrendingUp, Medal, MapPin, Building2, Crown, Activity, DollarSign } from 'lucide-react';
 import { RE_PROPERTY_TYPE } from '../constants';
 
 export function ReportsScreen() {
@@ -122,6 +122,65 @@ export function ReportsScreen() {
                 </div>
               );
             })}
+          </div>
+        </div>
+
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-10">
+        
+        {/* Cashflow Projection */}
+        <div className="bg-white dark:bg-black/30 backdrop-blur-2xl border border-slate-200 dark:border-white/5 rounded-2xl p-7 shadow-md transition-all relative overflow-hidden group">
+          <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
+          <div className="flex items-center gap-2 mb-6 border-b border-sg-border/60 pb-4 relative z-10">
+             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-sm">
+               <DollarSign size={20} />
+             </div>
+             <h3 className="text-[16px] font-black text-sg-heading uppercase tracking-wide drop-shadow-sm">Cashflow Phân Kỳ Thực Tế</h3>
+          </div>
+          <div className="flex flex-col gap-5 relative z-10">
+            {[
+              { q: 'Q1/2026', revenue: '150B', pct: 25 },
+              { q: 'Q2/2026', revenue: '400B', pct: 65 },
+              { q: 'Q3/2026', revenue: '850B', pct: 100 },
+              { q: 'Q4/2026', revenue: '1,200B', pct: 85 }
+            ].map(item => (
+              <div key={item.q} className="flex items-center justify-between">
+                 <span className="text-[13px] font-black text-sg-heading tracking-wider">{item.q}</span>
+                 <div className="flex-1 mx-4 h-2 rounded-full bg-sg-bg border border-sg-border shadow-inner relative overflow-hidden">
+                    <div className="absolute top-0 left-0 h-full bg-linear-to-r from-emerald-400 to-emerald-600 transition-all duration-1000" style={{ width: `${item.pct}%` }} />
+                 </div>
+                 <span className="text-[14px] font-black text-emerald-500 w-16 text-right">{item.revenue}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Absorption Rate */}
+        <div className="bg-white dark:bg-black/30 backdrop-blur-2xl border border-slate-200 dark:border-white/5 rounded-2xl p-7 shadow-md transition-all relative overflow-hidden group">
+          <div className="absolute -top-20 -left-20 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] pointer-events-none" />
+          <div className="flex items-center gap-2 mb-6 border-b border-sg-border/60 pb-4 relative z-10">
+             <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shadow-sm">
+               <Activity size={20} />
+             </div>
+             <h3 className="text-[16px] font-black text-sg-heading uppercase tracking-wide drop-shadow-sm">Tốc độ hấp thụ (Absorption Rate)</h3>
+          </div>
+          <div className="flex flex-col gap-4 relative z-10">
+             <div className="flex items-end gap-3 mb-2">
+                <span className="text-[48px] font-black text-sg-heading leading-none drop-shadow-md">24.5%</span>
+                <span className="text-[14px] font-bold text-sg-muted mb-2">/ tháng</span>
+             </div>
+             <p className="text-[13px] font-semibold text-sg-subtext">Tốc độ ra hàng trung bình của toàn bộ các dự án đang mở bán. Rổ hàng hiện tại dự báo sẽ tiêu thụ hết trong vòng <strong className="text-rose-500">4.5 tháng</strong> nếu duy trì tốc độ này.</p>
+             
+             <div className="mt-4 p-4 rounded-sg-lg bg-rose-500/5 border border-rose-500/20 flex items-center justify-between">
+                <div className="flex flex-col">
+                   <span className="text-[11px] font-extrabold text-sg-muted uppercase tracking-wider">Cần đẩy mạnh</span>
+                   <span className="text-[13px] font-black text-sg-heading">Phân khu Shophouse</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-white dark:bg-black/40 shadow-sm flex items-center justify-center text-rose-500 border border-slate-200 dark:border-white/5">
+                   <TrendingUp size={14} />
+                </div>
+             </div>
           </div>
         </div>
 

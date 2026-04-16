@@ -36,6 +36,7 @@ SELF-TEST: go test ./internal/service/... -race -count=1
 SELF-CHECK:
   [ ] Clean arch layers | ctx first arg | Decimal money | Financial txns
   [ ] Domain rules from shared/domain/ | Standard error schema | Tests passing
+  [ ] Karpathy: No assumptions, Simplest backend code, Clean your orphans ONLY, Verified loop
 
 VERIFY: cd modules/{name}/api ; go build ./... ; go vet ./...
 

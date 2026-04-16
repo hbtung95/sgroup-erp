@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Grid, FileText, TrendingUp, Settings, Handshake, Wallet } from 'lucide-react';
+import { LayoutDashboard, Building2, Grid, FileText, TrendingUp, Settings, Handshake, Wallet, FolderOpen, Receipt } from 'lucide-react';
 export const MENU_GROUPS = [
   {
     title: 'QUẢN LÝ NGUỒN HÀNG',
@@ -8,13 +8,15 @@ export const MENU_GROUPS = [
       { path: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { path: 'list', label: 'Dự án', icon: Building2 },
       { path: 'inventory', label: 'Rổ hàng', icon: Grid },
-      { path: 'legal', label: 'Kho Sales Kit & Pháp lý', icon: FileText },
+      { path: 'vault', label: 'Kho Tài Liệu Asset', icon: FolderOpen },
+      { path: 'legal', label: 'Kanban Pháp Lý', icon: FileText },
     ]
   },
   {
     title: 'ĐIỀU PHỐI & PHÂN TÍCH',
     items: [
       { path: 'transactions', label: 'Quản lý Giao Dịch', icon: Handshake },
+      { path: 'policies', label: 'Chính Sách Bán Hàng', icon: Receipt },
       { path: 'commission', label: 'Cấu hình Hoa Hồng', icon: Wallet },
       { path: 'reports', label: 'Báo cáo Phân phối', icon: TrendingUp },
     ]

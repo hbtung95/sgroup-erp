@@ -35,6 +35,9 @@ type SalesOpsService interface {
 
 	// Deals
 	CreateDeal(deal *model.SalesDeal, ctx UserContext) error
+
+	// Activities
+	CreateActivity(activity *model.SalesActivity, ctx UserContext) error
 }
 
 type salesOpsService struct {
@@ -271,6 +274,21 @@ func (s *salesOpsService) CreateDeal(deal *model.SalesDeal, ctx UserContext) err
 		s.eventBus.Publish(events.EventDealStatusChanged, deal)
 	}
 	return err
+}
+
+// Activities Logic
+func (s *salesOpsService) CreateActivity(activity *model.SalesActivity, ctx UserContext) error {
+	now := time.Now()
+	activity.CreatedBy = ctx.Name
+	if ctx.StaffID != nil {
+		activity.StaffID = *ctx.StaffID
+	}
+	activity.TeamID = ctx.TeamID
+	activity.ActivityDate = now
+	activity.Year = now.Year()
+	activity.Month = int(now.Month())
+
+	return s.repo.CreateActivity(activity)
 }
 
 // Event Listeners

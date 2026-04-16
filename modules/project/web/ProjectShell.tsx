@@ -10,6 +10,8 @@ import { ProjectListScreen } from './screens/ProjectListScreen';
 import { InventoryGrid } from './screens/InventoryGrid';
 import { LegalKanbanScreen } from './screens/LegalKanbanScreen';
 import { SingleProjectHub } from './screens/SingleProjectHub';
+import { ProjectPoliciesScreen } from './screens/ProjectPoliciesScreen';
+import { ProjectVaultLayer } from './screens/ProjectVaultLayer';
 
 // Placeholders for nested screens
 function PlaceholderScreen({ title }: { title: string }) {
@@ -158,6 +160,8 @@ export function ProjectShell() {
             <Route path="transactions" element={<PlaceholderScreen title="Quản lý Giao Dịch & Khách Hàng" />} />
             <Route path="commission" element={<PlaceholderScreen title="Chính sách Hoa Hồng" />} />
             <Route path="legal" element={<LegalKanbanScreen />} />
+            <Route path="vault" element={<ProjectVaultLayer />} />
+            <Route path="policies" element={<ProjectPoliciesScreen />} />
             <Route path="board" element={<SingleProjectHub />} />
             <Route path="hub" element={<SingleProjectHub />} />
             <Route path="reports" element={<ReportsScreen />} />

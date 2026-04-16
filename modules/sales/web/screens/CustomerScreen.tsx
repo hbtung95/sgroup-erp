@@ -1,207 +1,223 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  Users, Search, PhoneCall, ArrowRight, TrendingUp,
-  Snowflake, Flame, CheckCircle2, Plus, Mail, Calendar
+  Users, Plus, Search, Filter, ChevronLeft, ChevronRight,
+  Phone, Mail, MapPin, Loader2, Edit2, Trash2, Eye,
+  X, Save, UserPlus, Download, LayoutGrid, List,
+  DollarSign, Calendar, Tag, Briefcase,
 } from 'lucide-react';
+import { useCustomers, useCustomerActions, formatCurrency } from '../hooks/useSalesData';
+import type { Customer } from '../api/salesApi';
+import {
+  CinematicDrawer, DrawerSection, DrawerHeroCard, DrawerDetailRow,
+  EmptyState, ConfirmModal,
+} from '../components/shared';
+import { useToastActions } from '../components/shared/Toast';
 
-/* ════════════════════════════════════════════════════════
-   MOCK DATA
-   ════════════════════════════════════════════════════════ */
+// ═══════════════════════════════════════════════════════════
+// CUSTOMER SCREEN — Full CRUD + Grid/List + CinematicDrawer
+// Neo-Glassmorphism v2.2 • sg-stagger animations
+// ═══════════════════════════════════════════════════════════
 
-const MOCK_CUSTOMERS = [
-  { id: '1', fullName: 'Nguyễn Văn A', phone: '0901234567', status: 'HOT', assignedTo: 'nv1', date: '14/04/2026', email: 'vana@gmail.com', lastInteraction: 'Gọi điện lúc 14:00' },
-  { id: '2', fullName: 'Trần Thị B', phone: '0912345678', status: 'WARM', assignedTo: 'nv1', date: '13/04/2026', email: 'tb.98@yahoo.com', lastInteraction: 'Gửi Email báo giá' },
-  { id: '3', fullName: 'Lê Văn C', phone: '0987654321', status: 'COLD', assignedTo: 'nv2', date: '12/04/2026', email: 'le.vanc@c-corp.vn', lastInteraction: 'Không nghe máy' },
-  { id: '4', fullName: 'Phạm Thị D', phone: '0933445566', status: 'COMPLETED', assignedTo: 'nv1', date: '10/04/2026', email: 'phamthid123@gmail.com', lastInteraction: 'Đã ký HĐ' },
-  { id: '5', fullName: 'Vũ Quốc E', phone: '0977889900', status: 'HOT', assignedTo: 'nv2', date: '14/04/2026', email: 'vqe.invest@gmail.com', lastInteraction: 'Zalo: Xin mặt bằng' },
-  { id: '6', fullName: 'Đặng Kim F', phone: '0944556677', status: 'WARM', assignedTo: 'nv3', date: '11/04/2026', email: 'dkf@finance.vn', lastInteraction: 'Hẹn gặp T7' },
-];
-
-const STATUS_CONFIG: Record<string, { label: string; icon: any; color: string; bg: string; border: string }> = {
-  HOT: { label: 'HOT', icon: Flame, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
-  WARM: { label: 'WARM', icon: TrendingUp, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-  COLD: { label: 'COLD', icon: Snowflake, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-  COMPLETED: { label: 'WON', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+const STATUS_CONFIG: Record<string, { label: string; emoji: string; color: string; bg: string; border: string }> = {
+  HOT:       { label: 'Nóng',    emoji: '🔥', color: 'text-rose-500',    bg: 'bg-rose-500/10',    border: 'border-rose-500/20' },
+  WARM:      { label: 'Ấm',     emoji: '☀️', color: 'text-amber-500',   bg: 'bg-amber-500/10',   border: 'border-amber-500/20' },
+  COLD:      { label: 'Lạnh',    emoji: '❄️', color: 'text-blue-500',    bg: 'bg-blue-500/10',    border: 'border-blue-500/20' },
+  COMPLETED: { label: 'Đã chốt', emoji: '✅', color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+  LOST:      { label: 'Mất',     emoji: '❌', color: 'text-slate-400',   bg: 'bg-slate-400/10',   border: 'border-slate-400/20' },
 };
 
-const AVATAR_GRADIENTS = [
-  'from-indigo-500 to-purple-600',
-  'from-emerald-500 to-teal-600',
-  'from-rose-500 to-pink-600',
-  'from-amber-500 to-orange-600',
-  'from-cyan-500 to-blue-600',
-  'from-fuchsia-500 to-violet-600',
-];
-
-/* ════════════════════════════════════════════════════════
-   MAIN COMPONENT
-   ════════════════════════════════════════════════════════ */
+const SOURCE_LABELS: Record<string, string> = {
+  MARKETING: '📢 Marketing', SELF_GEN: '🎯 Tự kiếm', REFERRAL: '🤝 Giới thiệu',
+  WALK_IN: '🚶 Walk-in', BIZFLY_CRM: '🔄 Bizfly', OTHER: '📋 Khác',
+};
 
 export function CustomerScreen() {
-  const [activeTab, setActiveTab] = useState('ALL');
-  const [search, setSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-  const tabs = [
-    { id: 'ALL', label: 'Tất cả Leads', count: MOCK_CUSTOMERS.length },
-    { id: 'HOT', label: 'HOT', icon: Flame, color: 'text-rose-500' },
-    { id: 'WARM', label: 'WARM', icon: TrendingUp, color: 'text-amber-500' },
-    { id: 'COLD', label: 'COLD', icon: Snowflake, color: 'text-blue-500' },
-    { id: 'COMPLETED', label: 'Đã Win', icon: CheckCircle2, color: 'text-emerald-500' },
-  ];
-
-  const filtered = MOCK_CUSTOMERS.filter(c => {
-    const matchStatus = activeTab === 'ALL' || c.status === activeTab;
-    const matchSearch = c.fullName.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search);
-    return matchStatus && matchSearch;
+  const { data: customers, loading, setFilter } = useCustomers({
+    page: 1, limit: 50, search: searchQuery, status: statusFilter,
   });
 
+  let toast: ReturnType<typeof useToastActions>;
+  try { toast = useToastActions(); } catch { toast = { success: () => {}, error: () => {}, warning: () => {}, info: () => {} }; }
+
+  const handleSearch = useCallback((q: string) => {
+    setSearchQuery(q);
+    setFilter(prev => ({ ...prev, search: q, page: 1 }));
+  }, [setFilter]);
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-transparent relative z-10 overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden">
 
-      {/* Cinematic Ambient Glow */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-emerald-500/5 rounded-[100%] blur-[120px] pointer-events-none -z-10" />
-
-      {/* ═══ Header & Controls ═══ */}
-      <div className="px-6 sm:px-10 lg:px-12 py-8 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-black/30 backdrop-blur-3xl relative z-10 shadow-[0_8px_32px_rgba(0,0,0,0.03)]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 sg-stagger" style={{ animationDelay: '0ms' }}>
-          <div>
-            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 w-fit mb-3 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-              <Users size={14} className="text-emerald-500 drop-shadow-sm" />
-              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Quản Lý Khách Hàng & CRM</span>
+      {/* ════ HEADER ════ */}
+      <div className="px-6 lg:px-8 py-5 border-b border-slate-100 dark:border-sg-border/40 bg-white/40 dark:bg-black/20 backdrop-blur-xl">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+              <Users size={18} className="text-blue-500" />
             </div>
-            <h2 className="text-[36px] sm:text-[40px] font-black text-sg-heading tracking-tight drop-shadow-sm leading-none">Khách Hàng (CRM)</h2>
+            <div>
+              <h2 className="text-[18px] font-black text-sg-heading">Quản Lý Khách Hàng</h2>
+              <span className="text-[11px] font-bold text-sg-muted">{(customers || []).length} khách hàng</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl text-[12px] font-black pointer-events-none">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span>Đồng bộ từ CRM</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-sg-muted" />
+            <input
+              type="text" value={searchQuery} onChange={e => handleSearch(e.target.value)}
+              placeholder="Tìm theo tên, SĐT, email..."
+              className="w-full h-10 pl-10 pr-4 bg-sg-btn-bg border border-sg-border rounded-xl text-[13px] font-semibold text-sg-heading placeholder:text-sg-muted outline-none focus:border-emerald-500/40 transition-colors"
+            />
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            {/* Search */}
-            <div className="relative group w-full sm:w-auto">
-              <div className="absolute inset-0 bg-linear-to-r from-emerald-500/0 via-teal-500/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 blur transition-opacity" />
-              <div className="relative flex items-center h-13 bg-white dark:bg-black/40 backdrop-blur-2xl border border-slate-200 dark:border-white/5 hover:border-emerald-500/40 rounded-2xl px-5 transition-all w-full sm:w-80 shadow-sm">
-                <Search size={18} className="text-sg-muted group-hover:text-emerald-500 transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Tìm Tên, SĐT, Email..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="bg-transparent border-none outline-none ml-3 text-[14px] font-bold text-sg-heading w-full placeholder:text-sg-muted/60"
-                />
-              </div>
-            </div>
+          <select
+            value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setFilter(prev => ({ ...prev, status: e.target.value, page: 1 })); }}
+            className="h-10 px-4 bg-sg-btn-bg border border-sg-border rounded-xl text-[12px] font-bold text-sg-heading outline-none"
+          >
+            <option value="">Tất cả trạng thái</option>
+            {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}
+          </select>
 
-            {/* Add Lead Button */}
-            <button className="h-13 w-full sm:w-auto px-6 flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 rounded-2xl transition-all shadow-[0_8px_24px_rgba(16,185,129,0.3)] hover:shadow-[0_16px_32px_rgba(16,185,129,0.5)] hover:-translate-y-1 relative overflow-hidden group shrink-0">
-              <div className="absolute inset-0 bg-white/20 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-2xl" />
-              <Plus size={20} className="text-white relative z-10" />
-              <span className="text-[14px] font-black text-white relative z-10">Tạo Lead Mới</span>
+          {/* Grid/List Toggle */}
+          <div className="flex items-center p-1 bg-sg-btn-bg border border-sg-border rounded-xl">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-sg-card text-emerald-500 shadow-sm border border-sg-border' : 'text-sg-muted hover:text-sg-heading'}`}
+            >
+              <LayoutGrid size={15} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-sg-card text-emerald-500 shadow-sm border border-sg-border' : 'text-sg-muted hover:text-sg-heading'}`}
+            >
+              <List size={15} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* ═══ Main Content ═══ */}
-      <div className="flex-1 px-6 sm:px-10 lg:px-12 py-8 overflow-y-auto custom-scrollbar flex flex-col gap-6">
+      {/* ════ CONTENT ════ */}
+      <div className="flex-1 overflow-y-auto p-6 lg:p-8">
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 size={28} className="text-emerald-500 animate-spin" />
+          </div>
+        ) : (customers || []).length === 0 ? (
+          <EmptyState
+            icon={<Users size={40} className="text-blue-500" />}
+            title="Đang đồng bộ Khách Hàng"
+            description="Hệ thống đang kéo dữ liệu khách hàng mới nhất từ CRM về..."
+          />
+        ) : viewMode === 'grid' ? (
+          /* ═══ GRID VIEW ═══ */
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {(customers || []).map((c, idx) => {
+              const sCfg = STATUS_CONFIG[c.status] || STATUS_CONFIG.COLD;
+              return (
+                <div
+                  key={c.id}
+                  onClick={() => setSelectedCustomer(c)}
+                  className="relative group perspective-distant sg-stagger cursor-pointer"
+                  style={{ animationDelay: `${(idx % 12) * 60}ms` }}
+                >
+                  <div className="bg-white dark:bg-black/30 backdrop-blur-3xl rounded-sg-2xl border border-slate-200 dark:border-white/5 p-6 flex flex-col gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.04)] transition-all duration-700 hover:shadow-[0_24px_60px_rgba(0,0,0,0.12)] group-hover:-translate-y-3 relative overflow-hidden">
+                    {/* Glass Shimmer */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-linear-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                    <div className={`absolute -right-16 -top-16 w-48 h-48 rounded-full ${sCfg.bg} blur-[60px] opacity-20 group-hover:opacity-60 group-hover:scale-125 transition-all duration-1000`} />
 
-        {/* Filter Tabs */}
-        <div className="sg-stagger flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2" style={{ animationDelay: '100ms' }}>
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 shrink-0 h-12 px-5 rounded-xl text-[13px] font-black transition-all border shadow-sm ${
-                  isActive
-                    ? 'bg-white dark:bg-sg-card text-sg-heading border-slate-200 dark:border-sg-border shadow-[0_4px_16px_rgba(0,0,0,0.06)]'
-                    : 'bg-white/50 dark:bg-black/20 border-slate-100 dark:border-white/5 text-sg-muted hover:text-sg-heading hover:bg-white dark:hover:bg-black/40'
-                }`}
-              >
-                {tab.icon && (
-                  <tab.icon size={14} className={isActive ? (tab.color || '') : 'text-inherit'} />
-                )}
-                {tab.label}
-                {tab.count !== undefined && (
-                  <span className="text-[11px] font-black bg-sg-btn-bg px-2 py-0.5 rounded-lg border border-sg-border">{tab.count}</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                    {/* Header */}
+                    <div className="flex items-center justify-between relative z-10">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-xl ${sCfg.bg} border ${sCfg.border} flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-700`}>
+                          <span className="text-[16px] font-black">{c.fullName[0]}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-[15px] font-black text-sg-heading truncate group-hover:text-emerald-500 transition-colors">{c.fullName}</h4>
+                          <span className="text-[10px] font-bold text-sg-muted">{SOURCE_LABELS[c.source] || c.source}</span>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border shadow-xs ${sCfg.bg} ${sCfg.color} ${sCfg.border}`}>
+                        {sCfg.emoji} {sCfg.label}
+                      </span>
+                    </div>
 
-        {/* CRM Data Table */}
-        <div className="sg-stagger flex-1 bg-white dark:bg-black/30 backdrop-blur-3xl border border-slate-200/80 dark:border-white/5 rounded-[32px] shadow-md relative overflow-hidden flex flex-col" style={{ animationDelay: '200ms' }}>
-          <div className="absolute inset-0 bg-linear-to-bl from-emerald-500/5 to-transparent pointer-events-none" />
+                    {/* Contact info */}
+                    <div className="space-y-1.5 relative z-10">
+                      {c.phone && <div className="flex items-center gap-2 text-[12px] text-sg-muted"><Phone size={12} /> <span className="font-medium">{c.phone}</span></div>}
+                      {c.email && <div className="flex items-center gap-2 text-[12px] text-sg-muted"><Mail size={12} /> <span className="font-medium truncate">{c.email}</span></div>}
+                    </div>
 
-          <div className="overflow-x-auto flex-1 custom-scrollbar">
-            <table className="w-full text-left border-collapse">
+                    {/* Actions (visible on hover) */}
+                    <div className="flex items-center gap-2 opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 pt-2 border-t border-sg-border/20 relative z-10">
+                      <button onClick={e => { e.stopPropagation(); setSelectedCustomer(c); }} className="flex-1 h-9 flex items-center justify-center gap-1 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[11px] font-bold hover:bg-blue-500 hover:text-white transition-colors">
+                        <Eye size={13} /> Xem Profile
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* ═══ LIST VIEW ═══ */
+          <div className="bg-white dark:bg-black/30 backdrop-blur-3xl rounded-[28px] border border-slate-200/80 dark:border-sg-border shadow-sg-md overflow-hidden">
+            <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-200/80 dark:border-white/5 bg-slate-50/80 dark:bg-black/40 relative z-10">
-                  <th className="px-8 py-5 text-[11px] font-black text-sg-subtext uppercase tracking-widest whitespace-nowrap">Hồ Sơ Khách Hàng</th>
-                  <th className="px-8 py-5 text-[11px] font-black text-sg-subtext uppercase tracking-widest whitespace-nowrap">Liên Hệ</th>
-                  <th className="px-8 py-5 text-[11px] font-black text-sg-subtext uppercase tracking-widest whitespace-nowrap">Trạng Thái Lead</th>
-                  <th className="px-8 py-5 text-[11px] font-black text-sg-subtext uppercase tracking-widest whitespace-nowrap">Tương Tác Gần Nhất</th>
-                  <th className="px-8 py-5 text-[11px] font-black text-sg-subtext uppercase tracking-widest whitespace-nowrap text-right">Hành Động</th>
+                <tr className="border-b border-slate-100 dark:border-sg-border/40">
+                  <th className="px-5 py-4 text-left text-[10px] font-black text-sg-muted uppercase tracking-widest">Khách hàng</th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black text-sg-muted uppercase tracking-widest">Liên hệ</th>
+                  <th className="px-4 py-4 text-center text-[10px] font-black text-sg-muted uppercase tracking-widest">Trạng thái</th>
+                  <th className="px-4 py-4 text-left text-[10px] font-black text-sg-muted uppercase tracking-widest">Nguồn</th>
+                  <th className="px-4 py-4 text-right text-[10px] font-black text-sg-muted uppercase tracking-widest">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-8 py-20 text-center relative z-10">
-                      <div className="flex flex-col items-center justify-center opacity-40">
-                        <Users size={48} className="text-sg-muted mb-4" strokeWidth={1.5} />
-                        <span className="text-[14px] font-black text-sg-muted uppercase tracking-widest">Không có dữ liệu</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : filtered.map((c, idx) => {
-                  const cfg = STATUS_CONFIG[c.status] || STATUS_CONFIG.COLD;
-                  const StatusIcon = cfg.icon;
-                  const avatarGradient = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length];
-
+                {(customers || []).map((c, idx) => {
+                  const sCfg = STATUS_CONFIG[c.status] || STATUS_CONFIG.COLD;
                   return (
-                    <tr key={c.id} className="border-b border-slate-100 dark:border-white/5 relative group transition-colors hover:bg-emerald-50/50 dark:hover:bg-white/5 z-10 cursor-pointer">
-                      {/* Hover accent line */}
-                      <td className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-r" />
-
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-[16px] bg-gradient-to-br ${avatarGradient} border border-white/20 shadow-inner flex items-center justify-center text-white text-[13px] font-black shrink-0`}>
-                            {c.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                    <tr
+                      key={c.id}
+                      onClick={() => setSelectedCustomer(c)}
+                      className="border-b border-slate-50 dark:border-sg-border/20 hover:bg-sg-card/30 transition-colors cursor-pointer group sg-stagger"
+                      style={{ animationDelay: `${idx * 30}ms` }}
+                    >
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl ${sCfg.bg} border ${sCfg.border} flex items-center justify-center flex-shrink-0`}>
+                            <span className="text-[13px] font-black">{c.fullName[0]}</span>
                           </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-[15px] font-black text-sg-heading group-hover:text-emerald-600 transition-colors drop-shadow-sm truncate">{c.fullName}</span>
-                            <span className="text-[11px] font-bold text-sg-muted mt-0.5 truncate flex items-center gap-1.5">
-                              <Mail size={10} className="shrink-0" /> {c.email}
-                            </span>
+                          <div>
+                            <span className="block text-[14px] font-bold text-sg-heading group-hover:text-emerald-500 transition-colors">{c.fullName}</span>
                           </div>
                         </div>
                       </td>
-
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-2 text-[14px] font-bold text-sg-heading bg-slate-50 dark:bg-black/40 w-fit px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-white/5">
-                          <PhoneCall size={14} className="text-emerald-500" />
-                          {c.phone}
-                        </div>
+                      <td className="px-4 py-3.5">
+                        {c.phone && <div className="flex items-center gap-1.5 text-[12px] text-sg-muted"><Phone size={11} />{c.phone}</div>}
+                        {c.email && <div className="flex items-center gap-1.5 text-[12px] text-sg-muted mt-0.5"><Mail size={11} /><span className="truncate max-w-[160px]">{c.email}</span></div>}
                       </td>
-
-                      <td className="px-8 py-6">
-                        <div className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border flex items-center gap-1.5 w-fit shadow-sm ${cfg.bg} ${cfg.color} ${cfg.border}`}>
-                          <StatusIcon size={12} /> {cfg.label}
-                        </div>
+                      <td className="px-4 py-3.5 text-center">
+                        <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black border ${sCfg.bg} ${sCfg.color} ${sCfg.border}`}>{sCfg.emoji} {sCfg.label}</span>
                       </td>
-
-                      <td className="px-8 py-6">
-                        <div className="flex flex-col gap-0.5 min-w-[120px]">
-                          <span className="text-[13px] font-bold text-sg-heading">{c.lastInteraction}</span>
-                          <span className="text-[10px] font-extrabold text-sg-muted uppercase tracking-wider flex items-center gap-1.5">
-                            <Calendar size={10} /> {c.date}
-                          </span>
+                      <td className="px-4 py-3.5 text-[12px] font-semibold text-sg-muted">{SOURCE_LABELS[c.source] || c.source}</td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={e => { e.stopPropagation(); setSelectedCustomer(c); }} className="px-3 h-8 rounded-lg bg-blue-500/10 text-blue-500 text-[11px] font-bold border border-blue-500/20 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors">
+                            Xem hồ sơ
+                          </button>
                         </div>
-                      </td>
-
-                      <td className="px-8 py-6 text-right">
-                        <button className="h-10 px-5 bg-white dark:bg-black/40 hover:bg-emerald-500 hover:border-emerald-500 border border-slate-200 dark:border-white/5 rounded-xl text-[12px] font-black text-sg-heading hover:text-white transition-all shadow-sm flex items-center gap-2 ml-auto">
-                          Chi tiết <ArrowRight size={14} />
-                        </button>
                       </td>
                     </tr>
                   );
@@ -209,8 +225,57 @@ export function CustomerScreen() {
               </tbody>
             </table>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* ════ CUSTOMER DETAIL DRAWER ════ */}
+      <CinematicDrawer
+        isOpen={!!selectedCustomer}
+        onClose={() => setSelectedCustomer(null)}
+        title={selectedCustomer?.fullName || ''}
+        subtitle={selectedCustomer ? (STATUS_CONFIG[selectedCustomer.status]?.label || selectedCustomer.status) : ''}
+        icon={selectedCustomer ? <span className="text-[22px] font-black text-blue-500">{selectedCustomer.fullName[0]}</span> : undefined}
+        accentColor="blue"
+        footer={selectedCustomer ? (
+          <button onClick={() => { toast.info('Chuyển hướng', 'Đang mở hồ sơ trên Bizfly CRM...'); }} className="w-full h-14 flex items-center justify-center gap-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-[14px] font-black text-sg-heading transition-all hover:-translate-y-1 hover:bg-slate-200 dark:hover:bg-white/10">
+            Khách hàng quản lý bởi Bizfly CRM ↗
+          </button>
+        ) : undefined}
+      >
+        {selectedCustomer && (
+          <>
+            <DrawerHeroCard gradient="from-blue-500/10 to-indigo-500/5" borderColor="border-blue-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Tag size={14} className="text-blue-500" />
+                <span className="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">Thông tin khách hàng</span>
+              </div>
+              <h3 className="text-[28px] font-black text-sg-heading tracking-tight">{selectedCustomer.fullName}</h3>
+              <div className="flex items-center gap-3 mt-3">
+                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black border ${STATUS_CONFIG[selectedCustomer.status]?.bg} ${STATUS_CONFIG[selectedCustomer.status]?.color} ${STATUS_CONFIG[selectedCustomer.status]?.border}`}>
+                  {STATUS_CONFIG[selectedCustomer.status]?.emoji} {STATUS_CONFIG[selectedCustomer.status]?.label}
+                </span>
+                <span className="text-[11px] font-bold text-sg-muted">{SOURCE_LABELS[selectedCustomer.source]}</span>
+              </div>
+            </DrawerHeroCard>
+
+            <DrawerSection title="Liên Hệ" icon={<Phone size={14} className="text-blue-500" />}>
+              <div className="grid grid-cols-1 gap-4">
+                <DrawerDetailRow icon={<Phone size={16} className="text-emerald-500" />} label="Số điện thoại" value={selectedCustomer.phone || 'Chưa có'} />
+                <DrawerDetailRow icon={<Mail size={16} className="text-blue-500" />} label="Email" value={selectedCustomer.email || 'Chưa có'} />
+                <DrawerDetailRow icon={<MapPin size={16} className="text-amber-500" />} label="Địa chỉ" value={selectedCustomer.address || 'Chưa có'} />
+                <DrawerDetailRow icon={<Briefcase size={16} className="text-violet-500" />} label="Công ty" value={selectedCustomer.company || 'Cá nhân'} />
+              </div>
+            </DrawerSection>
+
+            {selectedCustomer.notes && (
+              <DrawerSection title="Ghi Chú" icon={<Edit2 size={14} className="text-amber-500" />}>
+                <p className="text-[13px] font-medium text-sg-heading leading-relaxed">{selectedCustomer.notes}</p>
+              </DrawerSection>
+            )}
+          </>
+        )}
+      </CinematicDrawer>
+
     </div>
   );
 }

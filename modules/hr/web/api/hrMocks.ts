@@ -43,6 +43,15 @@ const EMPLOYEES = [
     officialSalary: 28000000, status: 'ACTIVE', gender: 'female', avatarUrl: 'https://i.pravatar.cc/150?u=2'
   },
   {
+    id: 'S1', fullName: 'Ngô Việt', englishName: 'Viet Ngo', employeeCode: 'SGR-010',
+    phone: '0900000001', email: 'viet.n@sgroup.vn', level: 'Manager',
+    department: { id: '1', name: 'Kinh Doanh', code: 'SALES' }, departmentId: '1',
+    team: { id: '3', name: 'BD Zone 1' }, teamId: '3',
+    position: { id: '2', name: 'Trưởng phòng' }, positionId: '2',
+    createdAt: '2023-01-10', startDate: '2023-01-10', employmentType: 'Toàn thời gian',
+    officialSalary: 50000000, status: 'ACTIVE', gender: 'male', avatarUrl: 'https://i.pravatar.cc/150?u=12'
+  },
+  {
     id: '3', fullName: 'Trần Minh Khôi', englishName: 'Khoi Tran Minh', employeeCode: 'SGR-003',
     phone: '0976543210', email: 'khoi.tm@sgroup.vn', level: 'Senior',
     department: { id: '1', name: 'Kinh Doanh', code: 'SALES' }, departmentId: '1',

@@ -4,7 +4,7 @@ import { projectApi, productApi, legalDocApi } from '../api/projectApi';
 
 // ─── Mock Data (fallback when API unavailable) ───
 
-const MOCK_RE_PROJECTS: REProject[] = [
+export const MOCK_RE_PROJECTS: REProject[] = [
   {
     id: 'proj-1', name: 'SGroup Riverside', code: 'SGR',
     description: 'Khu đô thị sinh thái ven sông với 500 biệt thự và nhà phố.',
@@ -12,7 +12,7 @@ const MOCK_RE_PROJECTS: REProject[] = [
     developer: 'SGroup Holdings', totalUnits: 500, soldUnits: 175,
     feeRate: 2.5, avgPrice: 15000000000,
     startDate: '2026-01-01', endDate: '2028-12-31',
-    managerId: 'u1', managerName: 'Trần Văn A', teamSize: 15, progress: 35,
+    managerId: '6', managerName: 'Phạm Thái Huỳnh', teamSize: 15, progress: 35,
     createdAt: '2026-01-01T00:00:00Z', tags: '["Sinh thái","Nghỉ dưỡng","Ven sông"]'
   },
   {
@@ -22,7 +22,7 @@ const MOCK_RE_PROJECTS: REProject[] = [
     developer: 'SGroup Invest', totalUnits: 320, soldUnits: 0,
     feeRate: 3.0, avgPrice: 4500000000,
     startDate: '2026-06-01', endDate: '2029-06-01',
-    managerId: 'u2', managerName: 'Lê Thị B', teamSize: 20, progress: 10,
+    managerId: '1', managerName: 'Huỳnh Bảo Tuân', teamSize: 20, progress: 10,
     createdAt: '2026-02-15T00:00:00Z', tags: '["Trung tâm","Hạng A"]'
   },
   {
@@ -37,7 +37,7 @@ const MOCK_RE_PROJECTS: REProject[] = [
   }
 ];
 
-const MOCK_RE_PRODUCTS: REProduct[] = Array.from({ length: 40 }).map((_, i) => {
+export const MOCK_RE_PRODUCTS: REProduct[] = Array.from({ length: 40 }).map((_, i) => {
   const isProj1 = i < 20;
   const statuses: REProduct['status'][] = ['AVAILABLE', 'LOCKED', 'DEPOSIT', 'SOLD', 'AVAILABLE', 'AVAILABLE'];
   return {
@@ -57,7 +57,7 @@ const MOCK_RE_PRODUCTS: REProduct[] = Array.from({ length: 40 }).map((_, i) => {
   };
 });
 
-const MOCK_RE_LEGAL: RELegalDoc[] = [
+export const MOCK_RE_LEGAL: RELegalDoc[] = [
   {
     id: 'leg-1', projectId: 'proj-1', title: 'Cập nhật Bộ Tài liệu bán hàng (Sales Kit)',
     description: 'Flyer, Mặt bằng và Concept thiết kế 3D.', docType: 'SALESKIT',

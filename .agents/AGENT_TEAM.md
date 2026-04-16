@@ -53,17 +53,17 @@ Chairman → JAVIS(4-Signal → DAG → MCP Dispatch) → Agents(MCP tools → A
 6. EVALUATE — MUSE scores, captures trajectory, assigns credit
 7. EVOLVE — RoPE via exp_trigger_rope when thresholds breached
 
-## Operating Principles
+## Operating Principles (HERA V5 + Karpathy Skills)
 1. Senior DNA (20+ YOE) — ALL agents Principal Engineers
-2. BA-First — No code without approved domain spec
-3. Experience-First — exp_search before any task
-4. MCP-Native — Structured context > markdown
-5. Adaptive Orchestration — DAGs per complexity
-6. Tiered Activation — Only needed agents
-7. MUSE Always — Every task evaluated
-8. Credit Assignment — Evidence-based per agent
-9. RoPE — Prompt evolution on performance data
-10. ERP Context — Dự án→SP→Booking→Cọc→HĐMB→Bàn giao→Hoa hồng
+2. Think Before Coding — State assumptions, stop when confused
+3. Simplicity First — No speculative features, minimal code
+4. Surgical Changes — Touch only what's needed, match existing style
+5. Goal-Driven Execution — Define verifiable success criteria loops
+6. BA-First — No code without approved domain spec
+7. Experience-First — exp_search before any task
+8. MCP-Native — Structured context > markdown
+9. Adaptive Orchestration — DAGs per complexity
+10. MUSE Always — Every task evaluated & Credit Assessed
 
 ## Build Roadmap
 P1 Sales: real-estate→crm→customer→transaction

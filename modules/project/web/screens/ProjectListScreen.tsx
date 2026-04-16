@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useProjects } from '../hooks/useProjects';
 import { RE_PROJECT_STATUS, RE_PROPERTY_TYPE } from '../constants';
-import { Search, Filter, MoreHorizontal, Calendar, Target, Plus, Users, Building2, MapPin, Edit2, Trash2, LayoutGrid, List } from 'lucide-react';
+import { Filter, MoreHorizontal, Calendar, Target, Plus, Users, Building2, MapPin, Edit2, Trash2, LayoutGrid, List } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ProjectFormModal } from '../components/ProjectFormModal';
 import { projectApi } from '../api/projectApi';
@@ -60,8 +60,8 @@ export function ProjectListScreen() {
                   <span className="text-[11px] font-bold text-sg-muted uppercase tracking-wider">Tổng:</span>
                   <span className="text-[13px] font-extrabold text-sg-heading">{projects.length}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-bold text-sg-muted uppercase tracking-wider text-emerald-500">Mở bán:</span>
+                 <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider">Mở bán:</span>
                   <span className="text-[13px] font-extrabold text-emerald-500">{projects.filter(p=>p.status==='SELLING').length}</span>
                 </div>
              </div>
@@ -70,7 +70,7 @@ export function ProjectListScreen() {
         
         <div className="flex flex-wrap items-center gap-3">
           {/* Action Group */}
-          <div className="flex items-center gap-2 bg-white dark:bg-black/30 backdrop-blur-2xl p-1.5 rounded-[20px] border border-slate-200 dark:border-white/5 shadow-sm">
+          <div className="flex items-center gap-2 bg-white dark:bg-black/30 backdrop-blur-2xl p-1.5 rounded-sg-lg border border-slate-200 dark:border-white/5 shadow-sm">
             
 
 
@@ -110,9 +110,9 @@ export function ProjectListScreen() {
 
           <button
             onClick={() => { setEditTarget(null); setShowForm(true); }}
-            className="h-12 px-5 flex items-center gap-2 bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-2xl transition-all shadow-sg-brand-lg hover:-translate-y-0.5 relative overflow-hidden group"
+            className="h-12 px-5 flex items-center gap-2 bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-sg-xl transition-all shadow-sg-brand-lg hover:-translate-y-0.5 relative overflow-hidden group"
           >
-            <div className="absolute inset-0 bg-white/20 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-2xl" />
+            <div className="absolute inset-0 bg-white/20 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-sg-xl" />
             <Plus size={18} className="text-white relative z-10" />
             <span className="text-[13px] font-black text-white relative z-10">Khởi Tạo</span>
           </button>
@@ -122,17 +122,17 @@ export function ProjectListScreen() {
       {/* Empty State */}
       {filtered.length === 0 && (
         <div className="flex-1 flex items-center justify-center sg-stagger" style={{ animationDelay: '200ms' }}>
-          <div className="text-center bg-white dark:bg-black/30 backdrop-blur-[32px] p-16 rounded-[40px] border border-slate-200 dark:border-white/5 shadow-md relative overflow-hidden">
+          <div className="text-center bg-white dark:bg-black/30 backdrop-blur-[32px] p-16 rounded-sg-3xl border border-slate-200 dark:border-white/5 shadow-md relative overflow-hidden">
             <div className="absolute inset-0 bg-linear-to-b from-cyan-500/5 to-transparent pointer-events-none" />
-            <div className="w-24 h-24 mx-auto rounded-[28px] bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-6 relative">
-              <div className="absolute inset-0 bg-cyan-500/20 animate-ping rounded-[28px] opacity-20" />
+            <div className="w-24 h-24 mx-auto rounded-sg-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 bg-cyan-500/20 animate-ping rounded-sg-2xl opacity-20" />
               <Building2 size={40} className="text-cyan-500 relative z-10" />
             </div>
             <h3 className="text-[24px] font-black text-sg-heading mb-3 tracking-tight">Vườn ươm dự án</h3>
             <p className="text-[15px] font-semibold text-sg-subtext mb-8 max-w-[300px] mx-auto leading-relaxed">Hãy khởi tạo dự án Master đầu tiên để bắt đầu phân phối và ráp rổ hàng.</p>
             <button
               onClick={() => { setEditTarget(null); setShowForm(true); }}
-              className="h-14 px-8 flex items-center gap-3 mx-auto bg-linear-to-r from-cyan-500 to-blue-600 rounded-2xl text-white font-black text-[15px] shadow-[0_12px_24px_rgba(6,182,212,0.3)] hover:scale-105 transition-transform"
+              className="h-14 px-8 flex items-center gap-3 mx-auto bg-linear-to-r from-cyan-500 to-blue-600 rounded-sg-xl text-white font-black text-[15px] shadow-[0_12px_24px_rgba(6,182,212,0.3)] hover:scale-105 transition-transform"
             >
               <Plus size={20} /> Tạo Dự Án Mới
             </button>
@@ -152,7 +152,7 @@ export function ProjectListScreen() {
               if (viewMode === 'list') {
                   // LIST VIEW
                   return (
-                      <div key={proj.id} className="sg-stagger bg-white dark:bg-black/30 backdrop-blur-2xl rounded-2xl border border-slate-200 dark:border-white/5 p-4 flex flex-col md:flex-row items-center gap-6 shadow-md hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden focus-within:ring-2 focus-within:ring-cyan-500/50" style={{ animationDelay: `${(idx % 10) * 50}ms` }}>
+                      <div key={proj.id} className="sg-stagger bg-white dark:bg-black/30 backdrop-blur-2xl rounded-sg-xl border border-slate-200 dark:border-white/5 p-4 flex flex-col md:flex-row items-center gap-6 shadow-md hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 group relative overflow-hidden focus-within:ring-2 focus-within:ring-cyan-500/50" style={{ animationDelay: `${(idx % 10) * 50}ms` }}>
                          <div className="absolute inset-0 bg-linear-to-r from-transparent via-cyan-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500" />
                          
                          {/* Icon */}
@@ -226,7 +226,7 @@ export function ProjectListScreen() {
                         <Target size={28} strokeWidth={2.5} />
                       </div>
                       <div className="flex gap-2 items-center">
-                        <span className={`px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-xs ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
+                        <span className={`px-3.5 py-1.5 rounded-sg-md text-[10px] font-black uppercase tracking-widest border shadow-xs ${statusCfg.bg} ${statusCfg.color} ${statusCfg.border}`}>
                           {statusCfg.label}
                         </span>
                         <div className="relative">
@@ -271,7 +271,7 @@ export function ProjectListScreen() {
                         <MapPin size={16} className="text-sg-muted" />
                         <span className="line-clamp-1 opacity-80">{proj.location}</span>
                       </div>
-                      <div className="bg-slate-50 dark:bg-black/40 px-4 py-4 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
+                      <div className="bg-slate-50 dark:bg-black/40 px-4 py-4 rounded-sg-xl border border-slate-200 dark:border-white/5 shadow-inner">
                         <div className="flex items-center justify-between text-[12px] font-bold text-sg-subtext mb-3">
                            <span className="uppercase tracking-wider text-[10px]">Tiến độ hấp thụ</span>
                           <span className="text-sg-heading font-black text-[13px]">{proj.soldUnits} / {proj.totalUnits} <span className="text-cyan-500">({soldPercent}%)</span></span>
@@ -297,7 +297,7 @@ export function ProjectListScreen() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-1.5 text-sg-muted bg-slate-50 dark:bg-black/40 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/5" title="Mở bán dự kiến">
+                      <div className="flex items-center gap-1.5 text-sg-muted bg-slate-50 dark:bg-black/40 px-3 py-1.5 rounded-sg-md border border-slate-200 dark:border-white/5" title="Mở bán dự kiến">
                         <Calendar size={14} />
                         <span className="text-[12px] font-black">{proj.startDate ? new Date(proj.startDate).toLocaleDateString('vi-VN') : 'TBD'}</span>
                       </div>
