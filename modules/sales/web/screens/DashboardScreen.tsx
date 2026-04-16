@@ -308,7 +308,7 @@ interface KPICardProps {
 function KPICard({ icon, label, value, formatter, suffix, trend, delay, gradient, iconColor }: KPICardProps) {
   return (
     <div
-      className="bg-white dark:bg-black/30 backdrop-blur-3xl rounded-[24px] border border-slate-200/80 dark:border-sg-border p-5 shadow-sg-sm hover:shadow-sg-md transition-all hover:-translate-y-1 group relative overflow-hidden sg-stagger"
+      className="bg-white dark:bg-black/30 backdrop-blur-3xl rounded-sg-xl border border-slate-200/80 dark:border-sg-border p-5 shadow-sg-sm hover:shadow-sg-md transition-all hover:-translate-y-1 group relative overflow-hidden sg-stagger"
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Ambient glow */}

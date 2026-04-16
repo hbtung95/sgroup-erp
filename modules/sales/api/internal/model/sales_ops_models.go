@@ -250,9 +250,11 @@ type SalesActivity struct {
 	StaffID      string    `gorm:"type:uuid;not null;index" json:"staffId"`
 	StaffName    string    `gorm:"type:varchar(100)" json:"staffName"`
 	TeamID       *string   `gorm:"type:uuid;index" json:"teamId"`
-	ActivityType string    `gorm:"type:varchar(50);not null;index" json:"activityType"` // CALL, MEET, DEAL_CLOSED, MSG
+	PostsCount   int       `gorm:"default:0" json:"postsCount"`
+	CallsCount   int       `gorm:"default:0" json:"callsCount"`
+	NewLeads     int       `gorm:"default:0" json:"newLeads"`
+	MeetingsMade int       `gorm:"default:0" json:"meetingsMade"`
 	Points       int       `gorm:"default:0" json:"points"`
-	Value        float64   `gorm:"type:decimal(15,2);default:0" json:"value"` // Revenue/Value associated (optional)
 	ActivityDate time.Time `gorm:"type:date;not null;index" json:"activityDate"`
 	Note         string    `gorm:"type:text" json:"note"`
 	Year         int       `gorm:"index" json:"year"`

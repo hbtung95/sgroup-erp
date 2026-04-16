@@ -47,9 +47,11 @@ export interface SalesActivity {
   staffId?: string;
   staffName?: string;
   teamId?: string;
-  activityType: 'CALL' | 'MEET' | 'DEAL_CLOSED' | 'MSG';
-  points: number;
-  value?: number;
+  postsCount: number;
+  callsCount: number;
+  newLeads: number;
+  meetingsMade: number;
+  points?: number;
   activityDate?: string;
   note?: string;
   createdAt?: string;

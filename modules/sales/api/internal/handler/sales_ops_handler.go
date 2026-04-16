@@ -192,6 +192,8 @@ func (h *SalesOpsHandler) CreateActivity(c *gin.Context) {
 		return
 	}
 
+	body.Points = body.PostsCount*2 + body.CallsCount*5 + body.NewLeads*10 + body.MeetingsMade*20
+
 	ctx := getUserContext(c)
 	if err := h.svc.CreateActivity(&body, ctx); err != nil {
 		sendError(c, http.StatusInternalServerError, err.Error())
