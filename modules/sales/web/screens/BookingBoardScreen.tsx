@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useSalesRole } from '../components/shared/RoleContext';
 import { salesOpsApi } from '../api/salesApi';
+import { CURRENT_USER, CURRENT_TEAM } from '../api/salesMocks';
 import {
   CinematicDrawer, DrawerSection, DrawerHeroCard, DrawerDetailRow,
   SkeletonCard,
@@ -48,16 +49,16 @@ export function BookingBoardScreen({ mode = 'personal' }: { mode?: 'personal' | 
     setLoading(true);
     try {
       const res = await salesOpsApi.listBookings();
-      let data = res.data as BookingBoardItem[];
+      let data = res.data as unknown as BookingBoardItem[];
       
       // Personal mode: only show current user's items
       if (mode === 'personal' || role === 'sales_staff') {
-        data = data.filter((item) => item.staffName === 'Nguyễn Demo');
+        data = data.filter((item) => item.staffName === CURRENT_USER.fullName);
       } 
       // Team mode: show team items (Manager) or all items (Director)
       else if (mode === 'team') {
         if (role === 'sales_manager') {
-          data = data.filter((item) => item.teamName === 'BD Zone 1' || item.staffName === 'Nguyễn Demo');
+          data = data.filter((item) => item.teamName === CURRENT_TEAM.name || item.staffName === CURRENT_USER.fullName);
         }
         // Director sees everything, no filter needed
       }
@@ -229,7 +230,7 @@ export function BookingBoardScreen({ mode = 'personal' }: { mode?: 'personal' | 
               </div>
             </DrawerSection>
 
-            {selectedItem.status === 'PENDING' && selectedItem.staffName === 'Nguyễn Demo' && (
+            {selectedItem.status === 'PENDING' && selectedItem.staffName === CURRENT_USER.fullName && (
               <div className="mt-8 px-4">
                 <button
                   onClick={() => {

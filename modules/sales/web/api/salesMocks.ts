@@ -35,8 +35,8 @@ export const MOCK_MONTHLY_REVENUE: MonthlyRevenue[] = [
 
 // ── Staff & Teams ──
 export const MOCK_TEAMS: SalesTeam[] = erpMockBFF.hr.teams
-  .filter((t: Team) => t.departmentId === '1') // Kinh Doanh
-  .map((t: Team) => ({
+  .filter((t: any) => t.departmentId === '1') // Kinh Doanh
+  .map((t: any) => ({
     id: t.id,
     name: t.name,
     code: t.code,
@@ -49,8 +49,8 @@ export const MOCK_TEAMS: SalesTeam[] = erpMockBFF.hr.teams
   }));
 
 export const MOCK_STAFF: SalesStaff[] = erpMockBFF.hr.employees
-  .filter((e: Employee) => e.departmentId === '1' || e.departmentId === 1) // Kinh Doanh
-  .map((e: Employee) => ({
+  .filter((e: any) => e.departmentId === '1' || e.departmentId === 1) // Kinh Doanh
+  .map((e: any) => ({
     id: e.id,
     employeeCode: e.employeeCode || '',
     fullName: e.fullName,
@@ -65,6 +65,9 @@ export const MOCK_STAFF: SalesStaff[] = erpMockBFF.hr.employees
     updatedAt: '2025-01-01'
   }));
 
+export const CURRENT_USER = MOCK_STAFF.find(s => s.id === 'S1') || MOCK_STAFF[0];
+export const CURRENT_TEAM = MOCK_TEAMS.find(t => t.id === CURRENT_USER?.teamId) || MOCK_TEAMS[0];
+
 // ── Customers ──
 export const MOCK_CUSTOMERS: Customer[] = Array.from({ length: 15 }).map((_, i) => ({
   id: `C${i + 1}`,
@@ -73,9 +76,9 @@ export const MOCK_CUSTOMERS: Customer[] = Array.from({ length: 15 }).map((_, i) 
   email: `client${i}@example.com`,
   company: ['Vingroup', 'Masan', 'FPT', 'Techcombank', 'Cá nhân'][i % 5],
   source: ['Facebook', 'Google Ads', 'Referral', 'Walk-in'][i % 4],
-  assignedTo: MOCK_STAFF[i % MOCK_STAFF.length]?.id || 'S1',
-  assignedToName: MOCK_STAFF[i % MOCK_STAFF.length]?.fullName || 'Unknown',
-  teamId: MOCK_STAFF[i % MOCK_STAFF.length]?.teamId || 'T1',
+  assignedTo: MOCK_STAFF[i % MOCK_STAFF.length]?.id || CURRENT_USER.id,
+  assignedToName: MOCK_STAFF[i % MOCK_STAFF.length]?.fullName || CURRENT_USER.fullName,
+  teamId: MOCK_STAFF[i % MOCK_STAFF.length]?.teamId || CURRENT_TEAM.id,
   status: ['COLD', 'WARM', 'HOT', 'WON', 'LOST'][i % 5],
   notes: 'Đã tư vấn sơ bộ, đợi khách hàng phản hồi.',
   createdAt: '2026-03-01T10:00:00Z',
@@ -100,7 +103,7 @@ export const MOCK_TRANSACTIONS: Transaction[] = Array.from({ length: 12 }).map((
     customerId: c.id,
     customerName: c.fullName,
     customerPhone: c.phone,
-    salesStaffId: c.assignedTo || 'S1',
+    salesStaffId: c.assignedTo || CURRENT_USER.id,
     status: ['NEW', 'LOCKED', 'DEPOSITED', 'SOLD'][i % 4],
     priceAtLock: product.price,
     createdAt: '2026-04-01T10:00:00Z',
@@ -115,7 +118,7 @@ export const MOCK_DEALS: SalesDeal[] = MOCK_TRANSACTIONS.map(tx => ({
   projectId: tx.projectId,
   projectName: tx.projectName || '',
   staffName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || '',
-  teamName: MOCK_TEAMS.find(t => t.id === MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.teamId)?.name || 'BD Zone 1',
+  teamName: MOCK_TEAMS.find(t => t.id === MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.teamId)?.name || CURRENT_TEAM.name,
   customerName: tx.customerName || '',
   customerPhone: tx.customerPhone || '',
   productCode: tx.unitCode,
@@ -154,7 +157,7 @@ export const MOCK_TEAM_PERF: TeamPerformance[] = MOCK_TEAMS.map((t, i) => ({
 export const MOCK_TOP_SELLERS: TopSeller[] = MOCK_STAFF.map(s => ({
   staffId: s.id,
   staffName: s.fullName,
-  teamName: MOCK_TEAMS.find(t => t.id === s.teamId)?.name || 'BD Zone 1',
+  teamName: MOCK_TEAMS.find(t => t.id === s.teamId)?.name || CURRENT_TEAM.name,
   deals: Math.floor(Math.random() * 20) + 5,
   gmv: Math.floor(Math.random() * 10000000000) + 2000000000,
   revenue: Math.floor(Math.random() * 300000000) + 50000000,
@@ -172,17 +175,17 @@ export const MOCK_BOOKINGS = MOCK_TRANSACTIONS.slice(0, 5).map((tx, i) => ({
   bookingAmount: 50000000,
   bookingCount: 1,
   staffId: tx.salesStaffId,
-  staffName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || 'Nguyễn Demo',
-  teamId: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.teamId || 'T1',
-  teamName: 'BD Zone 1',
+  staffName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || CURRENT_USER.fullName,
+  teamId: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.teamId || CURRENT_TEAM.id,
+  teamName: MOCK_TEAMS.find(t => t.id === MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.teamId)?.name || CURRENT_TEAM.name,
   status: ['PENDING', 'APPROVED', 'PENDING', 'REJECTED', 'APPROVED'][i],
   bookingDate: '2026-04-10T08:00:00Z',
   expiresAt: '2026-04-17T08:00:00Z',
   note: `Booking căn ${tx.productCode || tx.unitCode}`,
   createdByUserId: tx.salesStaffId,
-  createdByName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || 'Demo',
-  reviewedByUserId: i % 2 === 1 ? 'MGR1' : null,
-  reviewedByName: i % 2 === 1 ? 'Ngô Việt' : null,
+  createdByName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || CURRENT_USER.fullName,
+  reviewedByUserId: i % 2 === 1 ? CURRENT_USER.id : null,
+  reviewedByName: i % 2 === 1 ? CURRENT_USER.fullName : null,
   reviewedAt: i % 2 === 1 ? '2026-04-11T10:30:00Z' : null,
   year: 2026,
   month: 4,
@@ -201,9 +204,9 @@ export const MOCK_DEPOSITS = MOCK_TRANSACTIONS.slice(0, 3).map((tx, i) => ({
   customerPhone: tx.customerPhone || '',
   depositAmount: 200000000 + i * 50000000,
   staffId: tx.salesStaffId,
-  staffName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || 'Nguyễn Demo',
-  teamId: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.teamId || 'T1',
-  teamName: 'BD Zone 1',
+  staffName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || CURRENT_USER.fullName,
+  teamId: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.teamId || CURRENT_TEAM.id,
+  teamName: MOCK_TEAMS.find(t => t.id === MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.teamId)?.name || CURRENT_TEAM.name,
   paymentMethod: ['BANK_TRANSFER', 'CASH', 'BANK_TRANSFER'][i],
   receiptNo: `RC-2026-${1000 + i}`,
   notes: `Cọc căn ${tx.productCode || tx.unitCode}`,
@@ -211,9 +214,9 @@ export const MOCK_DEPOSITS = MOCK_TRANSACTIONS.slice(0, 3).map((tx, i) => ({
   depositDate: '2026-04-12T09:00:00Z',
   confirmedAt: i === 1 ? '2026-04-13T14:00:00Z' : null,
   createdByUserId: tx.salesStaffId,
-  createdByName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || 'Demo',
-  reviewedByUserId: i === 1 ? 'MGR1' : null,
-  reviewedByName: i === 1 ? 'Ngô Việt' : null,
+  createdByName: MOCK_STAFF.find(s => s.id === tx.salesStaffId)?.fullName || CURRENT_USER.fullName,
+  reviewedByUserId: i === 1 ? CURRENT_USER.id : null,
+  reviewedByName: i === 1 ? CURRENT_USER.fullName : null,
   reviewedAt: i === 1 ? '2026-04-13T14:00:00Z' : null,
   year: 2026,
   month: 4,

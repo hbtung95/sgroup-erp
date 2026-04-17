@@ -3,6 +3,7 @@ import {
   DollarSign, Download, CreditCard, ChevronDown, Award, Search, HandCoins, Building2, TrendingUp, Calendar, Clock, CheckCircle2
 } from 'lucide-react';
 import { useToast } from '../components/shared/Toast';
+import { CURRENT_USER, CURRENT_TEAM } from '../api/salesMocks';
 
 // ═══════════════════════════════════════════════════════════
 // PAYROLL SCREEN — Bảng Lương Sales
@@ -78,8 +79,8 @@ export function PayrollScreen() {
                  </div>
                  <div className="text-right">
                    <p className="text-[12px] font-bold text-white/80 mb-1">Cán bộ nhân viên</p>
-                   <p className="text-[18px] font-black text-white">Nguyễn Demo</p>
-                   <p className="text-[13px] font-bold text-white/80 mt-1">S1 • BD Zone 1</p>
+                   <p className="text-[18px] font-black text-white">{CURRENT_USER.fullName}</p>
+                   <p className="text-[13px] font-bold text-white/80 mt-1">{CURRENT_USER.employeeCode || CURRENT_USER.id} • {CURRENT_TEAM.name}</p>
                  </div>
                </div>
              </div>

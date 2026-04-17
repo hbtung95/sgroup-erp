@@ -130,11 +130,11 @@ export function CinematicDrawer({
 
 // ═══ DRAWER SUB-COMPONENTS ═══
 
-export function DrawerSection({ title, icon, children }: {
-  title: string; icon?: React.ReactNode; children: React.ReactNode;
+export function DrawerSection({ title, icon, children, className = '' }: {
+  title: string; icon?: React.ReactNode; children: React.ReactNode; className?: string;
 }) {
   return (
-    <div className="bg-slate-50 dark:bg-black/30 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-sg-xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)]">
+    <div className={`bg-slate-50 dark:bg-black/30 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-sg-xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.05)] ${className}`}>
       <h4 className="text-[11px] font-black text-sg-subtext uppercase tracking-widest mb-4 flex items-center gap-2">
         {icon} {title}
       </h4>
@@ -155,13 +155,15 @@ export function DrawerHeroCard({ children, gradient = 'from-emerald-500/10 to-cy
 }
 
 export function DrawerDetailRow({ icon, label, value }: {
-  icon: React.ReactNode; label: string; value: string | React.ReactNode;
+  icon?: React.ReactNode; label: string; value: string | React.ReactNode;
 }) {
   return (
     <div className="flex items-center gap-4">
-      <div className="w-10 h-10 rounded-[14px] bg-sg-btn-bg border border-sg-border flex items-center justify-center shrink-0">
-        {icon}
-      </div>
+      {icon && (
+        <div className="w-10 h-10 rounded-[14px] bg-sg-btn-bg border border-sg-border flex items-center justify-center shrink-0">
+          {icon}
+        </div>
+      )}
       <div className="flex flex-col">
         <p className="text-[10px] font-extrabold text-sg-muted uppercase tracking-wider">{label}</p>
         <div className="text-[15px] font-black text-sg-heading">{value}</div>

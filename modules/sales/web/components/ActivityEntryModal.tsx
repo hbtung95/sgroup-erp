@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Target, X, CheckCircle2, FileText, Phone, Users, Calendar, Award, Building2, AlertCircle } from 'lucide-react';
 import { salesOpsApi } from '../api/salesApi';
-import { useToast } from './shared/Toast';
+import { useToast } from '@sgroup/web-ui';
 
 export interface ActivityEntryModalProps {
   isOpen: boolean;

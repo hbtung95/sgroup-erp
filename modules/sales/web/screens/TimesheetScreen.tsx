@@ -39,8 +39,8 @@ const generateMockTimesheet = (year: number, month: number): DailyTimesheet[] =>
     const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
     
     let status: AttendanceStatus = 'PRESENT';
-    let checkIn = '08:25';
-    let checkOut = '17:35';
+    let checkIn: string | null = '08:25';
+    let checkOut: string | null = '17:35';
     let note = '';
 
     if (isWeekend) {
@@ -186,7 +186,7 @@ export function TimesheetScreen() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-2.5 h-2.5 rounded-full ${conf.bgClass}`} />
+                        <div className={`w-2.5 h-2.5 rounded-full ${conf.bg}`} />
                         <span className={`text-[12px] font-bold ${isActive ? 'text-sg-heading' : 'text-sg-muted'}`}>{conf.label}</span>
                       </div>
                     </button>

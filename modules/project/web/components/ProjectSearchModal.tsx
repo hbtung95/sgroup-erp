@@ -177,7 +177,7 @@ export function ProjectSearchModal({ isOpen, onClose }: ProjectSearchModalProps)
                             </div>
                             <div className="flex flex-col items-start">
                               <span className="text-[15px] font-black text-sg-heading tracking-tight group-hover:text-blue-500 transition-colors">{i.code}</span>
-                              <span className="text-[11px] font-bold text-sg-muted uppercase tracking-[1px]">{pName} • {i.type}</span>
+                              <span className="text-[11px] font-bold text-sg-muted uppercase tracking-[1px]">{pName} • {(i as any).type}</span>
                             </div>
                           </div>
                           <ArrowRight size={16} className="text-sg-muted opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />

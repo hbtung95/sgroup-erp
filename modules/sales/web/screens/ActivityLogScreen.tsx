@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useSalesRole } from '../components/shared/RoleContext';
 import { salesOpsApi } from '../api/salesApi';
+import { CURRENT_USER, CURRENT_TEAM } from '../api/salesMocks';
 import { SkeletonCard, EmptyState } from '../components/shared';
 import { ActivityEntryModal } from '../components/ActivityEntryModal';
 
@@ -147,15 +148,15 @@ export function ActivityLogScreen({ mode = 'personal' }: { mode?: 'personal' | '
 
       // Personal mode: only show current user's items
       if (mode === 'personal' || role === 'sales_staff') {
-        acts = acts.filter(act => act.staffId === 'S1');
-        books = books.filter(b => b.staffId === 'S1');
-        deps = deps.filter(d => (d as any).createdByUserId === 'S1' || (d as any).staffId === 'S1');
+        acts = acts.filter(act => act.staffId === CURRENT_USER.id);
+        books = books.filter(b => (b as any).staffId === CURRENT_USER.id);
+        deps = deps.filter(d => (d as any).createdByUserId === CURRENT_USER.id || (d as any).staffId === CURRENT_USER.id);
       }
       // Team mode: Manager sees team items
       else if (mode === 'team' && role === 'sales_manager') {
-        acts = acts.filter(act => act.teamId === 'T1' || act.staffId === 'S1');
-        books = books.filter(b => b.teamName === 'BD Zone 1' || b.staffId === 'S1');
-        deps = deps.filter(d => (d as any).teamName === 'BD Zone 1' || (d as any).staffId === 'S1');
+        acts = acts.filter(act => act.teamId === CURRENT_TEAM.id || act.staffId === CURRENT_USER.id);
+        books = books.filter(b => b.teamName === CURRENT_TEAM.name || (b as any).staffId === CURRENT_USER.id);
+        deps = deps.filter(d => (d as any).teamName === CURRENT_TEAM.name || (d as any).staffId === CURRENT_USER.id);
       }
 
       const map = new Map<string, ActivitySummary>();
@@ -167,9 +168,9 @@ export function ActivityLogScreen({ mode = 'personal' }: { mode?: 'personal' | '
       };
 
       acts.forEach(a => {
-        const dateStr = toDateStr(a.activityDate);
-        const staffName = a.staffName || (a.staffId === 'S1' ? 'Nguyễn Demo' : 'Nhân Sự Khác');
-        const teamName = a.teamId === 'T1' ? 'BD Zone 1' : 'Khác';
+        const dateStr = toDateStr(a.activityDate || new Date().toISOString());
+        const staffName = a.staffName || (a.staffId === CURRENT_USER.id ? CURRENT_USER.fullName : 'Nhân Sự Khác');
+        const teamName = (a as any).teamName || (a.teamId === CURRENT_TEAM.id ? CURRENT_TEAM.name : 'Khác');
         const key = `${dateStr}_${staffName}`;
         if (!map.has(key)) {
           map.set(key, { id: key, date: dateStr, staffName, team: teamName, calls: 0, leads: 0, meetings: 0, visits: 0, bookings: 0, deposits: 0, points: 0 });
@@ -183,8 +184,8 @@ export function ActivityLogScreen({ mode = 'personal' }: { mode?: 'personal' | '
 
       books.forEach(b => {
         const dateStr = toDateStr(b.bookingDate || b.createdAt);
-        const staffName = b.staffName || 'Nguyễn Demo';
-        const teamName = b.teamName || 'BD Zone 1';
+        const staffName = b.staffName || CURRENT_USER.fullName;
+        const teamName = b.teamName || CURRENT_TEAM.name;
         const key = `${dateStr}_${staffName}`;
         if (!map.has(key)) {
           map.set(key, { id: key, date: dateStr, staffName, team: teamName, calls: 0, leads: 0, meetings: 0, visits: 0, bookings: 0, deposits: 0, points: 0 });
@@ -193,9 +194,9 @@ export function ActivityLogScreen({ mode = 'personal' }: { mode?: 'personal' | '
       });
 
       deps.forEach(d => {
-        const dateStr = toDateStr(d.depositDate || d.createdAt);
-        const staffName = (d as any).staffName || 'Nguyễn Demo';
-        const teamName = d.teamName || 'BD Zone 1';
+        const dateStr = toDateStr((d as any).depositDate || d.createdAt);
+        const staffName = (d as any).staffName || CURRENT_USER.fullName;
+        const teamName = (d as any).teamName || CURRENT_TEAM.name;
         const key = `${dateStr}_${staffName}`;
         if (!map.has(key)) {
           map.set(key, { id: key, date: dateStr, staffName, team: teamName, calls: 0, leads: 0, meetings: 0, visits: 0, bookings: 0, deposits: 0, points: 0 });

@@ -40,7 +40,8 @@ export interface ListFilter {
   sortBy?: string; sortDir?: string; page?: number; limit?: number;
 }
 
-import { Customer, Transaction, SalesDeal, SalesTeam, SalesStaff, SalesBooking } from '@sgroup/types';
+import { Customer, Transaction, SalesDeal, SalesTeam, SalesStaff, SalesBooking, KPIData, MonthlyRevenue } from '@sgroup/types';
+export type { Customer, Transaction, SalesDeal, SalesTeam, SalesStaff, SalesBooking, KPIData, MonthlyRevenue };
 
 export interface SalesActivity {
   id?: string;
@@ -58,21 +59,7 @@ export interface SalesActivity {
   createdAt?: string;
 }
 
-export interface KPIData {
-  totalLeads: number;
-  totalDeals: number;
-  closedDeals: number;
-  pendingApprovals: number;
-  revenue: number;
-  pipelineValue: number;
-  conversionRate: number;
-  avgDealSize: number;
-  activeStaff: number;
-  teamCount: number;
-  totalActivityPoints: number;
-  pointsKPI: number;
-  revenueKPI: number;
-}
+// KPIData is now imported and re-exported from @sgroup/types
 
 export interface StageCount {
   stage: string; count: number; value: number;
@@ -155,9 +142,9 @@ export const salesOpsApi = {
   createBooking: (data: Partial<SalesBooking>) => {
     const b = { ...data, id: `BK-${uid()}`, status: 'PENDING', bookingDate: new Date().toISOString(),
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), year: 2026, month: 4,
-      staffId: 'S1', staffName: 'Nguyễn Demo', teamName: 'BD Zone 1' };
+      staffId: 'S1', staffName: 'Nguyễn Demo', teamName: 'BD Zone 1' } as any;
     MOCK_BOOKINGS_STATE = [b, ...MOCK_BOOKINGS_STATE];
-    return mockDelay(b as unknown as SalesBooking);
+    return mockDelay(b as SalesBooking);
   },
   updateBooking: (id: string, data: Partial<SalesBooking>) => {
     MOCK_BOOKINGS_STATE = MOCK_BOOKINGS_STATE.map(b => 
@@ -180,9 +167,9 @@ export const salesOpsApi = {
   createDeposit: (data: Partial<SalesBooking>) => {
     const d = { ...data, id: `DP-${uid()}`, status: 'PENDING', depositDate: new Date().toISOString(),
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), year: 2026, month: 4,
-      staffId: 'S1', staffName: 'Nguyễn Demo', teamName: 'BD Zone 1' };
+      staffId: 'S1', staffName: 'Nguyễn Demo', teamName: 'BD Zone 1' } as any;
     MOCK_DEPOSITS_STATE = [d, ...MOCK_DEPOSITS_STATE];
-    return mockDelay(d as unknown as SalesBooking);
+    return mockDelay(d as SalesBooking);
   },
   updateDeposit: (id: string, data: Partial<SalesBooking>) => {
     MOCK_DEPOSITS_STATE = MOCK_DEPOSITS_STATE.map(d => 
@@ -203,11 +190,10 @@ export const salesOpsApi = {
   // Deals
   listDeals: (_f?: ListFilter) => mockDelay(MOCK_DEALS_STATE),
   createDeal: (data: Partial<SalesDeal>) => {
-    const deal: SalesDeal = { ...data, id: `DL-${uid()}`, dealCode: `GD-${uid()}`,
-      commission: (data.dealValue || 0) * ((data.feeRate || 3) / 100),
-      stage: 'PROSPECTING', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-    MOCK_DEALS_STATE = [deal, ...MOCK_DEALS_STATE];
-    return mockDelay(deal);
+    const d = { ...data, id: `DL-${uid()}`, dealCode: `DC-${uid()}`, commission: 0, stage: 'NEW',
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as any;
+    MOCK_DEALS_STATE = [d, ...MOCK_DEALS_STATE];
+    return mockDelay(d as SalesDeal);
   },
 };
 

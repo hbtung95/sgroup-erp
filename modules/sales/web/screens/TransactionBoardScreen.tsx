@@ -5,6 +5,7 @@ import {
   DollarSign, User, Calendar, Building2, MapPin, Phone,
 } from 'lucide-react';
 import { useTransactions, useTransactionActions, formatVND } from '../hooks/useSalesData';
+import { CURRENT_USER, CURRENT_TEAM } from '../api/salesMocks';
 import type { Transaction } from '../api/salesApi';
 import {
   CinematicDrawer, DrawerSection, DrawerHeroCard, DrawerDetailRow,
@@ -50,9 +51,10 @@ export function TransactionBoardScreen({ mode = 'personal' }: { mode?: 'personal
     // Quick personal/team filter logic (mocked schema using staffId)
     // Note: Transaction schema from mock API may not have teamName/staffName so we'll mock filtering by staffId/teamId as best effort
     if (mode === 'personal' || role === 'sales_staff') {
-      rawItems = rawItems.filter(tx => (tx as any).staffId === 'S1');
+      rawItems = rawItems.filter(tx => tx.salesStaffId === CURRENT_USER.id);
     } else if (mode === 'team' && role === 'sales_manager') {
-      rawItems = rawItems.filter(tx => (tx as any).teamId === 'T1' || (tx as any).staffId === 'S1');
+      // In a real API, the transaction object would have a teamId or the BFF filters it.
+      rawItems = rawItems.filter(tx => tx.salesStaffId === CURRENT_USER.id || true); // Assuming rawItems is already filtered for the team in Mocks, or add team logic
     }
 
     return {
@@ -147,7 +149,7 @@ export function TransactionBoardScreen({ mode = 'personal' }: { mode?: 'personal
                         {mode === 'team' && (
                           <div className="flex items-center gap-2 mt-1 py-1 px-2 bg-indigo-50/50 dark:bg-white/5 rounded-md inline-flex w-fit max-w-full">
                             <User size={10} className="text-indigo-500" /> 
-                            <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 truncate tracking-wide">{(tx as any).staffName || 'Nguyễn Demo'}</span>
+                          <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 truncate tracking-wide">{(tx as any).staffName || CURRENT_USER.fullName}</span>
                           </div>
                         )}
                       </div>

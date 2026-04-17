@@ -19,13 +19,15 @@ const formatVND = (n: number) => {
   return n.toLocaleString('vi-VN');
 };
 
+import { CURRENT_USER as MOCK_USER, CURRENT_TEAM as MOCK_TEAM } from '../api/salesMocks';
+
 // ═══ Personal Profile Mock Data ═══
 const CURRENT_USER = {
-  id: 'S1',
-  employeeCode: 'SG-2025-001',
-  fullName: 'Nguyễn Demo',
-  email: 'nguyen.demo@sgroup.vn',
-  phone: '0901 234 567',
+  id: MOCK_USER.id,
+  employeeCode: MOCK_USER.employeeCode || 'SG-2025-001',
+  fullName: MOCK_USER.fullName,
+  email: MOCK_USER.email || 'user@sgroup.vn',
+  phone: MOCK_USER.phone || '0901 234 567',
   address: '123 Nguyễn Huệ, Q.1, TP.HCM',
   dateOfBirth: '1995-06-15',
   gender: 'male' as const,
@@ -35,7 +37,7 @@ const CURRENT_USER = {
   taxCode: '0123456789',
   joinDate: '2025-01-15',
   department: 'Phòng Kinh Doanh',
-  team: M.MOCK_TEAMS[0]?.name || 'BD Zone 1',
+  team: MOCK_TEAM.name,
   position: 'Chuyên Viên Kinh Doanh',
   contractType: 'Toàn thời gian',
   contractExpiry: '2027-01-15',

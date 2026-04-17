@@ -13,6 +13,9 @@ export interface KPIData {
   avgDealSize: number;
   activeStaff: number;
   teamCount: number;
+  totalActivityPoints?: number;
+  pointsKPI?: number;
+  revenueKPI?: number;
 }
 
 export interface MonthlyRevenue {

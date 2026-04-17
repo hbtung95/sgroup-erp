@@ -60,6 +60,7 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
   const [editForm, setEditForm] = useState<Record<string, any>>({});
   const selectorRef = useRef<HTMLDivElement>(null);
   const updateEmployee = useUpdateEmployee();
+  const toast = useToast();
   
   const employeeId = routeParams?.get('id');
   const { data: employeesData } = useEmployees({ search: '' });
