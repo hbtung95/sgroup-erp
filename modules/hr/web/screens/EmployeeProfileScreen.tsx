@@ -10,6 +10,7 @@ import { useAuthStore } from '@sgroup/platform';
 import { useNavigate } from 'react-router-dom';
 import { useEmployees, useUpdateEmployee, usePositions, useDepartments } from '../hooks/useHR';
 import { WORK_STATUS_OPTIONS, CANDIDATE_SOURCE_OPTIONS, EMPLOYMENT_TYPE_OPTIONS } from '../constants';
+import { useToast } from '@sgroup/web-ui';
 
 const TABS = [
   { key: 'personal', label: 'Thông tin cá nhân', icon: User },
@@ -268,17 +269,19 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
             </div>
             {/* Edit Button */}
             {emp && (
-              <button
-                onClick={() => {
-                  setEditForm({ ...emp });
-                  setEditStep(1);
-                  setEditOpen(true);
-                }}
-                className="absolute top-5 right-5 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sg-red text-white font-extrabold text-xs uppercase tracking-wide hover:bg-sg-red-light transition-all shadow-sg-brand hover:-translate-y-0.5"
-              >
-                <Pencil size={14} strokeWidth={2.5} />
-                Cập nhật hồ sơ
-              </button>
+              <div className="w-full md:w-auto flex justify-center md:justify-end mt-4 md:mt-0">
+                <button
+                  onClick={() => {
+                    setEditForm({ ...emp });
+                    setEditStep(1);
+                    setEditOpen(true);
+                  }}
+                  className="flex flex-1 md:flex-none justify-center items-center gap-2 px-5 py-2.5 rounded-xl bg-sg-red text-white font-extrabold text-xs uppercase tracking-wide hover:bg-sg-red-light transition-all shadow-sg-brand hover:-translate-y-0.5"
+                >
+                  <Pencil size={14} strokeWidth={2.5} />
+                  Cập nhật hồ sơ
+                </button>
+              </div>
             )}
           </div>
 
@@ -305,8 +308,7 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
           {/* ════════════════════════════════════════════════ */}
           {/* TAB 1: Thông tin cá nhân */}
           {/* ════════════════════════════════════════════════ */}
-          {activeTab === 'personal' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up">
+          <div className={`${activeTab === 'personal' ? 'grid' : 'hidden'} grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up`}>
               
               {/* Thông tin cơ bản */}
               <SectionCard title="Thông tin cơ bản" icon={User} color="text-sg-red" iconBg="bg-sg-red/20" iconBorder="border-sg-red/30">
@@ -337,13 +339,11 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                 <InfoRow label="Địa chỉ liên hệ" value={emp?.contactAddress} icon={MapPin} />
               </SectionCard>
             </div>
-          )}
 
           {/* ════════════════════════════════════════════════ */}
           {/* TAB 2: Công việc & Hợp đồng */}
           {/* ════════════════════════════════════════════════ */}
-          {activeTab === 'work' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up">
+          <div className={`${activeTab === 'work' ? 'grid' : 'hidden'} grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up`}>
 
               {/* Vị trí công việc */}
               <SectionCard title="Vị trí công việc" icon={Briefcase} color="text-blue-400" iconBg="bg-blue-500/20" iconBorder="border-blue-500/30">
@@ -373,13 +373,11 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                 <InfoRow label="Mã nhân viên" value={emp?.employeeCode} icon={Hash} />
               </SectionCard>
             </div>
-          )}
 
           {/* ════════════════════════════════════════════════ */}
           {/* TAB 3: Tài chính & Bảo hiểm */}
           {/* ════════════════════════════════════════════════ */}
-          {activeTab === 'finance' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up">
+          <div className={`${activeTab === 'finance' ? 'grid' : 'hidden'} grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up`}>
 
               {/* Lương */}
               <SectionCard title="Thông tin lương" icon={Banknote} color="text-emerald-400" iconBg="bg-emerald-500/20" iconBorder="border-emerald-500/30">
@@ -401,13 +399,11 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                 <InfoRow label="Số sổ bảo hiểm" value={emp?.insuranceBook} icon={ShieldCheck} />
               </SectionCard>
             </div>
-          )}
 
           {/* ════════════════════════════════════════════════ */}
           {/* TAB 4: Tuyển dụng & Phép */}
           {/* ════════════════════════════════════════════════ */}
-          {activeTab === 'recruitment' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up">
+          <div className={`${activeTab === 'recruitment' ? 'grid' : 'hidden'} grid-cols-1 lg:grid-cols-2 gap-6 pb-6 animate-fade-in-up`}>
 
               {/* Tuyển dụng */}
               <SectionCard title="Thông tin tuyển dụng" icon={UserCheck} color="text-pink-400" iconBg="bg-pink-500/20" iconBorder="border-pink-500/30">
@@ -449,7 +445,6 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                 )}
               </SectionCard>
             </div>
-          )}
 
         </div>
       </div>
@@ -609,7 +604,10 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                 <button
                   disabled={updateEmployee.isPending}
                   onClick={async () => {
-                    if (!editForm.fullName?.trim()) return alert('Vui lòng nhập tên nhân sự');
+                    if (!editForm.fullName?.trim()) {
+                       toast.error('Vui lòng nhập tên nhân sự');
+                       return;
+                    }
                     // Sync 'status' enum field from 'workStatus' display field
                     const workStatusToStatusMap: Record<string, string> = {
                       'Đang làm việc': 'active',
@@ -621,9 +619,10 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                     const payload = { ...editForm, status: syncedStatus };
                     try {
                       await updateEmployee.mutateAsync({ id: editForm.id, data: payload });
+                      toast.success('Đã cập nhật hồ sơ thành công');
                       setEditOpen(false);
                     } catch (e: any) {
-                      alert(e?.message || 'Có lỗi xảy ra');
+                      toast.error(e?.message || 'Có lỗi xảy ra khi cập nhật hồ sơ');
                     }
                   }}
                   className={`px-7 py-3 rounded-2xl font-black text-sm text-white flex items-center gap-2.5 transition-all duration-200 shadow-lg

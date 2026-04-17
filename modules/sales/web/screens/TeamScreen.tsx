@@ -3,7 +3,7 @@ import {
   Users, Plus, Search, UserCheck, Phone, Mail, LayoutGrid, List,
   Loader2, Target, Award,
 } from 'lucide-react';
-import { useStaff, useTeams, formatVND } from '../hooks/useSalesData';
+import { useStaff, useTeams, useTopSellers, formatVND } from '../hooks/useSalesData';
 import type { SalesStaff } from '../api/salesApi';
 import {
   CinematicDrawer, DrawerSection, DrawerHeroCard, DrawerDetailRow,
@@ -25,12 +25,18 @@ const ROLE_CONFIG: Record<string, { label: string; color: string; gradient: stri
 export function TeamScreen() {
   const { data: staff, loading: staffLoading } = useStaff();
   const { data: teams, loading: teamsLoading } = useTeams();
+  const { data: topSellers } = useTopSellers(100);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [selectedStaff, setSelectedStaff] = useState<SalesStaff | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
 
-  const filtered = (staff || []).filter(s => {
+  const staffWithMetrics = (staff || []).map(s => {
+    const metrics = (topSellers || []).find(ts => ts.staffId === s.id) || { deals: 0, gmv: 0, revenue: 0 };
+    return { ...s, ...metrics };
+  });
+
+  const filtered = staffWithMetrics.filter(s => {
     const matchSearch = !searchQuery || s.fullName.toLowerCase().includes(searchQuery.toLowerCase()) || s.employeeCode.toLowerCase().includes(searchQuery.toLowerCase());
     const matchTeam = !selectedTeam || s.teamId === selectedTeam;
     return matchSearch && matchTeam;
@@ -115,13 +121,15 @@ export function TeamScreen() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 relative z-10">
-                    <div className="p-3 rounded-xl bg-sg-card/50 border border-sg-border/30 text-center">
-                      <span className="block text-[9px] font-bold text-sg-muted uppercase">Target</span>
-                      <span className="block text-[14px] font-black text-sg-heading">{formatVND(s.personalTarget)}</span>
+                    <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-center">
+                      <span className="block text-[9px] font-bold text-orange-600 uppercase tracking-wider">Doanh thu chốt</span>
+                      <span className="block text-[14px] font-black text-orange-600">{formatVND(s.revenue)}</span>
                     </div>
                     <div className="p-3 rounded-xl bg-sg-card/50 border border-sg-border/30 text-center">
-                      <span className="block text-[9px] font-bold text-sg-muted uppercase">Leads/tháng</span>
-                      <span className="block text-[14px] font-black text-sg-heading">{s.leadsCapacity}</span>
+                      <span className="block text-[9px] font-bold text-sg-muted uppercase tracking-wider">Đạt Target</span>
+                      <span className="block text-[14px] font-black text-sg-heading">
+                        {Math.round((s.revenue / (s.personalTarget || 1)) * 100)}%
+                      </span>
                     </div>
                   </div>
 
@@ -144,7 +152,7 @@ export function TeamScreen() {
                   <th className="px-5 py-4 text-left text-[10px] font-black text-sg-muted uppercase">Nhân viên</th>
                   <th className="px-4 py-4 text-left text-[10px] font-black text-sg-muted uppercase">Team</th>
                   <th className="px-4 py-4 text-center text-[10px] font-black text-sg-muted uppercase">Vai trò</th>
-                  <th className="px-4 py-4 text-right text-[10px] font-black text-sg-muted uppercase">Target</th>
+                  <th className="px-4 py-4 text-right text-[10px] font-black text-sg-muted uppercase">Thực Đạt / Target</th>
                   <th className="px-4 py-4 text-center text-[10px] font-black text-sg-muted uppercase">Trạng thái</th>
                 </tr>
               </thead>
@@ -159,7 +167,10 @@ export function TeamScreen() {
                     </td>
                     <td className="px-4 py-3.5 text-[12px] font-semibold text-sg-muted">{s.team?.name || '—'}</td>
                     <td className="px-4 py-3.5 text-center"><span className={`inline-flex px-2.5 py-1 rounded-lg border text-[10px] font-black ${ROLE_CONFIG[s.role]?.color || 'text-slate-500 bg-slate-500/10 border-slate-500/20'}`}>{ROLE_CONFIG[s.role]?.label || s.role}</span></td>
-                    <td className="px-4 py-3.5 text-right text-[13px] font-bold text-sg-heading">{formatVND(s.personalTarget)}</td>
+                    <td className="px-4 py-3.5 text-right flex flex-col items-end">
+                      <span className="text-[13px] font-black text-orange-500">{formatVND(s.revenue)}</span>
+                      <span className="text-[10px] font-bold text-sg-muted">/{formatVND(s.personalTarget)}</span>
+                    </td>
                     <td className="px-4 py-3.5 text-center"><span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold ${s.status === 'ACTIVE' ? 'text-emerald-500 bg-emerald-500/10' : 'text-slate-400 bg-slate-400/10'}`}><div className={`w-1.5 h-1.5 rounded-full ${s.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`} />{s.status === 'ACTIVE' ? 'Active' : 'Inactive'}</span></td>
                   </tr>
                 ))}

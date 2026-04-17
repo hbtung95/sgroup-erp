@@ -51,6 +51,7 @@ export interface SalesActivity {
   callsCount: number;
   newLeads: number;
   meetingsMade: number;
+  siteVisits?: number;
   points?: number;
   activityDate?: string;
   note?: string;
@@ -124,19 +125,90 @@ export const transactionApi = {
   markSold: (_i: string) => Promise.reject(new Error("Read Only. Synced from CRM.")) as Promise<ApiResponse<Transaction>>,
 };
 
-// ═══ Sales Ops API ═══
+// ═══ Local Mock State (seeded from salesMocks) ═══
+let MOCK_ACTIVITIES: SalesActivity[] = [...M.MOCK_ACTIVITIES_SEED];
+let MOCK_BOOKINGS_STATE = [...M.MOCK_BOOKINGS];
+let MOCK_DEPOSITS_STATE = [...M.MOCK_DEPOSITS];
+let MOCK_DEALS_STATE: SalesDeal[] = [...M.MOCK_DEALS];
+
+const uid = () => Math.random().toString(36).substring(2, 9);
+
+// ═══ Sales Ops API (Fully Mocked for Frontend-only dev) ═══
 export const salesOpsApi = {
-  listBookings: (_f?: ListFilter) => mockDelay([] as SalesBooking[]),
-  createBooking: (_d: unknown) => Promise.reject(new Error("Read Only. Synced from CRM.")) as Promise<ApiResponse<SalesBooking>>,
-  approveBooking: (_i: string) => Promise.reject(new Error("Read Only. Synced from CRM.")) as Promise<ApiResponse<SalesBooking>>,
-  rejectBooking: (_i: string) => Promise.reject(new Error("Read Only. Synced from CRM.")) as Promise<ApiResponse<SalesBooking>>,
-  listDeposits: (_f?: ListFilter) => mockDelay([] as unknown[]),
-  createDeposit: (_d: unknown) => Promise.reject(new Error("Read Only. Synced from CRM.")) as Promise<ApiResponse<unknown>>,
-  confirmDeposit: (_i: string) => Promise.reject(new Error("Read Only. Synced from CRM.")) as Promise<ApiResponse<unknown>>,
-  cancelDeposit: (_i: string) => Promise.reject(new Error("Read Only. Synced from CRM.")) as Promise<ApiResponse<unknown>>,
-  listDeals: (_f?: ListFilter) => mockDelay(M.MOCK_DEALS),
-  createDeal: (_d: unknown) => Promise.reject(new Error("Read Only. Synced from CRM.")) as Promise<ApiResponse<SalesDeal>>,
-  createActivity: (data: Partial<SalesActivity>) => mockDelay(data as SalesActivity),
+  // Activities
+  listActivities: (_f?: ListFilter) => mockDelay(MOCK_ACTIVITIES),
+  createActivity: (data: Partial<SalesActivity>) => {
+    const newAct: SalesActivity = {
+      id: uid(), staffId: 'S1', staffName: 'Nguyễn Demo', teamId: 'T1',
+      postsCount: data.postsCount || 0, callsCount: data.callsCount || 0,
+      newLeads: data.newLeads || 0, meetingsMade: data.meetingsMade || 0,
+      siteVisits: data.siteVisits || 0,
+      points: (data.newLeads||0)*1 + (data.meetingsMade||0)*10 + (data.siteVisits||0)*20,
+      activityDate: new Date().toISOString(), note: data.note || '', createdAt: new Date().toISOString(),
+    };
+    MOCK_ACTIVITIES = [newAct, ...MOCK_ACTIVITIES];
+    return mockDelay(newAct);
+  },
+  
+  // Bookings
+  listBookings: (_f?: ListFilter) => mockDelay(MOCK_BOOKINGS_STATE as unknown as SalesBooking[]),
+  createBooking: (data: Partial<SalesBooking>) => {
+    const b = { ...data, id: `BK-${uid()}`, status: 'PENDING', bookingDate: new Date().toISOString(),
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), year: 2026, month: 4,
+      staffId: 'S1', staffName: 'Nguyễn Demo', teamName: 'BD Zone 1' };
+    MOCK_BOOKINGS_STATE = [b, ...MOCK_BOOKINGS_STATE];
+    return mockDelay(b as unknown as SalesBooking);
+  },
+  updateBooking: (id: string, data: Partial<SalesBooking>) => {
+    MOCK_BOOKINGS_STATE = MOCK_BOOKINGS_STATE.map(b => 
+      b.id === id ? { ...b, ...data, updatedAt: new Date().toISOString() } : b
+    );
+    const updated = MOCK_BOOKINGS_STATE.find(b => b.id === id);
+    return mockDelay(updated as unknown as SalesBooking);
+  },
+  approveBooking: (id: string) => {
+    MOCK_BOOKINGS_STATE = MOCK_BOOKINGS_STATE.map(b => b.id === id ? { ...b, status: 'APPROVED', reviewedByName: 'Manager', reviewedAt: new Date().toISOString() } : b);
+    return mockDelay({ success: true } as unknown as SalesBooking);
+  },
+  rejectBooking: (id: string) => {
+    MOCK_BOOKINGS_STATE = MOCK_BOOKINGS_STATE.map(b => b.id === id ? { ...b, status: 'REJECTED', reviewedByName: 'Manager', reviewedAt: new Date().toISOString() } : b);
+    return mockDelay({ success: true } as unknown as SalesBooking);
+  },
+  
+  // Deposits
+  listDeposits: (_f?: ListFilter) => mockDelay(MOCK_DEPOSITS_STATE as unknown as SalesBooking[]),
+  createDeposit: (data: Partial<SalesBooking>) => {
+    const d = { ...data, id: `DP-${uid()}`, status: 'PENDING', depositDate: new Date().toISOString(),
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), year: 2026, month: 4,
+      staffId: 'S1', staffName: 'Nguyễn Demo', teamName: 'BD Zone 1' };
+    MOCK_DEPOSITS_STATE = [d, ...MOCK_DEPOSITS_STATE];
+    return mockDelay(d as unknown as SalesBooking);
+  },
+  updateDeposit: (id: string, data: Partial<SalesBooking>) => {
+    MOCK_DEPOSITS_STATE = MOCK_DEPOSITS_STATE.map(d => 
+      d.id === id ? { ...d, ...data, updatedAt: new Date().toISOString() } : d
+    );
+    const updated = MOCK_DEPOSITS_STATE.find(d => d.id === id);
+    return mockDelay(updated as unknown as SalesBooking);
+  },
+  confirmDeposit: (id: string) => {
+    MOCK_DEPOSITS_STATE = MOCK_DEPOSITS_STATE.map(d => d.id === id ? { ...d, status: 'CONFIRMED', confirmedAt: new Date().toISOString() } : d);
+    return mockDelay({ success: true } as unknown as SalesBooking);
+  },
+  cancelDeposit: (id: string) => {
+    MOCK_DEPOSITS_STATE = MOCK_DEPOSITS_STATE.map(d => d.id === id ? { ...d, status: 'CANCELLED' } : d);
+    return mockDelay({ success: true } as unknown as SalesBooking);
+  },
+  
+  // Deals
+  listDeals: (_f?: ListFilter) => mockDelay(MOCK_DEALS_STATE),
+  createDeal: (data: Partial<SalesDeal>) => {
+    const deal: SalesDeal = { ...data, id: `DL-${uid()}`, dealCode: `GD-${uid()}`,
+      commission: (data.dealValue || 0) * ((data.feeRate || 3) / 100),
+      stage: 'PROSPECTING', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    MOCK_DEALS_STATE = [deal, ...MOCK_DEALS_STATE];
+    return mockDelay(deal);
+  },
 };
 
 // ═══ Team & Staff API ═══

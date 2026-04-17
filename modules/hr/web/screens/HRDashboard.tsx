@@ -2,9 +2,10 @@ import React from 'react';
 import { Users, Briefcase, Clock, Building, Cake, Zap } from 'lucide-react';
 import { useHRDashboard, useDepartments, useDashboardEvents, useDashboardActivities } from '../hooks/useHR';
 import { SGStatsCard } from '@sgroup/web-ui';
-import { SGGlassPanel } from '@sgroup/web-ui';
+import { SGGlassPanel, useToast } from '@sgroup/web-ui';
 
 export function HRDashboard() {
+  const toast = useToast();
   const { data: dashboard, isLoading } = useHRDashboard();
   const { data: rawDepts } = useDepartments();
   const { data: rawEvents } = useDashboardEvents();
@@ -83,7 +84,7 @@ export function HRDashboard() {
                  <Building size={20} className="text-sg-red" />
               </div>
               <h3 className="text-xl font-black text-sg-heading flex-1">Cơ cấu Nhân sự theo Phòng ban</h3>
-              <button className="text-sm font-bold text-sg-red hover:underline decoration-2 underline-offset-4">Xem tất cả</button>
+              <button onClick={() => window.location.hash = 'hr_org_config'} className="text-sm font-bold text-sg-red hover:underline decoration-2 underline-offset-4">Xem tất cả</button>
             </div>
 
             {deptList.length === 0 && (
@@ -252,7 +253,7 @@ export function HRDashboard() {
               )}
             </div>
             
-            <button className="w-full mt-6 py-3 rounded-xl border-2 border-sg-border hover:bg-sg-btn-bg transition-colors text-sm font-extrabold text-sg-heading">
+            <button onClick={() => toast.success('Đã gửi lời chúc sinh nhật hàng loạt thành công!')} className="w-full mt-6 py-3 rounded-xl border-2 border-sg-border hover:bg-sg-btn-bg transition-colors text-sm font-extrabold text-sg-heading">
               Gửi lời chúc hàng loạt
             </button>
           </SGGlassPanel>

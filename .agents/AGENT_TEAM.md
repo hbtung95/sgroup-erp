@@ -1,12 +1,12 @@
-# SGROUP ERP — AGENT TEAM V5 (HERA + MCP)
+# SGROUP ERP — AGENT TEAM V5.1 (HERA + MCP + GitNexus)
 
 Mission: ERP toàn diện cho Công ty Môi giới BĐS SGROUP.
-Design: HERA V5 | MCP-Native | A2A Discovery | Experience-Driven | Self-Evolving.
+Design: HERA V5.1 | MCP-Native | GitNexus Graph-RAG | A2A Discovery | Experience-Driven | Self-Evolving.
 REF: shared/agent-dna.md | ROUTING.md | shared/strategy-v21.md
 
 ## Architecture (4 Layers)
 ```
-L0: MCP INFRASTRUCTURE — Registry(A2A) + 4 MCP Servers + Boundary Enforcement
+L0: MCP INFRASTRUCTURE — Registry(A2A) + 5 MCP Servers + Boundary Enforcement
 L1: JAVIS (Orchestrator) — 4-Signal Classify → DAG Build → MCP Dispatch → MUSE
 L2: EXECUTION AGENTS — 13 agents consume MCP tools, produce AgentOutput
 L3: MUSE (Evaluator) — Score → Credit → exp_capture → exp_update → RoPE
@@ -15,14 +15,14 @@ L3: MUSE (Evaluator) — Score → Credit → exp_capture → exp_update → RoP
 ## 14 Agents
 | Agent | Role | Domain | MCP Tools | A2A |
 |-------|------|--------|-----------|:---:|
-| JAVIS | Orchestrator | ROUTING.md | domain_*, exp_*, build_*, auth_*, registry_* | ✅ |
+| JAVIS | Orchestrator | ROUTING.md | domain_*, exp_*, build_*, auth_*, registry_*, graph_impact, graph_detect | ✅ |
 | BELLA | Lead BA | shared/domain/ | domain_get_spec, exp_search_* | 🔲 |
 | DIANA | Process BA | docs/ba/processes/ | domain_get_spec, exp_search_* | 🔲 |
 | OSCAR | Org/RBAC BA | docs/ba/organization/ | auth_get_role_hierarchy, exp_search_* | 🔲 |
 | MARCO | Compliance BA | docs/ba/industry/ | domain_get_spec, exp_search_* | 🔲 |
-| FIONA | Frontend | modules/*/web/ | domain_get_spec, build_turbo | 🔲 |
-| BRIAN | Backend | modules/*/api/ | domain_scaffold_endpoint, build_go_module | ✅ |
-| JENNY | Database | modules/*/api/migrations/ | domain_scaffold_migration, exp_search_* | 🔲 |
+| FIONA | Frontend | modules/*/web/ | domain_get_spec, build_turbo, graph_context, graph_query | 🔲 |
+| BRIAN | Backend | modules/*/api/ | domain_scaffold_endpoint, build_go_module, graph_context, graph_query | ✅ |
+| JENNY | Database | modules/*/api/migrations/ | domain_scaffold_migration, exp_search_*, graph_impact | 🔲 |
 | NOVA | UI/Design | packages/ui/ | domain_get_design_tokens | 🔲 |
 | ATLAS | DevOps | .github/, docker-compose | build_turbo, build_check_deps | 🔲 |
 | QUINN | Testing | **/*.test.* | test_go_module, test_frontend_module, lint_* | 🔲 |
@@ -30,13 +30,14 @@ L3: MUSE (Evaluator) — Score → Credit → exp_capture → exp_update → RoP
 | IRIS | Integration | modules/*/api/integrations/ | domain_get_api_contract | 🔲 |
 | MUSE ⭐ | Evaluator | experience-library/ | exp_capture_*, exp_update_*, exp_trigger_rope | ✅ |
 
-## MCP Servers (4)
+## MCP Servers (5)
 | Server | Key Tools |
 |--------|-----------|
 | erp-domain-mcp | domain_get_spec, domain_list_modules, domain_scaffold_* |
 | experience-mcp | exp_search_*, exp_capture_*, exp_update_*, exp_trigger_rope |
 | build-mcp | build_turbo, build_go_module, test_*, lint_* |
 | auth-mcp | auth_get_role_hierarchy, auth_check_agent_boundary, auth_get_financial_rules |
+| gitnexus-mcp | graph_impact, graph_context, graph_query, graph_detect_changes, graph_cypher |
 
 ## Task Flow
 ```

@@ -3,12 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   BarChart3, Users, Layers, Building2, UserCheck,
   FileText, TrendingUp, Settings, ChevronLeft, ChevronRight,
-  Sparkles, DollarSign, Calculator, Grid
+  Sparkles, DollarSign, Calculator, Grid, Activity, BookmarkPlus, ShieldCheck, LogOut, Trophy
 } from 'lucide-react';
 import { useSalesRole } from './shared/RoleContext';
 
 // ═══════════════════════════════════════════════════════════
-// SALES SIDEBAR — URL-based navigation with RBAC + Sections
+// SALES SIDEBAR — Role-Based Menu Bundles
 // ═══════════════════════════════════════════════════════════
 
 interface SidebarItem {
@@ -17,28 +17,68 @@ interface SidebarItem {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   path: string;
   badge?: number;
-  roles?: string[]; // If empty, visible to all
-  section?: string; // Section divider label
+  section?: string;
 }
 
-const SIDEBAR_ITEMS: SidebarItem[] = [
-  // ─── Vận Hành ───
-  { id: 'dashboard',     label: 'Dashboard',      icon: BarChart3,   path: 'dashboard',    section: 'Vận Hành' },
-  { id: 'customers',     label: 'Khách Hàng',     icon: Users,       path: 'customers' },
-  { id: 'transactions',  label: 'Giao Dịch',      icon: Layers,      path: 'transactions', badge: 3 },
-  { id: 'inventory',     label: 'Bảng Hàng',      icon: Grid,        path: 'inventory' },
-  { id: 'commission',    label: 'Hoa Hồng',       icon: DollarSign,  path: 'commission' },
-  // ─── Công Cụ ───
-  { id: 'loan-calculator', label: 'Tính Khoản Vay', icon: Calculator, path: 'loan-calculator', section: 'Công Cụ' },
-  // ─── Quản Lý ───
-  { id: 'team',          label: 'Đội Ngũ',        icon: UserCheck,   path: 'team',          roles: ['sales_manager', 'sales_director', 'admin'], section: 'Quản Lý' },
-  { id: 'departments',   label: 'Phòng Ban',      icon: Building2,   path: 'departments',   roles: ['sales_director', 'admin'] },
-  { id: 'reports',       label: 'Báo Cáo',        icon: FileText,    path: 'reports',       roles: ['sales_manager', 'sales_director', 'admin'] },
-  // ─── Hệ Thống ───
-  { id: 'settings',      label: 'Cài Đặt',        icon: Settings,    path: 'settings',      roles: ['sales_director', 'admin'], section: 'Hệ Thống' },
+const STAFF_MENU: SidebarItem[] = [
+  // ── MỤC 1: TỔNG QUAN ──
+  { id: 'dashboard',    label: 'Dashboard',      icon: BarChart3,    path: 'dashboard',    section: 'TỔNG QUAN' },
+  { id: 'leaderboard',  label: 'Bảng Xếp Hạng',  icon: Trophy,       path: 'leaderboard' },
+  { id: 'inventory',    label: 'Bảng Hàng',      icon: Grid,         path: 'inventory' },
+  // ── MỤC 2: NĂNG SUẤT ──
+  { id: 'activities',   label: 'Nhật Ký Kinh Doanh', icon: Activity,  path: 'activities',   section: 'NĂNG SUẤT' },
+  { id: 'bookings',     label: 'Giữ Chỗ',        icon: BookmarkPlus, path: 'bookings' },
+  { id: 'deposits',     label: 'Đặt Cọc',        icon: ShieldCheck,  path: 'deposits' },
+  { id: 'transactions', label: 'Giao Dịch',      icon: Layers,       path: 'transactions' },
+  // ── MỤC 3: HỒ SƠ CÁ NHÂN ──
+  { id: 'profile',      label: 'Thông Tin Cá Nhân', icon: UserCheck, path: 'profile',      section: 'HỒ SƠ CÁ NHÂN' },
+  { id: 'timesheet',    label: 'Chấm Công',      icon: Calculator,   path: 'timesheet' },
+  { id: 'payroll',      label: 'Bảng Lương',     icon: DollarSign,   path: 'payroll' },
 ];
 
-// Props removed as we use context
+const MANAGER_MENU: SidebarItem[] = [
+  // ── MỤC 1: TỔNG QUAN ──
+  { id: 'dashboard',    label: 'Dashboard',      icon: BarChart3,    path: 'dashboard',    section: 'TỔNG QUAN' },
+  { id: 'leaderboard',  label: 'Bảng Xếp Hạng',  icon: Trophy,       path: 'leaderboard' },
+  { id: 'inventory',    label: 'Bảng Hàng',      icon: Grid,         path: 'inventory' },
+  // ── MỤC 2: QUẢN LÝ KINH DOANH ──
+  { id: 'team_activities', label: 'Nhật Ký Kinh Doanh', icon: Activity,     path: 'team_activities', section: 'QUẢN LÝ KINH DOANH' },
+  { id: 'team_bookings',   label: 'Giữ Chỗ',        icon: BookmarkPlus, path: 'team_bookings' },
+  { id: 'team_deposits',   label: 'Đặt Cọc',        icon: ShieldCheck,  path: 'team_deposits' },
+  { id: 'team_transactions', label: 'Giao Dịch',      icon: Layers,       path: 'team_transactions' },
+  { id: 'team',         label: 'Danh Sách Đội Nhóm', icon: Users,        path: 'team' },
+  // ── MỤC 3: NĂNG SUẤT ──
+  { id: 'activities',   label: 'Nhật Ký Kinh Doanh', icon: Activity,  path: 'activities',   section: 'NĂNG SUẤT' },
+  { id: 'bookings',     label: 'Giữ Chỗ',        icon: BookmarkPlus, path: 'bookings' },
+  { id: 'deposits',     label: 'Đặt Cọc',        icon: ShieldCheck,  path: 'deposits' },
+  { id: 'transactions', label: 'Giao Dịch',      icon: Layers,       path: 'transactions' },
+  // ── MỤC 4: HỒ SƠ CÁ NHÂN ──
+  { id: 'profile',      label: 'Thông Tin Cá Nhân', icon: UserCheck, path: 'profile',      section: 'HỒ SƠ CÁ NHÂN' },
+  { id: 'timesheet',    label: 'Chấm Công',      icon: Calculator,   path: 'timesheet' },
+  { id: 'payroll',      label: 'Bảng Lương',     icon: DollarSign,   path: 'payroll' },
+];
+
+const DIRECTOR_MENU: SidebarItem[] = [
+  // ── MỤC 1: TỔNG QUAN ──
+  { id: 'dashboard',    label: 'Dashboard',         icon: BarChart3, path: 'dashboard',    section: 'TỔNG QUAN' },
+  { id: 'leaderboard',  label: 'Bảng Xếp Hạng',     icon: Trophy,    path: 'leaderboard' },
+  { id: 'inventory',    label: 'Bảng Hàng',         icon: Grid,      path: 'inventory' },
+  // ── MỤC 2: QUẢN LÝ KINH DOANH ──
+  { id: 'team_activities', label: 'Nhật Ký Kinh Doanh', icon: Activity,     path: 'team_activities', section: 'QUẢN LÝ KINH DOANH' },
+  { id: 'team_bookings',   label: 'Giữ Chỗ',            icon: BookmarkPlus, path: 'team_bookings' },
+  { id: 'team_deposits',   label: 'Đặt Cọc',            icon: ShieldCheck,  path: 'team_deposits' },
+  { id: 'team_transactions', label: 'Giao Dịch',          icon: Layers,       path: 'team_transactions' },
+  { id: 'team',         label: 'Danh Sách Đội Nhóm',   icon: Users,     path: 'team' },
+  // ── MỤC 3: NĂNG SUẤT ──
+  { id: 'activities',   label: 'Nhật Ký Kinh Doanh', icon: Activity,  path: 'activities',   section: 'NĂNG SUẤT' },
+  { id: 'bookings',     label: 'Giữ Chỗ',        icon: BookmarkPlus, path: 'bookings' },
+  { id: 'deposits',     label: 'Đặt Cọc',        icon: ShieldCheck,  path: 'deposits' },
+  { id: 'transactions', label: 'Giao Dịch',      icon: Layers,       path: 'transactions' },
+  // ── MỤC 4: HỒ SƠ CÁ NHÂN ──
+  { id: 'profile',      label: 'Thông Tin Cá Nhân', icon: UserCheck, path: 'profile',      section: 'HỒ SƠ CÁ NHÂN' },
+  { id: 'timesheet',    label: 'Chấm Công',      icon: Calculator,   path: 'timesheet' },
+  { id: 'payroll',      label: 'Bảng Lương',     icon: DollarSign,   path: 'payroll' },
+];
 
 export function SalesSidebar() {
   const { role: userRole } = useSalesRole();
@@ -48,12 +88,12 @@ export function SalesSidebar() {
 
   const currentPath = location.pathname.split('/').pop() || 'dashboard';
 
-  const filteredItems = SIDEBAR_ITEMS.filter(
-    item => !item.roles || item.roles.includes(userRole)
-  );
+  let currentMenu = STAFF_MENU;
+  if (userRole === 'sales_manager') currentMenu = MANAGER_MENU;
+  if (userRole === 'sales_director' || userRole === 'admin') currentMenu = DIRECTOR_MENU;
 
   return (
-    <aside className={`h-full flex flex-col transition-all duration-300 ${isCollapsed ? 'w-[72px]' : 'w-[260px]'}`}>
+    <aside className={`h-full flex flex-col bg-white dark:bg-[#0a0a0a] transition-all duration-300 ${isCollapsed ? 'w-[72px]' : 'w-[260px]'}`}>
 
       {/* ── Logo ── */}
       <div className={`h-[84px] flex items-center border-b border-slate-100 dark:border-sg-border/40 ${isCollapsed ? 'justify-center px-2' : 'px-5 gap-3'}`}>
@@ -70,7 +110,7 @@ export function SalesSidebar() {
 
       {/* ── Navigation Items ── */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {filteredItems.map(item => {
+        {currentMenu.map(item => {
           const isActive = currentPath === item.path;
           const Icon = item.icon;
           return (
@@ -122,27 +162,23 @@ export function SalesSidebar() {
         })}
       </nav>
 
-      {/* ── AI Copilot Button ── */}
-      <div className="px-3 pb-3">
-        <button
-          className={`w-full flex items-center gap-3 rounded-xl py-3 bg-linear-to-r from-emerald-500/10 to-amber-500/10 border border-emerald-500/20 hover:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 transition-all group ${isCollapsed ? 'justify-center px-0' : 'px-4'}`}
-          title={isCollapsed ? 'Sales Copilot (Cmd+J)' : undefined}
-        >
-          <Sparkles size={18} className="text-emerald-500 group-hover:scale-110 transition-transform" />
-          {!isCollapsed && (
-            <>
-              <span className="text-[13px] font-bold">Copilot</span>
-              <kbd className="ml-auto px-1.5 py-0.5 bg-sg-btn-bg border border-sg-border rounded text-[9px] font-bold text-sg-muted">⌘J</kbd>
-            </>
-          )}
-        </button>
-      </div>
 
-      {/* ── Collapse Toggle ── */}
-      <div className="border-t border-slate-100 dark:border-sg-border/40 p-3">
+
+      {/* ── Footer Actions ── */}
+      <div className="border-t border-slate-100 dark:border-sg-border/40 p-3 flex flex-col gap-2">
+        <button
+          onClick={() => window.location.href = '/'}
+          className={`w-full flex items-center gap-3 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-colors group ${isCollapsed ? 'justify-center px-0' : 'px-4'}`}
+          title="Thoát về Portal"
+        >
+          <LogOut size={16} className="text-rose-500 group-hover:-translate-x-1 transition-transform" />
+          {!isCollapsed && <span className="text-[13px] font-bold text-rose-500">Về Portal</span>}
+        </button>
+
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="w-full flex items-center justify-center py-2.5 rounded-xl bg-sg-btn-bg border border-sg-border hover:bg-sg-card transition-colors"
+          title={isCollapsed ? "Mở rộng" : "Thu gọn"}
         >
           {isCollapsed ? <ChevronRight size={16} className="text-sg-muted" /> : <ChevronLeft size={16} className="text-sg-muted" />}
         </button>

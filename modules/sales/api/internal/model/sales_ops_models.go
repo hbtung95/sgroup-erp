@@ -254,6 +254,7 @@ type SalesActivity struct {
 	CallsCount   int       `gorm:"default:0" json:"callsCount"`
 	NewLeads     int       `gorm:"default:0" json:"newLeads"`
 	MeetingsMade int       `gorm:"default:0" json:"meetingsMade"`
+	SiteVisits   int       `gorm:"default:0" json:"siteVisits"`
 	Points       int       `gorm:"default:0" json:"points"`
 	ActivityDate time.Time `gorm:"type:date;not null;index" json:"activityDate"`
 	Note         string    `gorm:"type:text" json:"note"`

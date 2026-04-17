@@ -37,17 +37,29 @@ const COLUMNS: ColumnConfig[] = [
   { key: 'SOLD',         label: 'Đã Bán',      icon: <CheckCircle2 size={16} />,  color: 'text-emerald-500', borderColor: 'border-emerald-500/20', glowColor: 'bg-emerald-500', gradient: 'from-emerald-400 to-emerald-600' },
 ];
 
-export function TransactionBoardScreen() {
+export function TransactionBoardScreen({ mode = 'personal' }: { mode?: 'personal' | 'team' }) {
   const { role } = useSalesRole();
   const { data: transactions, loading, refetch } = useTransactions({ limit: 200 });
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   const toast = useToastActions();
 
-  const groupedTx = COLUMNS.map(col => ({
-    ...col,
-    items: (transactions || []).filter(tx => tx.status === col.key),
-  }));
+  const groupedTx = COLUMNS.map(col => {
+    let rawItems = (transactions || []).filter(tx => tx.status === col.key);
+    
+    // Quick personal/team filter logic (mocked schema using staffId)
+    // Note: Transaction schema from mock API may not have teamName/staffName so we'll mock filtering by staffId/teamId as best effort
+    if (mode === 'personal' || role === 'sales_staff') {
+      rawItems = rawItems.filter(tx => (tx as any).staffId === 'S1');
+    } else if (mode === 'team' && role === 'sales_manager') {
+      rawItems = rawItems.filter(tx => (tx as any).teamId === 'T1' || (tx as any).staffId === 'S1');
+    }
+
+    return {
+      ...col,
+      items: rawItems,
+    };
+  });
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -59,9 +71,11 @@ export function TransactionBoardScreen() {
               <Layers size={18} className="text-indigo-500" />
             </div>
             <div>
-              <h2 className="text-[18px] font-black text-sg-heading">Transaction Pipeline</h2>
+              <h2 className="text-[18px] font-black text-sg-heading">
+                {mode === 'team' ? 'Transaction Pipeline Team' : 'Transaction Pipeline'}
+              </h2>
               <span className="text-[11px] font-bold text-sg-muted">
-                {role === 'sales_staff' ? 'Cá nhân • ' : role === 'sales_manager' ? 'Đội nhóm • ' : 'Toàn bộ • '}
+                {mode === 'team' ? 'Dữ liệu toàn đội • ' : 'Dữ liệu cá nhân • '}
                 {(transactions || []).length} giao dịch đang xử lý
               </span>
             </div>
@@ -118,7 +132,7 @@ export function TransactionBoardScreen() {
                     >
                       {/* Glass shimmer */}
                       <div className="absolute top-0 left-0 right-0 h-[2px] bg-linear-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className={`absolute -right-8 -top-8 w-24 h-24 rounded-full ${col.glowColor}/10 blur-[40px] opacity-0 group-hover:opacity-60 transition-opacity`} />
+                      <div className={`absolute -right-8 -top-8 w-24 h-24 rounded-full ${col.glowColor}/10 blur-2xl opacity-0 group-hover:opacity-60 transition-opacity`} />
 
                       {/* Unit code */}
                       <div className="flex items-center justify-between mb-2.5 relative z-10">
@@ -126,9 +140,16 @@ export function TransactionBoardScreen() {
                         <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${col.color} bg-sg-card/50 border ${col.borderColor}`}>{col.label}</span>
                       </div>
 
-                      {/* Customer */}
-                      <div className="flex items-center gap-2 text-[12px] font-semibold text-sg-muted mb-2 relative z-10">
-                        <User size={12} /> <span className="truncate">{tx.customerName || 'Chưa có KH'}</span>
+                      <div className="flex flex-col gap-1 text-[12px] font-semibold text-sg-muted mb-2 relative z-10">
+                        <div className="flex items-center gap-2">
+                          <User size={12} /> <span className="truncate">{tx.customerName || 'Chưa có KH'}</span>
+                        </div>
+                        {mode === 'team' && (
+                          <div className="flex items-center gap-2 mt-1 py-1 px-2 bg-indigo-50/50 dark:bg-white/5 rounded-md inline-flex w-fit max-w-full">
+                            <User size={10} className="text-indigo-500" /> 
+                            <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 truncate tracking-wide">{(tx as any).staffName || 'Nguyễn Demo'}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Price */}

@@ -5,6 +5,7 @@ import * as z from 'zod';
 import { X, UsersRound, History, ArrowRightLeft, UserCircle, Briefcase, Building, CreditCard } from 'lucide-react';
 import { Department, Position, Team, TransferRecord } from '../types';
 import { STATUS_OPTIONS } from '../constants';
+import { useToast } from '@sgroup/web-ui';
 
 const employeeSchema = z.object({
   fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự').nonempty('Vui lòng nhập họ tên'),
@@ -71,6 +72,17 @@ export function EmployeeFormModal({
     }
   });
 
+  const toast = useToast();
+
+  const onInvalid = (formErrors: any) => {
+    toast.error('Vui lòng kiểm tra lại các trường bắt buộc đang bị thiếu hoặc sai định dạng');
+    const firstError = Object.keys(formErrors)[0];
+    const element = document.querySelector(`[name="${firstError}"]`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   const departmentId = watch('departmentId');
   
   useEffect(() => {
@@ -103,7 +115,7 @@ export function EmployeeFormModal({
          </div>
 
          <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-sg-border [&::-webkit-scrollbar-thumb]:rounded-full">
-            <form id="employee-form" onSubmit={handleSubmit(onSubmit)} className="p-8 flex flex-col gap-10">
+            <form id="employee-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="p-8 flex flex-col gap-10">
                
                {/* Section 1: Personal Info */}
                <div className="flex flex-col gap-5">

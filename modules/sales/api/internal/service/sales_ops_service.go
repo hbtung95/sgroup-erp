@@ -22,21 +22,25 @@ type UserContext struct {
 
 type SalesOpsService interface {
 	// Bookings
+	GetBookings(filters map[string]interface{}, ctx UserContext) ([]model.SalesBooking, error)
 	CreateBooking(booking *model.SalesBooking, ctx UserContext) error
 	UpdateBooking(id string, updates map[string]interface{}, ctx UserContext) error
 	ApproveBooking(id string, ctx UserContext) error
 	RejectBooking(id string, ctx UserContext) error
 
 	// Deposits
+	GetDeposits(filters map[string]interface{}, ctx UserContext) ([]model.SalesDeposit, error)
 	CreateDeposit(deposit *model.SalesDeposit, ctx UserContext) error
 	UpdateDeposit(id string, updates map[string]interface{}, ctx UserContext) error
 	ConfirmDeposit(id string, ctx UserContext) error
 	CancelDeposit(id string, ctx UserContext) error
 
 	// Deals
+	GetDeals(filters map[string]interface{}, ctx UserContext) ([]model.SalesDeal, error)
 	CreateDeal(deal *model.SalesDeal, ctx UserContext) error
 
 	// Activities
+	GetActivities(filters map[string]interface{}, ctx UserContext) ([]model.SalesActivity, error)
 	CreateActivity(activity *model.SalesActivity, ctx UserContext) error
 }
 
@@ -54,6 +58,14 @@ func NewSalesOpsService(repo repository.SalesOpsRepository, bus *events.EventBus
 // RBAC Checks
 func isReviewer(ctx UserContext) bool {
 	return ctx.Role == "admin" || ctx.SalesRole == "sales_director" || ctx.SalesRole == "sales_manager" || ctx.SalesRole == "ceo" || ctx.SalesRole == "sales_admin"
+}
+
+func isManager(ctx UserContext) bool {
+	return ctx.SalesRole == "sales_manager"
+}
+
+func isStaffOnly(ctx UserContext) bool {
+	return !isReviewer(ctx)
 }
 
 func (s *salesOpsService) assertCanManageBooking(booking *model.SalesBooking, ctx UserContext) error {
@@ -89,6 +101,15 @@ func (s *salesOpsService) assertCanManageDeposit(deposit *model.SalesDeposit, ct
 }
 
 // Bookings Logic
+func (s *salesOpsService) GetBookings(filters map[string]interface{}, ctx UserContext) ([]model.SalesBooking, error) {
+	if isStaffOnly(ctx) && ctx.StaffID != nil {
+		filters["staff_id"] = *ctx.StaffID // staff sees only own bookings
+	} else if isManager(ctx) && ctx.TeamID != nil {
+		filters["team_id"] = *ctx.TeamID // manager sees team bookings
+	}
+	return s.repo.GetBookings(filters)
+}
+
 func (s *salesOpsService) CreateBooking(booking *model.SalesBooking, ctx UserContext) error {
 	now := time.Now()
 	
@@ -183,6 +204,15 @@ func (s *salesOpsService) RejectBooking(id string, ctx UserContext) error {
 }
 
 // Deposits Logic
+func (s *salesOpsService) GetDeposits(filters map[string]interface{}, ctx UserContext) ([]model.SalesDeposit, error) {
+	if isStaffOnly(ctx) && ctx.StaffID != nil {
+		filters["staff_id"] = *ctx.StaffID
+	} else if isManager(ctx) && ctx.TeamID != nil {
+		filters["team_id"] = *ctx.TeamID
+	}
+	return s.repo.GetDeposits(filters)
+}
+
 func (s *salesOpsService) CreateDeposit(deposit *model.SalesDeposit, ctx UserContext) error {
 	now := time.Now()
 	
@@ -265,6 +295,15 @@ func (s *salesOpsService) CancelDeposit(id string, ctx UserContext) error {
 }
 
 // Deals Logic
+func (s *salesOpsService) GetDeals(filters map[string]interface{}, ctx UserContext) ([]model.SalesDeal, error) {
+	if isStaffOnly(ctx) && ctx.StaffID != nil {
+		filters["staff_id"] = *ctx.StaffID
+	} else if isManager(ctx) && ctx.TeamID != nil {
+		filters["team_id"] = *ctx.TeamID
+	}
+	return s.repo.GetDeals(filters)
+}
+
 func (s *salesOpsService) CreateDeal(deal *model.SalesDeal, ctx UserContext) error {
 	deal.Commission = deal.DealValue * (deal.FeeRate / 100)
 	deal.DealCode = fmt.Sprintf("GD-%d%02d-%d", deal.Year, deal.Month, time.Now().Unix())
@@ -277,6 +316,15 @@ func (s *salesOpsService) CreateDeal(deal *model.SalesDeal, ctx UserContext) err
 }
 
 // Activities Logic
+func (s *salesOpsService) GetActivities(filters map[string]interface{}, ctx UserContext) ([]model.SalesActivity, error) {
+	if isStaffOnly(ctx) && ctx.StaffID != nil {
+		filters["staff_id"] = *ctx.StaffID
+	} else if isManager(ctx) && ctx.TeamID != nil {
+		filters["team_id"] = *ctx.TeamID
+	}
+	return s.repo.GetActivities(filters)
+}
+
 func (s *salesOpsService) CreateActivity(activity *model.SalesActivity, ctx UserContext) error {
 	now := time.Now()
 	activity.CreatedBy = ctx.Name

@@ -22,21 +22,25 @@ func (h *SalesOpsHandler) RegisterRoutes(r *gin.RouterGroup) {
 	ops.Use(middleware.AuthMiddleware()) // require login
 
 	// Bookings
+	ops.GET("/bookings", h.GetBookings)
 	ops.POST("/bookings", h.CreateBooking)
 	ops.PATCH("/bookings/:id", h.UpdateBooking)
 	ops.POST("/bookings/:id/approve", h.ApproveBooking)
 	ops.POST("/bookings/:id/reject", h.RejectBooking)
 
 	// Deposits
+	ops.GET("/deposits", h.GetDeposits)
 	ops.POST("/deposits", h.CreateDeposit)
 	ops.PATCH("/deposits/:id", h.UpdateDeposit)
 	ops.POST("/deposits/:id/confirm", h.ConfirmDeposit)
 	ops.POST("/deposits/:id/cancel", h.CancelDeposit)
 
 	// Deals
+	ops.GET("/deals", h.GetDeals)
 	ops.POST("/deals", h.CreateDeal)
 
 	// Activities
+	ops.GET("/activities", h.GetActivities)
 	ops.POST("/activities", h.CreateActivity)
 }
 
@@ -65,6 +69,20 @@ func getUserContext(c *gin.Context) service.UserContext {
 }
 
 // Bookings
+func (h *SalesOpsHandler) GetBookings(c *gin.Context) {
+	filters := make(map[string]interface{})
+	if status := c.Query("status"); status != "" {
+		filters["status"] = status
+	}
+	ctx := getUserContext(c)
+	list, err := h.svc.GetBookings(filters, ctx)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, wrapper{Data: list})
+}
+
 func (h *SalesOpsHandler) CreateBooking(c *gin.Context) {
 	var body model.SalesBooking
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -117,6 +135,20 @@ func (h *SalesOpsHandler) RejectBooking(c *gin.Context) {
 }
 
 // Deposits
+func (h *SalesOpsHandler) GetDeposits(c *gin.Context) {
+	filters := make(map[string]interface{})
+	if status := c.Query("status"); status != "" {
+		filters["status"] = status
+	}
+	ctx := getUserContext(c)
+	list, err := h.svc.GetDeposits(filters, ctx)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, wrapper{Data: list})
+}
+
 func (h *SalesOpsHandler) CreateDeposit(c *gin.Context) {
 	var body model.SalesDeposit
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -169,6 +201,20 @@ func (h *SalesOpsHandler) CancelDeposit(c *gin.Context) {
 }
 
 // Deals
+func (h *SalesOpsHandler) GetDeals(c *gin.Context) {
+	filters := make(map[string]interface{})
+	if status := c.Query("status"); status != "" {
+		filters["stage"] = status
+	}
+	ctx := getUserContext(c)
+	list, err := h.svc.GetDeals(filters, ctx)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, wrapper{Data: list})
+}
+
 func (h *SalesOpsHandler) CreateDeal(c *gin.Context) {
 	var body model.SalesDeal
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -185,6 +231,17 @@ func (h *SalesOpsHandler) CreateDeal(c *gin.Context) {
 }
 
 // Activities
+func (h *SalesOpsHandler) GetActivities(c *gin.Context) {
+	filters := make(map[string]interface{})
+	ctx := getUserContext(c)
+	list, err := h.svc.GetActivities(filters, ctx)
+	if err != nil {
+		sendError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, wrapper{Data: list})
+}
+
 func (h *SalesOpsHandler) CreateActivity(c *gin.Context) {
 	var body model.SalesActivity
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -192,7 +249,7 @@ func (h *SalesOpsHandler) CreateActivity(c *gin.Context) {
 		return
 	}
 
-	body.Points = body.PostsCount*2 + body.CallsCount*5 + body.NewLeads*10 + body.MeetingsMade*20
+	body.Points = body.PostsCount*2 + body.CallsCount*5 + body.NewLeads*10 + body.MeetingsMade*20 + body.SiteVisits*30
 
 	ctx := getUserContext(c)
 	if err := h.svc.CreateActivity(&body, ctx); err != nil {

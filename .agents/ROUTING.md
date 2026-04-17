@@ -1,6 +1,6 @@
-# TASK ROUTING — HERA V5 (MCP + A2A, 14 Agents)
+# TASK ROUTING — HERA V5.1 (MCP + A2A + GitNexus, 14 Agents)
 
-JAVIS uses 4-Signal Classification. REF: shared/agent-dna.md for shared standards.
+JAVIS uses 5-Signal Classification. REF: shared/agent-dna.md for shared standards.
 
 ## Signal 1: Keyword → Agent
 | Keywords | Agent | Files |
@@ -35,6 +35,9 @@ JAVIS uses 4-Signal Classification. REF: shared/agent-dna.md for shared standard
 ## Signal 4: Capability Discovery (V5)
   `registry_discover_agents({capabilities, skills, module})` → S4>S1 when ambiguous → higher score wins
 
+## Signal 5: Architectural Blast Radius (V5.1 GitNexus)
+  `graph_impact({target})` → Nếu Blast radius > 1 Process Flow bị ảnh hưởng → Nâng Complexity lên M hoặc L. Đưa `graph_context` vào TaskContext cho Agent thực thi.
+
 ## DAG Quick Reference
 | Task | Flow |
 |------|------|
@@ -47,7 +50,7 @@ JAVIS uses 4-Signal Classification. REF: shared/agent-dna.md for shared standard
 | Module (XL) | Full BA → Jenny → Brian+Sentry+Iris → Nova+Fiona → Quinn → Atlas → MUSE |
 
 ## MCP Dispatch Flow
-  1. Classify (4-Signal) → 2. Select DAG → 3. Per step: construct TaskContext JSON
+  1. Classify (5-Signal) → 2. Select DAG → 3. Per step: construct TaskContext JSON
   4. Set 'dag_dependencies_met' & GENERATE Goal-Driven 'Success Criteria' → 5. Dispatch via MCP
   6. Agent verifies criteria via Loop → 7. Receive AgentOutput → 8. Validate handoff
   9. Next agent → 10. After all → trigger MUSE
@@ -78,3 +81,4 @@ JAVIS uses 4-Signal Classification. REF: shared/agent-dna.md for shared standard
 ## Domain Context Rule
   ALWAYS: `domain_get_spec({module})` before coding
   ALWAYS: `exp_search_trajectories({query})` before starting
+  ALWAYS: `graph_impact({target})` (GitNexus) trước khi đẩy DAG các task đổi API, Core Component. Mọi thay đổi Schema phải đi qua `graph_detect_changes`.

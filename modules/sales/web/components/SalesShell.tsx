@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import {
-  Sun, Moon, TrendingUp, Search,
+  Sun, Moon, TrendingUp, Search, Plus
 } from 'lucide-react';
 import { SalesSidebar } from './SalesSidebar';
 import { SalesSearchModal } from './SalesSearchModal';
 import { SalesCopilot } from './SalesCopilot';
+import { ActivityEntryModal } from './ActivityEntryModal';
 import { SalesErrorBoundary } from './ErrorBoundary';
 import { ToastProvider } from './shared/Toast';
 import { RoleProvider, useSalesRole } from './shared/RoleContext';
@@ -14,12 +15,21 @@ import { RoleProvider, useSalesRole } from './shared/RoleContext';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { CustomerScreen } from '../screens/CustomerScreen';
 import { TransactionBoardScreen } from '../screens/TransactionBoardScreen';
+import { LeaderboardScreen } from '../screens/LeaderboardScreen';
 import { TeamScreen } from '../screens/TeamScreen';
 import { DepartmentScreen } from '../screens/DepartmentScreen';
 import { ReportsScreen } from '../screens/ReportsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { LoanCalculatorScreen } from '../screens/LoanCalculatorScreen';
 import { InventoryBoardScreen } from '../screens/InventoryBoardScreen';
+import { ActivityLogScreen } from '../screens/ActivityLogScreen';
+import { BookingBoardScreen } from '../screens/BookingBoardScreen';
+import { DepositBoardScreen } from '../screens/DepositBoardScreen';
+import { CommissionScreen } from '../screens/CommissionScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
+import { TimesheetScreen } from '../screens/TimesheetScreen';
+import { PayrollScreen } from '../screens/PayrollScreen';
+// Removed duplicate imports
 
 // ═══ Placeholder for modules under construction ═══
 function PlaceholderScreen({ title }: { title: string }) {
@@ -110,6 +120,7 @@ export function SalesShell() {
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [isActivityModalOpen, setActivityModalOpen] = useState(false);
 
   // ═══ Keyboard shortcuts ═══
   useEffect(() => {
@@ -226,14 +237,26 @@ export function SalesShell() {
               <Route path="/" element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardScreen />} />
               <Route path="customers" element={<CustomerScreen />} />
-              <Route path="transactions" element={<TransactionBoardScreen />} />
+              <Route path="activities" element={<ActivityLogScreen mode="personal" />} />
+              <Route path="bookings" element={<BookingBoardScreen mode="personal" />} />
+              <Route path="deposits" element={<DepositBoardScreen mode="personal" />} />
+              <Route path="transactions" element={<TransactionBoardScreen mode="personal" />} />
+              
               <Route path="team" element={<TeamScreen />} />
+              <Route path="team_activities" element={<ActivityLogScreen mode="team" />} />
+              <Route path="team_bookings" element={<BookingBoardScreen mode="team" />} />
+              <Route path="team_deposits" element={<DepositBoardScreen mode="team" />} />
+              <Route path="team_transactions" element={<TransactionBoardScreen mode="team" />} />
+              <Route path="leaderboard" element={<LeaderboardScreen />} />
               <Route path="departments" element={<DepartmentScreen />} />
               <Route path="reports" element={<ReportsScreen />} />
               <Route path="settings" element={<SettingsScreen />} />
               <Route path="loan-calculator" element={<LoanCalculatorScreen />} />
               <Route path="inventory" element={<InventoryBoardScreen />} />
-              <Route path="commission" element={<PlaceholderScreen title="Bảng Tính Hoa Hồng" />} />
+              <Route path="commission" element={<CommissionScreen />} />
+              <Route path="profile" element={<ProfileScreen />} />
+              <Route path="timesheet" element={<TimesheetScreen />} />
+              <Route path="payroll" element={<PayrollScreen />} />
               <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
           </main>

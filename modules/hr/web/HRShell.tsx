@@ -243,7 +243,7 @@ export function HRShell() {
 
       {/* ═══ HR COPILOT ═══ */}
       {isCopilotOpen ? (
-        <div className="fixed right-6 bottom-6 w-[380px] h-[600px] bg-sg-card/90 backdrop-blur-2xl rounded-[28px] border border-sg-border shadow-sg-lg z-10000 flex flex-col overflow-hidden animate-sg-slide-up">
+        <div className="fixed right-6 bottom-6 w-[380px] h-[600px] bg-sg-card/90 backdrop-blur-2xl rounded-[28px] border border-sg-border shadow-sg-lg z-[40] flex flex-col overflow-hidden animate-sg-slide-up">
            {/* Header */}
            <div className="bg-linear-to-br from-sg-red to-sg-red-dark p-4 flex flex-row items-center justify-between">
              <div className="flex flex-row items-center gap-2.5">
@@ -313,7 +313,7 @@ export function HRShell() {
       ) : (
         <button 
           onClick={() => setCopilotOpen(true)} 
-          className="fixed right-6 bottom-6 w-16 h-16 rounded-sg-2xl flex items-center justify-center shadow-sg-brand hover:-translate-y-1 hover:shadow-sg-lg transition-all z-10000 animate-sg-slide-up group border-2 border-white/20 overflow-hidden"
+          className="fixed right-6 bottom-6 w-16 h-16 rounded-sg-2xl flex items-center justify-center shadow-sg-brand hover:-translate-y-1 hover:shadow-sg-lg transition-all z-[40] animate-sg-slide-up group border-2 border-white/20 overflow-hidden"
         >
           <div className="absolute inset-0 bg-linear-to-br from-sg-red to-sg-red-dark group-hover:from-sg-red-light group-hover:to-sg-red transition-all" />
           <Bot size={28} className="text-white relative z-10" />

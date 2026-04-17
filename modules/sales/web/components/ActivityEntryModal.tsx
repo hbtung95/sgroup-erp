@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Target, X, CheckCircle2, FileText, Phone, Users, Calendar, Award } from 'lucide-react';
+import { Target, X, CheckCircle2, FileText, Phone, Users, Calendar, Award, Building2, AlertCircle } from 'lucide-react';
 import { salesOpsApi } from '../api/salesApi';
+import { useToast } from './shared/Toast';
 
 export interface ActivityEntryModalProps {
   isOpen: boolean;
@@ -8,26 +9,27 @@ export interface ActivityEntryModalProps {
 }
 
 export function ActivityEntryModal({ isOpen, onClose }: ActivityEntryModalProps) {
-  const [postsCount, setPostsCount] = useState(0);
   const [callsCount, setCallsCount] = useState(0);
   const [newLeads, setNewLeads] = useState(0);
   const [meetingsMade, setMeetingsMade] = useState(0);
+  const [siteVisits, setSiteVisits] = useState(0);
   
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const toast = useToast();
 
   // Auto calculate points
-  const totalPoints = postsCount * 2 + callsCount * 5 + newLeads * 10 + meetingsMade * 20;
+  const totalPoints = newLeads * 1 + meetingsMade * 10 + siteVisits * 20;
 
   useEffect(() => {
     if (!isOpen) {
       setTimeout(() => {
         setSuccess(false);
-        setPostsCount(0);
         setCallsCount(0);
         setNewLeads(0);
         setMeetingsMade(0);
+        setSiteVisits(0);
         setNote('');
       }, 300);
     }
@@ -39,18 +41,19 @@ export function ActivityEntryModal({ isOpen, onClose }: ActivityEntryModalProps)
     setSubmitting(true);
     try {
       await salesOpsApi.createActivity({
-        postsCount,
         callsCount,
         newLeads,
         meetingsMade,
+        siteVisits,
         note
       });
+      toast.success(`+${totalPoints} điểm đã được ghi nhận!`);
       setSuccess(true);
       setTimeout(() => {
         onClose();
       }, 1500);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      toast.error(err?.message || 'Không thể lưu nhật ký. Vui lòng thử lại.');
     } finally {
       setSubmitting(false);
     }
@@ -68,7 +71,7 @@ export function ActivityEntryModal({ isOpen, onClose }: ActivityEntryModalProps)
       
       {/* Modal Content */}
       <div 
-        className="relative w-full max-w-[480px] bg-white dark:bg-black/80 backdrop-blur-3xl rounded-sg-2xl border border-white/20 dark:border-sg-border shadow-2xl overflow-hidden sg-stagger"
+        className="relative w-full max-w-xl bg-white dark:bg-black/80 backdrop-blur-3xl rounded-sg-2xl border border-white/20 dark:border-sg-border shadow-2xl overflow-hidden sg-stagger"
         style={{ animation: 'slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}
       >
         <div className="p-6">
@@ -105,32 +108,36 @@ export function ActivityEntryModal({ isOpen, onClose }: ActivityEntryModalProps)
               
               <div className="grid grid-cols-2 gap-4">
                 <FieldInput 
-                  label="Bài Đăng (+2)" 
-                  value={postsCount} 
-                  onChange={setPostsCount} 
-                  icon={<FileText size={16} className="text-indigo-500" />}
-                  colorClass="focus:border-indigo-500/50 focus:ring-indigo-500/20"
-                />
-                <FieldInput 
-                  label="Cuộc Gọi (+5)" 
+                  label="Cuộc Gọi" 
+                  pointsText="0 điểm"
                   value={callsCount} 
                   onChange={setCallsCount} 
-                  icon={<Phone size={16} className="text-violet-500" />}
-                  colorClass="focus:border-violet-500/50 focus:ring-violet-500/20"
+                  icon={<Phone size={18} className={callsCount > 0 ? "text-violet-500" : "text-sg-muted"} />}
+                  theme="violet"
                 />
                 <FieldInput 
-                  label="Khách Quan Tâm (+10)" 
+                  label="Khách Quan Tâm" 
+                  pointsText="+1 điểm/khách"
                   value={newLeads} 
                   onChange={setNewLeads} 
-                  icon={<Users size={16} className="text-emerald-500" />}
-                  colorClass="focus:border-emerald-500/50 focus:ring-emerald-500/20"
+                  icon={<Users size={18} className={newLeads > 0 ? "text-emerald-500" : "text-sg-muted"} />}
+                  theme="emerald"
                 />
                 <FieldInput 
-                  label="Hẹn Gặp (+20)" 
+                  label="Hẹn Gặp Tư Vấn" 
+                  pointsText="+10 điểm/lần"
                   value={meetingsMade} 
                   onChange={setMeetingsMade} 
-                  icon={<Target size={16} className="text-amber-500" />}
-                  colorClass="focus:border-amber-500/50 focus:ring-amber-500/20"
+                  icon={<Target size={18} className={meetingsMade > 0 ? "text-amber-500" : "text-sg-muted"} />}
+                  theme="amber"
+                />
+                <FieldInput 
+                  label="Hẹn Gặp Trải Nghiệm" 
+                  pointsText="+20 điểm/lần"
+                  value={siteVisits} 
+                  onChange={setSiteVisits} 
+                  icon={<Building2 size={18} className={siteVisits > 0 ? "text-blue-500" : "text-sg-muted"} />}
+                  theme="blue"
                 />
               </div>
 
@@ -160,20 +167,86 @@ export function ActivityEntryModal({ isOpen, onClose }: ActivityEntryModalProps)
   );
 }
 
-function FieldInput({ label, value, onChange, icon, colorClass }: any) {
+const THEMES: Record<string, any> = {
+  indigo: {
+    borderActive: 'border-indigo-500/40',
+    bgActive: 'bg-indigo-500/10',
+    bgLight: 'bg-indigo-500/20',
+    text: 'text-indigo-500',
+  },
+  violet: {
+    borderActive: 'border-violet-500/40',
+    bgActive: 'bg-violet-500/10',
+    bgLight: 'bg-violet-500/20',
+    text: 'text-violet-500',
+  },
+  emerald: {
+    borderActive: 'border-emerald-500/40',
+    bgActive: 'bg-emerald-500/10',
+    bgLight: 'bg-emerald-500/20',
+    text: 'text-emerald-500',
+  },
+  amber: {
+    borderActive: 'border-amber-500/40',
+    bgActive: 'bg-amber-500/10',
+    bgLight: 'bg-amber-500/20',
+    text: 'text-amber-500',
+  },
+  blue: {
+    borderActive: 'border-blue-500/40',
+    bgActive: 'bg-blue-500/10',
+    bgLight: 'bg-blue-500/20',
+    text: 'text-blue-500',
+  }
+};
+
+function FieldInput({ label, value, onChange, icon, pointsText, theme }: any) {
+  const isActive = value > 0;
+  const tId = THEMES[theme] || THEMES.indigo;
+
   return (
-    <div className="space-y-2">
-      <label className="text-[11px] font-black tracking-wider text-sg-muted uppercase">{label}</label>
-      <div className="relative">
-        <input 
-          type="number" 
-          min={0}
-          value={value === 0 ? '' : value}
-          onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-          placeholder="0"
-          className={`w-full h-12 px-4 pl-10 rounded-xl bg-sg-card/50 border border-sg-border/50 text-[15px] font-black text-sg-heading focus:outline-none focus:ring-2 transition-all ${colorClass}`}
-        />
-        <div className="absolute left-3.5 top-3.5 opacity-80">{icon}</div>
+    <div className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden ${isActive ? tId.borderActive : 'border-sg-border/50 bg-sg-card/30'}`}>
+      {isActive && (
+        <div className={`absolute inset-0 ${tId.bgActive} pointer-events-none`} />
+      )}
+      
+      <div className="flex items-center justify-between mb-4 relative z-10">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isActive ? tId.bgLight : 'bg-sg-muted/10'}`}>
+            {icon}
+          </div>
+          <div>
+            <label className="text-[11px] font-black tracking-wider text-sg-muted uppercase block leading-tight">{label}</label>
+            <span className={`text-[10px] font-bold ${isActive ? tId.text : 'text-sg-muted'}`}>{pointsText}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-2 relative z-10">
+        <button 
+          type="button"
+          onClick={() => onChange(Math.max(0, value - 1))}
+          className="w-10 h-10 rounded-lg bg-sg-card/80 border border-sg-border flex items-center justify-center text-[18px] font-medium text-sg-heading hover:bg-sg-muted/20 hover:scale-105 active:scale-95 transition-all"
+        >
+          -
+        </button>
+        <div className="flex-1 text-center">
+          <input 
+            type="number" 
+            min={0}
+            value={value === 0 ? '' : value}
+            onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+            placeholder="0"
+            className={`w-full text-center bg-transparent text-[22px] font-black focus:outline-none ${isActive ? tId.text : 'text-sg-heading'}`}
+          />
+        </div>
+        <button 
+          type="button"
+          onClick={() => onChange(value + 1)}
+          className={`w-10 h-10 rounded-lg border flex items-center justify-center text-[18px] font-medium hover:scale-105 active:scale-95 transition-all ${isActive ? `${tId.bgLight} ${tId.borderActive} ${tId.text}` : 'bg-sg-card/80 border-sg-border text-sg-heading hover:bg-sg-muted/20'}`}
+        >
+          +
+        </button>
       </div>
     </div>
   );

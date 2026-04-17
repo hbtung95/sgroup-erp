@@ -1,13 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
-  Building2, Grid, Layers, MapMapPin, Filter, Plus,
+  Building2, Grid, Layers, Filter,
   CheckCircle2, Clock, Lock, Banknote, DollarSign,
-  ChevronRight, RefreshCw, Box
+  RefreshCw, Box, Timer, AlertTriangle, Zap
 } from 'lucide-react';
 import { CinematicDrawer, DrawerSection, DrawerDetailRow } from '../components/shared';
+import { useToastActions } from '../components/shared/Toast';
 
 // ═══════════════════════════════════════════════════════════
-// INVENTORY BOARD SCREEN
+// INVENTORY BOARD SCREEN — Real-time Lock System
 // Neo-Glassmorphism v2.2 • sg-stagger animations
 // ═══════════════════════════════════════════════════════════
 
@@ -22,7 +23,13 @@ interface ProductUnit {
   price: number;
   area: number;
   bedrooms: number;
+  lockedBy?: string;
+  lockedAt?: number;    // timestamp in ms
+  lockExpiry?: number;  // timestamp in ms
+  processingBy?: string; // simulated conflict
 }
+
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 const STATUS_CONFIG: Record<UnitStatus, { label: string, colorClass: string, bgClass: string, icon: any }> = {
   AVAILABLE: { label: 'Trống', colorClass: 'text-emerald-500', bgClass: 'bg-emerald-500', icon: CheckCircle2 },
@@ -45,16 +52,20 @@ const generateMockInventory = (): ProductUnit[] => {
   blocks.forEach(block => {
     floors.forEach(floor => {
       for (let i = 1; i <= unitsPerFloor; i++) {
-        const idStr = `${Math.floor(Math.random() * 1000)}`;
+        const idStr = `${block}${floor}${i}`;
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
         data.push({
-          id: `U-${block}-${floor}-${i}-${idStr}`,
+          id: `U-${idStr}`,
           code: `${block}${floor.toString().padStart(2, '0')}.${i.toString().padStart(2, '0')}`,
           block,
           floor,
-          status: statuses[Math.floor(Math.random() * statuses.length)],
+          status,
           price: 2500000000 + Math.random() * 3000000000,
           area: 50 + Math.random() * 50,
           bedrooms: Math.floor(1 + Math.random() * 3),
+          lockedBy: status === 'LOCKED' ? 'Trần Văn A' : undefined,
+          lockedAt: status === 'LOCKED' ? Date.now() - Math.random() * 600000 : undefined,
+          lockExpiry: status === 'LOCKED' ? Date.now() + Math.random() * LOCK_DURATION_MS : undefined,
         });
       }
     });
@@ -62,13 +73,32 @@ const generateMockInventory = (): ProductUnit[] => {
   return data;
 };
 
-const MOCK_DATA = generateMockInventory();
+// Countdown Hook
+function useCountdown(targetMs: number | undefined) {
+  const [remaining, setRemaining] = useState(0);
+  useEffect(() => {
+    if (!targetMs) { setRemaining(0); return; }
+    const tick = () => {
+      const diff = Math.max(0, targetMs - Date.now());
+      setRemaining(diff);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [targetMs]);
+  const mins = Math.floor(remaining / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+  return { remaining, display: `${mins}:${secs.toString().padStart(2, '0')}`, expired: remaining <= 0 };
+}
 
 export function InventoryBoardScreen() {
-  const [units, setUnits] = useState<ProductUnit[]>(MOCK_DATA);
+  const [units, setUnits] = useState<ProductUnit[]>(generateMockInventory);
   const [selectedBlock, setSelectedBlock] = useState<string>('A');
   const [filterStatus, setFilterStatus] = useState<UnitStatus | 'ALL'>('ALL');
   const [selectedUnit, setSelectedUnit] = useState<ProductUnit | null>(null);
+  const [realtimeEnabled, setRealtimeEnabled] = useState(true);
+  const toast = useToastActions();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Computed data
   const blocks = useMemo(() => Array.from(new Set(units.map(u => u.block))).sort(), [units]);
@@ -88,6 +118,83 @@ export function InventoryBoardScreen() {
     units.forEach(u => st[u.status]++);
     return st;
   }, [units]);
+
+  // ═══ BOOKING ACTION (Optimistic Update) ═══
+  const handleBooking = useCallback((unit: ProductUnit) => {
+    if (unit.status !== 'AVAILABLE') {
+      toast.error(`Căn ${unit.code} không còn trống!`);
+      return;
+    }
+    const now = Date.now();
+    setUnits(prev => prev.map(u => u.id === unit.id ? {
+      ...u, status: 'BOOKED' as UnitStatus, lockedBy: 'Nguyễn Demo', lockedAt: now, lockExpiry: now + LOCK_DURATION_MS,
+    } : u));
+    setSelectedUnit(null);
+    toast.success(`Đã Booking căn ${unit.code} thành công! Giữ chỗ 15 phút.`);
+  }, [toast]);
+
+  // ═══ LOCK ACTION (Optimistic Update) ═══
+  const handleLock = useCallback((unit: ProductUnit) => {
+    if (unit.status !== 'AVAILABLE') {
+      toast.error(`Căn ${unit.code} không còn trống!`);
+      return;
+    }
+    const now = Date.now();
+    setUnits(prev => prev.map(u => u.id === unit.id ? {
+      ...u, status: 'LOCKED' as UnitStatus, lockedBy: 'Nguyễn Demo', lockedAt: now, lockExpiry: now + LOCK_DURATION_MS,
+    } : u));
+    setSelectedUnit(null);
+    toast.success(`Đã Khoá căn ${unit.code} thành công!`);
+  }, [toast]);
+
+  // ═══ SIMULATED REAL-TIME: Random changes every 5s ═══
+  useEffect(() => {
+    if (!realtimeEnabled) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
+      setUnits(prev => {
+        const copy = [...prev];
+        // Expire locks
+        const now = Date.now();
+        copy.forEach((u, idx) => {
+          if ((u.status === 'BOOKED' || u.status === 'LOCKED') && u.lockExpiry && u.lockExpiry < now && u.lockedBy !== 'Nguyễn Demo') {
+            copy[idx] = { ...u, status: 'AVAILABLE', lockedBy: undefined, lockedAt: undefined, lockExpiry: undefined, processingBy: undefined };
+          }
+        });
+
+        // Random: another "user" books/locks 1 available unit
+        const availableUnits = copy.filter(u => u.status === 'AVAILABLE');
+        if (availableUnits.length > 0 && Math.random() < 0.3) {
+          const randomUnit = availableUnits[Math.floor(Math.random() * availableUnits.length)];
+          const idx = copy.findIndex(u => u.id === randomUnit.id);
+          const otherNames = ['Trần Lê Hải', 'Lâm Chấn Phong', 'Ngô Thị Vàng', 'Phan Văn Khoa'];
+          const randomName = otherNames[Math.floor(Math.random() * otherNames.length)];
+          copy[idx] = {
+            ...copy[idx],
+            status: Math.random() > 0.5 ? 'BOOKED' : 'LOCKED',
+            lockedBy: randomName,
+            lockedAt: now,
+            lockExpiry: now + LOCK_DURATION_MS,
+            processingBy: randomName,
+          };
+        }
+
+        // Random: mark 1 processing unit to clear "processing" indicator
+        copy.forEach((u, idx) => {
+          if (u.processingBy && u.lockedAt && now - u.lockedAt > 3000) {
+            copy[idx] = { ...u, processingBy: undefined };
+          }
+        });
+
+        return copy;
+      });
+    }, 5000);
+
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [realtimeEnabled]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-black/20 relative">
@@ -110,6 +217,18 @@ export function InventoryBoardScreen() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Realtime Toggle */}
+            <button
+              onClick={() => setRealtimeEnabled(!realtimeEnabled)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-black transition-all border ${
+                realtimeEnabled
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-slate-100 dark:bg-white/5 border-sg-border text-sg-muted'
+              }`}
+            >
+              <Zap size={14} className={realtimeEnabled ? 'animate-pulse' : ''} />
+              {realtimeEnabled ? 'Live' : 'Tắt Live'}
+            </button>
              <button onClick={() => setUnits(generateMockInventory())} className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl text-[12px] font-bold text-sg-heading transition-colors">
               <RefreshCw size={14} /> Tải lại
             </button>
@@ -168,11 +287,11 @@ export function InventoryBoardScreen() {
                     key={status}
                     onClick={() => setFilterStatus(status)}
                     className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
-                      isActive ? `${conf.bgClass}/10 border-${conf.colorClass.split('-')[1]}-500/30` : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'
+                      isActive ? `bg-white/80 dark:bg-white/10 border-slate-300 dark:border-white/20` : 'border-transparent hover:bg-slate-50 dark:hover:bg-white/5'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${conf.bgClass} shadow-sm shadow-${conf.colorClass.split('-')[1]}-500/50`} />
+                      <div className={`w-3 h-3 rounded-full ${conf.bgClass}`} />
                       <span className={`text-[13px] font-bold ${isActive ? 'text-sg-heading' : 'text-sg-muted'}`}>{conf.label}</span>
                     </div>
                     <span className={`text-[12px] font-black ${conf.colorClass}`}>{stats[status]}</span>
@@ -189,6 +308,15 @@ export function InventoryBoardScreen() {
             <h3 className="text-[15px] font-black text-sg-heading flex items-center gap-2">
               <Building2 size={16} className="text-cyan-500" /> Bảng hàng chi tiết: Block {selectedBlock}
             </h3>
+            {realtimeEnabled && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Real-time</span>
+              </div>
+            )}
           </div>
           
           <div className="flex-1 overflow-auto custom-scrollbar p-6">
@@ -208,26 +336,9 @@ export function InventoryBoardScreen() {
                     </div>
                     {/* Units Grid */}
                     <div className="flex-1 grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                      {floorUnits.map(unit => {
-                        const conf = STATUS_CONFIG[unit.status];
-                        return (
-                          <div
-                            key={unit.id}
-                            onClick={() => setSelectedUnit(unit)}
-                            className={`aspect-square rounded-2xl border ${conf.bgClass}/10 border-${conf.colorClass.split('-')[1]}-500/20 flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105 hover:shadow-lg hover:shadow-${conf.colorClass.split('-')[1]}-500/20 group relative overflow-hidden`}
-                          >
-                             {/* Background Fill based on status */}
-                             <div className={`absolute inset-0 ${conf.bgClass} opacity-5 dark:opacity-10`} />
-                             
-                             <div className="text-[14px] font-black text-sg-heading relative z-10 group-hover:text-cyan-500 transition-colors">
-                               {unit.code.split('.')[1]}
-                             </div>
-                             <div className={`text-[10px] font-bold mt-1 uppercase tracking-wider ${conf.colorClass} relative z-10`}>
-                               {conf.label}
-                             </div>
-                          </div>
-                        );
-                      })}
+                      {floorUnits.map(unit => (
+                        <UnitCell key={unit.id} unit={unit} onClick={() => setSelectedUnit(unit)} />
+                      ))}
                     </div>
                   </div>
                 );
@@ -258,10 +369,10 @@ export function InventoryBoardScreen() {
         }
         footer={selectedUnit?.status === 'AVAILABLE' ? (
           <div className="flex gap-3">
-             <button className="flex-1 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl text-[14px] font-black transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/20">
+             <button onClick={() => selectedUnit && handleBooking(selectedUnit)} className="flex-1 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl text-[14px] font-black transition-all hover:-translate-y-1 shadow-lg shadow-blue-500/20">
                Booking (Giữ chỗ)
              </button>
-             <button className="flex-1 h-14 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-[14px] font-black transition-all hover:-translate-y-1 shadow-lg shadow-amber-500/20">
+             <button onClick={() => selectedUnit && handleLock(selectedUnit)} className="flex-1 h-14 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-[14px] font-black transition-all hover:-translate-y-1 shadow-lg shadow-amber-500/20">
                Khóa SP (Lock)
              </button>
           </div>
@@ -273,6 +384,19 @@ export function InventoryBoardScreen() {
               <span className="text-[32px] font-black text-sg-heading leading-none">{(selectedUnit.price / 1000000000).toFixed(2)}</span>
               <span className="text-[14px] font-bold text-sg-muted mb-1">Tỷ VNĐ</span>
             </div>
+
+            {/* Lock Info */}
+            {selectedUnit.lockedBy && (selectedUnit.status === 'BOOKED' || selectedUnit.status === 'LOCKED') && (
+              <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Lock size={16} className="text-amber-500" />
+                  <span className="text-[13px] font-black text-amber-600 dark:text-amber-400">Đang được giữ bởi: {selectedUnit.lockedBy}</span>
+                </div>
+                {selectedUnit.lockExpiry && (
+                  <LockCountdown expiry={selectedUnit.lockExpiry} />
+                )}
+              </div>
+            )}
 
             <DrawerSection title="Thông Số Sản Phẩm">
               <div className="grid grid-cols-1 gap-4">
@@ -292,6 +416,79 @@ export function InventoryBoardScreen() {
           </>
         )}
       </CinematicDrawer>
+    </div>
+  );
+}
+
+// ═══ UNIT CELL with conflict detection visual ═══
+function UnitCell({ unit, onClick }: { unit: ProductUnit; onClick: () => void }) {
+  const conf = STATUS_CONFIG[unit.status];
+  const isProcessing = !!unit.processingBy;
+  const hasLockTimer = (unit.status === 'BOOKED' || unit.status === 'LOCKED') && unit.lockExpiry;
+
+  return (
+    <div
+      onClick={onClick}
+      className={`aspect-square rounded-2xl border flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105 hover:shadow-lg group relative overflow-hidden ${
+        isProcessing
+          ? 'border-rose-500/50 animate-pulse shadow-rose-500/20 shadow-md'
+          : `border-slate-200/60 dark:border-sg-border/40`
+      }`}
+    >
+      {/* Background Fill */}
+      <div className={`absolute inset-0 ${conf.bgClass} opacity-[0.07] dark:opacity-[0.12]`} />
+      
+      {/* Processing Badge */}
+      {isProcessing && (
+        <div className="absolute top-1 right-1 z-20">
+          <div className="w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center animate-bounce">
+            <AlertTriangle size={8} className="text-white" />
+          </div>
+        </div>
+      )}
+
+      {/* Lock Timer Badge */}
+      {hasLockTimer && !isProcessing && (
+        <div className="absolute top-1 right-1 z-20">
+          <div className="px-1 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
+            <MiniCountdown expiry={unit.lockExpiry!} />
+          </div>
+        </div>
+      )}
+
+      <div className="text-[14px] font-black text-sg-heading relative z-10 group-hover:text-cyan-500 transition-colors">
+        {unit.code.split('.')[1]}
+      </div>
+      <div className={`text-[10px] font-bold mt-1 uppercase tracking-wider ${conf.colorClass} relative z-10`}>
+        {conf.label}
+      </div>
+    </div>
+  );
+}
+
+// ═══ MINI COUNTDOWN (inside unit cell) ═══
+function MiniCountdown({ expiry }: { expiry: number }) {
+  const { display } = useCountdown(expiry);
+  return <span className="text-[8px] font-black text-amber-600 dark:text-amber-400 tabular-nums">{display}</span>;
+}
+
+// ═══ LOCK COUNTDOWN (inside drawer) ═══
+function LockCountdown({ expiry }: { expiry: number }) {
+  const { display, remaining, expired } = useCountdown(expiry);
+  return (
+    <div className="flex items-center gap-2">
+      <Timer size={14} className={expired ? 'text-rose-500' : 'text-amber-500'} />
+      <span className={`text-[12px] font-black tabular-nums ${expired ? 'text-rose-500' : 'text-amber-600 dark:text-amber-400'}`}>
+        {expired ? 'Đã hết hạn' : `Còn ${display}`}
+      </span>
+      {!expired && (
+        <div className="flex-1 h-1.5 rounded-full bg-sg-border/30 overflow-hidden">
+          <div
+            className="h-full bg-amber-500 rounded-full transition-all duration-1000"
+            style={{ width: `${Math.min(100, (remaining / LOCK_DURATION_MS) * 100)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }

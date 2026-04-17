@@ -25,6 +25,7 @@ type SalesOpsRepository interface {
 	UpdateDeposit(id string, updates map[string]interface{}) error
 
 	// Activities
+	GetActivities(filters map[string]interface{}) ([]model.SalesActivity, error)
 	CreateActivity(activity *model.SalesActivity) error
 
 	// targets
@@ -139,6 +140,20 @@ func (r *salesOpsRepository) UpdateDeposit(id string, updates map[string]interfa
 }
 
 // Activities
+func (r *salesOpsRepository) GetActivities(filters map[string]interface{}) ([]model.SalesActivity, error) {
+	var activities []model.SalesActivity
+	query := r.db.Model(&model.SalesActivity{})
+
+	for k, v := range filters {
+		if v != nil && v != "" && v != 0 {
+			query = query.Where(k+" = ?", v)
+		}
+	}
+	
+	err := query.Order("activity_date desc").Find(&activities).Error
+	return activities, err
+}
+
 func (r *salesOpsRepository) CreateActivity(activity *model.SalesActivity) error {
 	return r.db.Create(activity).Error
 }
