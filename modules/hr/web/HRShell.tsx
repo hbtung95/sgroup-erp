@@ -126,7 +126,7 @@ export function HRShell() {
       </div>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col relative z-0 transition-colors duration-300">
+      <div className="flex-1 flex flex-col relative z-0 min-w-0 transition-colors duration-300">
         
         {/* TopBar */}
         <header className="h-[80px] bg-sg-header-bg/80 backdrop-blur-xl border-b border-sg-border px-8 flex items-center justify-between z-10 transition-colors duration-300 shrink-0">

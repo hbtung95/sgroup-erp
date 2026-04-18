@@ -16,7 +16,7 @@ export function EmployeeListView({ employees, canEdit, onEdit }: EmployeeListVie
          <thead>
             <tr className="bg-sg-btn-bg border-b border-sg-border">
                <th className="px-6 py-4 text-[11px] font-extrabold text-sg-muted uppercase tracking-[1px] w-2/5">Họ Tên</th>
-               <th className="px-6 py-4 text-[11px] font-extrabold text-sg-muted uppercase tracking-[1px] w-1/4">Chức vụ / Phòng ban</th>
+               <th className="px-6 py-4 text-[11px] font-extrabold text-sg-muted uppercase tracking-[1px] w-1/4">Vị trí / Phòng ban</th>
                <th className="px-6 py-4 text-[11px] font-extrabold text-sg-muted uppercase tracking-[1px] w-1/5">Liên hệ</th>
                <th className="px-6 py-4 text-[11px] font-extrabold text-sg-muted uppercase tracking-[1px] text-center">Trạng thái</th>
                {canEdit && <th className="px-6 py-4 text-[11px] font-extrabold text-sg-muted uppercase tracking-[1px] text-right"></th>}

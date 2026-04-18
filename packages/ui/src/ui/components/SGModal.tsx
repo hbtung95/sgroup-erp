@@ -58,10 +58,10 @@ export function SGModal({ visible, onClose, title, subtitle, width = 520, childr
 }
 
 const styles = StyleSheet.create({
-  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998 },
   overlayPress: { flex: 1 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  modal: { borderWidth: 1, borderRadius: radius['2xl'], overflow: 'hidden' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', zIndex: 9999 },
+  modal: { borderWidth: 1, borderRadius: radius['2xl'], overflow: 'hidden', zIndex: 10000 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: spacing.xl, paddingBottom: 0 },
   closeBtn: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   content: { padding: spacing.xl },

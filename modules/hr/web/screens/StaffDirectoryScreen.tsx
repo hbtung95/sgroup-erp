@@ -6,6 +6,7 @@ import { Employee, Department, Position, Team, TransferRecord, HRDashboardData }
 import { FILTER_TABS, EMPTY_FORM } from '../constants';
 import { useToast } from '@sgroup/web-ui';
 import { SkeletonStatsCard, SkeletonEmployeeCard } from '@sgroup/web-ui';
+import { useAuthStore } from '@sgroup/platform';
 
 import { StaffStatsCard } from '../components/StaffStatsCard';
 import { EmployeeGridView } from '../components/EmployeeGridView';
@@ -22,7 +23,9 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
   const [form, setForm] = useState<EmployeeFormData>(EMPTY_FORM);
   const [editId, setEditId] = useState<string | null>(null);
 
-  const canEdit = userRole === 'admin' || userRole === 'hr_manager' || userRole === 'hr_director';
+  const authUser = useAuthStore((s: any) => s.user);
+  const effectiveRole = userRole || authUser?.role || 'admin';
+  const canEdit = effectiveRole === 'admin' || effectiveRole === 'hr_manager' || effectiveRole === 'hr_director';
   const toast = useToast();
 
   const { data: dashboardData } = useHRDashboard();
@@ -115,7 +118,7 @@ export function StaffDirectoryScreen({ userRole }: { userRole?: HRRole }) {
   const isSaving = createEmployee.isPending || updateEmployee.isPending;
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto animate-sg-fade-in pb-32">
+    <div className="p-8 max-w-[1600px] mx-auto animate-sg-fade-in pb-32 w-full min-w-0">
       
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

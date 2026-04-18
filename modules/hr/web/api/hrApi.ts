@@ -31,10 +31,44 @@ export const hrApi = {
   deleteTeam: async (id: string) => fakeDelay(),
 
   // Employees
-  getEmployees: async (params?: Record<string, unknown>) => mockRespond(mockHRData.getEmployees),
+  getEmployees: async (params?: Record<string, unknown>) => {
+    let filtered = [...mockHRData.getEmployees.data];
+    if (params) {
+      if (params.search && typeof params.search === 'string') {
+        const q = params.search.toLowerCase();
+        filtered = filtered.filter((e: any) => 
+          (e.fullName && e.fullName.toLowerCase().includes(q)) ||
+          (e.code && e.code.toLowerCase().includes(q)) ||
+          (e.email && e.email.toLowerCase().includes(q)) ||
+          (e.department?.name && e.department.name.toLowerCase().includes(q))
+        );
+      }
+      if (params.status && params.status !== 'all') {
+        const statusMap: Record<string, string[]> = {
+          'ACTIVE': ['ACTIVE', 'Đang làm việc'],
+          'PROBATION': ['PROBATION', 'Thử việc'],
+          'ON_LEAVE': ['ON_LEAVE', 'Đang nghỉ phép', 'Đang nghỉ'],
+          'TERMINATED': ['TERMINATED', 'Đã nghỉ việc', 'Đã nghỉ'],
+        };
+        const mappedStatuses = statusMap[params.status as string] || [params.status];
+        filtered = filtered.filter((e: any) => mappedStatuses.includes(e.status) || mappedStatuses.includes(e.workStatus));
+      }
+    }
+    return mockRespond({ data: filtered, meta: { total: filtered.length, page: 1, limit: 100 } });
+  },
   getEmployee: async (id: string) => mockRespond({ data: mockHRData.getEmployee }),
   createEmployee: async (data: Omit<Employee, 'id'>) => fakeDelay({ data }),
-  updateEmployee: async (id: string, data: Partial<Employee>) => fakeDelay({ data }),
+  updateEmployee: async (id: string, data: Partial<Employee>) => {
+    const list = mockHRData.getEmployees.data as any[];
+    const idx = list.findIndex(e => String(e.id) === String(id));
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...data };
+      if (String(id) === String(mockHRData.getEmployee.id)) {
+        Object.assign(mockHRData.getEmployee, list[idx]);
+      }
+    }
+    return fakeDelay({ data });
+  },
   deleteEmployee: async (id: string) => fakeDelay(),
 
   // Contracts

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Building, Briefcase, Plus, Pencil, Trash2, X, Users, Hash,
-  ChevronDown, ChevronRight, UsersRound, Settings, Network, List
+  ChevronDown, UsersRound, Settings, Network, List
 } from 'lucide-react';
 import { 
   useDepartments, useCreateDepartment, useUpdateDepartment, useDeleteDepartment,
@@ -16,7 +17,7 @@ type ModalMode = 'create_dept' | 'edit_dept' | 'create_team' | 'edit_team' | 'cr
 const EMPTY_DEPT = { name: '', code: '', description: '' };
 const EMPTY_TEAM = { name: '', code: '', departmentId: '', description: '' };
 const EMPTY_POS = { name: '', code: '', level: '', description: '' };
-const LEVEL_OPTIONS = ['Staff', 'Senior', 'Leader', 'Manager', 'Director'];
+const LEVEL_OPTIONS = ['Nhân viên', 'Chuyên viên', 'Trưởng nhóm', 'Trưởng phòng', 'Giám đốc'];
 
 export function OrgConfigScreen() {
   const [modalMode, setModalMode] = useState<ModalMode>(null);
@@ -64,7 +65,7 @@ export function OrgConfigScreen() {
         toast.success(`Đã tạo phòng ban "${deptForm.name}" thành công`);
       }
       setDeptForm(EMPTY_DEPT); setModalMode(null);
-    } catch (e: any) { toast.error(e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'); }
+    } catch (e: React.ChangeEvent<HTMLInputElement>) { toast.error(e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'); }
   };
 
   const handleTeamSubmit = async () => {
@@ -78,21 +79,21 @@ export function OrgConfigScreen() {
         toast.success(`Đã tạo team "${teamForm.name}" thành công`);
       }
       setTeamForm(EMPTY_TEAM); setModalMode(null);
-    } catch (e: any) { toast.error(e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'); }
+    } catch (e: React.ChangeEvent<HTMLInputElement>) { toast.error(e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'); }
   };
 
   const handlePosSubmit = async () => {
-    if (!posForm.name.trim() || !posForm.code.trim()) return toast.warning('Vui lòng nhập tên và mã chức vụ');
+    if (!posForm.name.trim() || !posForm.code.trim()) return toast.warning('Vui lòng nhập tên và mã vị trí');
     try {
       if (modalMode === 'edit_pos') {
         await updatePos.mutateAsync({ id: editId, data: posForm });
-        toast.success(`Đã cập nhật chức vụ "${posForm.name}" thành công`);
+        toast.success(`Đã cập nhật vị trí "${posForm.name}" thành công`);
       } else {
         await createPos.mutateAsync(posForm);
-        toast.success(`Đã tạo chức vụ "${posForm.name}" thành công`);
+        toast.success(`Đã tạo vị trí "${posForm.name}" thành công`);
       }
       setPosForm(EMPTY_POS); setModalMode(null);
-    } catch (e: any) { toast.error(e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'); }
+    } catch (e: React.ChangeEvent<HTMLInputElement>) { toast.error(e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'); }
   };
 
   const executeDelete = async () => {
@@ -106,7 +107,7 @@ export function OrgConfigScreen() {
         toast.success(`Đã xóa team "${confirmDialog.name}"`);
       }
       setConfirmDialog(null);
-    } catch (e: any) { 
+    } catch (e: React.ChangeEvent<HTMLInputElement>) { 
       toast.error(e?.response?.data?.message || 'Không thể xóa'); 
       setConfirmDialog(null);
     }
@@ -118,8 +119,8 @@ export function OrgConfigScreen() {
       case 'edit_dept': return 'Sửa phòng ban';
       case 'create_team': return 'Thêm team';
       case 'edit_team': return 'Sửa team';
-      case 'create_pos': return 'Thêm chức vụ';
-      case 'edit_pos': return 'Sửa chức vụ';
+      case 'create_pos': return 'Thêm vị trí';
+      case 'edit_pos': return 'Sửa vị trí';
       default: return '';
     }
   };
@@ -148,12 +149,12 @@ export function OrgConfigScreen() {
           </div>
           <div className="flex flex-col">
             <h1 className="text-xl font-black text-sg-heading tracking-tight">Cấu hình Tổ chức</h1>
-            <p className="text-[13px] font-bold text-sg-subtext mt-0.5">Phòng ban → Teams → Chức vụ</p>
+            <p className="text-[13px] font-bold text-sg-subtext mt-0.5">Phòng ban → Teams → Vị trí</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => { setPosForm(EMPTY_POS); setModalMode('create_pos'); }} className="flex items-center gap-2 px-4 py-2.5 bg-purple-500 hover:bg-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/20 transition-all font-extrabold text-xs uppercase tracking-wide">
-            <Plus size={16} strokeWidth={3} /> Chức Vụ
+            <Plus size={16} strokeWidth={3} /> Vị Trí
           </button>
           <button onClick={() => { setDeptForm(EMPTY_DEPT); setModalMode('create_dept'); }} className="flex items-center gap-2 px-4 py-2.5 bg-pink-500 hover:bg-pink-600 text-white rounded-xl shadow-lg shadow-pink-500/20 transition-all font-extrabold text-xs uppercase tracking-wide">
             <Plus size={16} strokeWidth={3} /> Phòng Ban
@@ -168,7 +169,7 @@ export function OrgConfigScreen() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatCard label="Phòng ban" value={departments.length} icon={Building} colorClass="text-pink-500 bg-pink-500/10 border-pink-500/20" />
             <StatCard label="Teams" value={totalTeams} icon={UsersRound} colorClass="text-blue-500 bg-blue-500/10 border-blue-500/20" />
-            <StatCard label="Chức vụ" value={positions.length} icon={Briefcase} colorClass="text-purple-500 bg-purple-500/10 border-purple-500/20" />
+            <StatCard label="Vị trí" value={positions.length} icon={Briefcase} colorClass="text-purple-500 bg-purple-500/10 border-purple-500/20" />
           </div>
 
           <div className="flex justify-end -mt-2">
@@ -187,7 +188,7 @@ export function OrgConfigScreen() {
             <div className="py-20 flex justify-center"><div className="w-8 h-8 rounded-full border-4 border-pink-500/30 border-t-pink-500 animate-spin" /></div>
           ) : viewMode === 'list' ? (
             <div className="flex flex-col gap-6">
-              {departments.map((dept: any) => {
+              {departments.map((dept: Department) => {
                 const isExpanded = expandedDept === dept.id;
                 const deptTeams = dept.teams || [];
                 return (
@@ -376,14 +377,20 @@ export function OrgConfigScreen() {
                     <Briefcase size={24} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-sg-heading">Danh sách Chức vụ</h2>
+                    <h2 className="text-xl font-black text-sg-heading">Danh sách Vị trí</h2>
                     <p className="text-sm font-bold text-sg-subtext mt-1">Toàn bộ cấu trúc cấp bậc nhân sự</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {positions.map((p: any) => {
-                    const lc = { Staff: 'green', Senior: 'blue', Leader: 'purple', Manager: 'amber', Director: 'red' }[p.level as string] || 'slate';
+                  {positions.map((p: Position) => {
+                    const lc = { 
+                      'Nhân viên': 'green', 'Staff': 'green', 
+                      'Chuyên viên': 'blue', 'Senior': 'blue', 
+                      'Trưởng nhóm': 'purple', 'Leader': 'purple', 
+                      'Trưởng phòng': 'amber', 'Manager': 'amber', 
+                      'Giám đốc': 'red', 'Director': 'red' 
+                    }[p.level as string] || 'slate';
                     const colorMap: Record<string, string> = {
                       'green': 'bg-green-500/15 text-green-500',
                       'blue': 'bg-blue-500/15 text-blue-500',
@@ -415,7 +422,7 @@ export function OrgConfigScreen() {
       </div>
 
       {/* Modal */}
-      {modalMode && (
+      {modalMode && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-up">
           <div className="w-full max-w-md bg-sg-card border border-sg-border rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col shadow-black/40">
             <div className="flex items-center justify-between mb-8">
@@ -442,8 +449,8 @@ export function OrgConfigScreen() {
               )}
               {modalMode.includes('pos') && (
                 <>
-                  <InputRow label="Tên chức vụ *" value={posForm.name} onChange={(v: string) => setPosForm(f => ({ ...f, name: v }))} placeholder="VD: Trưởng khoản" />
-                  <InputRow label="Mã chức vụ *" value={posForm.code} onChange={(v: string) => setPosForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="MGR" />
+                  <InputRow label="Tên vị trí *" value={posForm.name} onChange={(v: string) => setPosForm(f => ({ ...f, name: v }))} placeholder="VD: Trưởng khoản" />
+                  <InputRow label="Mã vị trí *" value={posForm.code} onChange={(v: string) => setPosForm(f => ({ ...f, code: v.toUpperCase() }))} placeholder="MGR" />
                   
                   <div className="flex flex-col gap-2">
                     <label className="text-[11px] font-black text-sg-subtext uppercase tracking-widest pl-1">Cấp bậc</label>
@@ -472,7 +479,8 @@ export function OrgConfigScreen() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Confirm Dialog */}

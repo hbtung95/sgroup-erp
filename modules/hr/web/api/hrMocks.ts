@@ -11,11 +11,11 @@ const DEPARTMENTS = [
 ];
 
 const POSITIONS = [
-  { id: '1', name: 'Giám đốc', code: 'DIR', level: 'Director' },
-  { id: '2', name: 'Trưởng phòng', code: 'MGR', level: 'Manager' },
-  { id: '3', name: 'Trưởng nhóm', code: 'LEAD', level: 'Leader' },
-  { id: '4', name: 'Chuyên viên cao cấp', code: 'SNR', level: 'Senior' },
-  { id: '5', name: 'Nhân viên', code: 'STF', level: 'Staff' }
+  { id: '1', name: 'Giám đốc Điều hành', code: 'CEO', level: 'Giám đốc' },
+  { id: '2', name: 'Trưởng phòng Marketing', code: 'MKT_MGR', level: 'Trưởng phòng' },
+  { id: '3', name: 'Trưởng nhóm Phát triển', code: 'DEV_LEAD', level: 'Trưởng nhóm' },
+  { id: '4', name: 'Chuyên viên Thiết kế', code: 'DES_SNR', level: 'Chuyên viên cao cấp' },
+  { id: '5', name: 'Kế toán viên', code: 'ACC_STF', level: 'Nhân viên' }
 ];
 
 const TEAMS = [
@@ -28,61 +28,61 @@ const TEAMS = [
 const EMPLOYEES = [
   {
     id: '1', fullName: 'Huỳnh Bảo Tuân', englishName: 'Tuan Huynh Bao', employeeCode: 'SGR-001',
-    phone: '0901234567', email: 'tuan.hb@sgroup.vn', level: 'Director',
+    phone: '0901234567', email: 'tuan.hb@sgroup.vn', level: 'Giám đốc',
     department: { id: '5', name: 'Dự Án', code: 'PRJ' }, departmentId: '5',
-    position: { id: '1', name: 'Giám đốc' }, positionId: '1',
+    position: { id: '1', name: 'Giám đốc Điều hành' }, positionId: '1',
     createdAt: '2023-01-10', startDate: '2023-03-15', employmentType: 'Toàn thời gian',
     officialSalary: 35000000, status: 'ACTIVE', gender: 'male', avatarUrl: 'https://i.pravatar.cc/150?u=1'
   },
   {
     id: '2', fullName: 'Nguyễn Hoàng Oanh', englishName: 'Oanh Nguyen Hoang', employeeCode: 'SGR-002',
-    phone: '0987654321', email: 'oanh.nh@sgroup.vn', level: 'Manager',
+    phone: '0987654321', email: 'oanh.nh@sgroup.vn', level: 'Trưởng phòng',
     department: { id: '3', name: 'Nhân Sự', code: 'HR' }, departmentId: '3',
-    position: { id: '2', name: 'Trưởng phòng' }, positionId: '2', directManager: 'Huỳnh Bảo Tuân',
+    position: { id: '2', name: 'Trưởng phòng Marketing' }, positionId: '2', directManager: 'Huỳnh Bảo Tuân',
     createdAt: '2022-06-01', startDate: '2022-08-01', employmentType: 'Toàn thời gian',
     officialSalary: 28000000, status: 'ACTIVE', gender: 'female', avatarUrl: 'https://i.pravatar.cc/150?u=2'
   },
   {
     id: 'S1', fullName: 'Ngô Việt', englishName: 'Viet Ngo', employeeCode: 'SGR-010',
-    phone: '0900000001', email: 'viet.n@sgroup.vn', level: 'Manager',
+    phone: '0900000001', email: 'viet.n@sgroup.vn', level: 'Trưởng phòng',
     department: { id: '1', name: 'Kinh Doanh', code: 'SALES' }, departmentId: '1',
     team: { id: '3', name: 'BD Zone 1' }, teamId: '3',
-    position: { id: '2', name: 'Trưởng phòng' }, positionId: '2',
+    position: { id: '2', name: 'Trưởng phòng Marketing' }, positionId: '2',
     createdAt: '2023-01-10', startDate: '2023-01-10', employmentType: 'Toàn thời gian',
     officialSalary: 50000000, status: 'ACTIVE', gender: 'male', avatarUrl: 'https://i.pravatar.cc/150?u=12'
   },
   {
     id: '3', fullName: 'Trần Minh Khôi', englishName: 'Khoi Tran Minh', employeeCode: 'SGR-003',
-    phone: '0976543210', email: 'khoi.tm@sgroup.vn', level: 'Senior',
+    phone: '0976543210', email: 'khoi.tm@sgroup.vn', level: 'Chuyên viên cao cấp',
     department: { id: '1', name: 'Kinh Doanh', code: 'SALES' }, departmentId: '1',
     team: { id: '3', name: 'BD Zone 1' }, teamId: '3',
-    position: { id: '4', name: 'Chuyên viên cao cấp' }, positionId: '4', directManager: 'Ngô Việt',
+    position: { id: '4', name: 'Chuyên viên Kinh doanh' }, positionId: '4', directManager: 'Ngô Việt',
     createdAt: '2024-01-15', startDate: '2024-03-15', employmentType: 'Toàn thời gian',
     officialSalary: 18000000, status: 'ACTIVE', gender: 'male', avatarUrl: 'https://i.pravatar.cc/150?u=3'
   },
   {
     id: '4', fullName: 'Lê Thị Hồng Nhung', englishName: 'Nhung Le Thi Hong', employeeCode: 'SGR-004',
-    phone: '0965432109', email: 'nhung.lth@sgroup.vn', level: 'Staff',
+    phone: '0965432109', email: 'nhung.lth@sgroup.vn', level: 'Nhân viên',
     department: { id: '2', name: 'Marketing', code: 'MKT' }, departmentId: '2',
     team: { id: '4', name: 'Content Creator' }, teamId: '4',
-    position: { id: '5', name: 'Nhân viên' }, positionId: '5', directManager: 'Lê Hương',
+    position: { id: '5', name: 'Nhân viên Marketing' }, positionId: '5', directManager: 'Lê Hương',
     createdAt: '2025-06-01', startDate: '2025-08-01', employmentType: 'Thử việc',
     probationSalary: 8000000, officialSalary: 12000000, status: 'PROBATION', gender: 'female', avatarUrl: 'https://i.pravatar.cc/150?u=4'
   },
   {
     id: '5', fullName: 'Trần Đại Kế', englishName: 'Ke Tran Dai', employeeCode: 'SGR-005',
-    phone: '0954321098', email: 'ke.td@sgroup.vn', level: 'Manager',
+    phone: '0954321098', email: 'ke.td@sgroup.vn', level: 'Trưởng phòng',
     department: { id: '4', name: 'Tài Chính Kế Toán', code: 'FIN' }, departmentId: '4',
-    position: { id: '2', name: 'Kế toán trưởng' }, positionId: '2',
+    position: { id: '6', name: 'Kế toán trưởng' }, positionId: '6',
     createdAt: '2023-05-15', startDate: '2023-06-01', employmentType: 'Toàn thời gian',
     officialSalary: 25000000, status: 'ACTIVE', gender: 'male', avatarUrl: 'https://i.pravatar.cc/150?u=5'
   },
   {
     id: '6', fullName: 'Phạm Thái Huỳnh', englishName: 'Huynh Pham Thai', employeeCode: 'SGR-006',
-    phone: '0943210987', email: 'huynh.pt@sgroup.vn', level: 'Manager',
+    phone: '0943210987', email: 'huynh.pt@sgroup.vn', level: 'Trưởng phòng',
     department: { id: '5', name: 'Dự Án', code: 'PRJ' }, departmentId: '5',
     team: { id: '1', name: 'Team Alpha' }, teamId: '1',
-    position: { id: '2', name: 'Quản lý Dự án' }, positionId: '2', directManager: 'Huỳnh Bảo Tuân',
+    position: { id: '7', name: 'Quản lý Dự án' }, positionId: '7', directManager: 'Huỳnh Bảo Tuân',
     createdAt: '2024-08-10', startDate: '2024-09-01', employmentType: 'Toàn thời gian',
     officialSalary: 22000000, status: 'ON_LEAVE', gender: 'male', avatarUrl: 'https://i.pravatar.cc/150?u=6'
   }

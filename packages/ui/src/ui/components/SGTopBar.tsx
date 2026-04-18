@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl, 
     height: 64,
     borderBottomWidth: 1,
-    zIndex: 1000,
+    zIndex: 50,
   },
   left: { flexDirection: 'row', alignItems: 'center', gap: 16, flex: 1 },
   titleStack: { flexDirection: 'column' },

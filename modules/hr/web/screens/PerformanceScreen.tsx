@@ -166,7 +166,7 @@ export function PerformanceScreen({ userRole }: { userRole?: HRRole }) {
               <thead>
                 <tr className="bg-sg-btn-bg/50 border-b border-sg-border">
                   <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider">Nhân viên</th>
-                  <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider">Chức vụ</th>
+                  <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider">Vị trí</th>
                   <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider w-[240px]">Tiến độ KPIs</th>
                   <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider text-center">Xếp loại</th>
                   <th className="px-6 py-5 text-[12px] font-black text-sg-subtext uppercase tracking-wider text-center">Trạng thái</th>

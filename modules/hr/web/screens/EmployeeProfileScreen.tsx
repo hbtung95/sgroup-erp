@@ -2,9 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   ArrowLeft, User, Mail, Phone, MapPin, Briefcase, Calendar, ShieldCheck, 
-  Award, CreditCard, Building, Users, FileText, Hash, Clock, Star, TrendingUp,
-  CheckCircle, Landmark, BookOpen, UserCheck, Globe, Wallet, CalendarDays,
-  IdCard, PhoneCall, Layers, BadgeCheck, Banknote, Search, ChevronDown, X, Pencil, Save
+  Award, CreditCard, Building, Users, FileText, Hash, Clock, CheckCircle, Landmark, BookOpen, UserCheck, Globe, Wallet, CalendarDays,
+  IdCard, PhoneCall, Layers, BadgeCheck, Banknote, Search, ChevronDown, X, Pencil, Save, UploadCloud
 } from 'lucide-react';
 import { useAuthStore } from '@sgroup/platform';
 import { useNavigate } from 'react-router-dom';
@@ -77,9 +76,9 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
     const unique = [...new Set(levels)];
     const levelMap: Record<string, string> = {
       'Director': 'Giám đốc',
-      'Manager': 'Quản lý',
+      'Manager': 'Trưởng phòng',
       'Leader': 'Trưởng nhóm',
-      'Senior': 'Chuyên viên cấp cao',
+      'Senior': 'Chuyên viên',
       'Staff': 'Nhân viên',
       'Junior': 'Chuyên viên',
       'Fresher': 'Nhân viên mới',
@@ -99,14 +98,14 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
 
   // Build recruiter options from employee list (active employees)
   const recruiterOptions = useMemo(() => 
-    employeeList.map((e: any) => ({ v: e.fullName, l: `${e.fullName} (${e.employeeCode})` })),
+    employeeList.map((e: Employee) => ({ v: e.fullName, l: `${e.fullName} (${e.employeeCode})` })),
     [employeeList]
   );
   
   // Find selected employee or default to first
-  let emp: any = null;
+  let emp: Employee | null = null;
   if (employeeId && employeeList.length > 0) {
-    emp = employeeList.find((e: any) => String(e.id) === String(employeeId));
+    emp = employeeList.find((e: Employee) => String(e.id) === String(employeeId));
   }
   if (!emp && employeeList.length > 0) {
     emp = employeeList[0];
@@ -116,7 +115,7 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
   const filteredList = useMemo(() => {
     if (!selectorSearch.trim()) return employeeList;
     const q = selectorSearch.toLowerCase();
-    return employeeList.filter((e: any) =>
+    return employeeList.filter((e: Employee) =>
       (e.fullName || '').toLowerCase().includes(q) ||
       (e.employeeCode || '').toLowerCase().includes(q) ||
       (e.email || '').toLowerCase().includes(q) ||
@@ -191,7 +190,7 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                   <div className="px-4 py-6 text-center text-sm font-semibold text-sg-muted">
                     Không tìm thấy nhân sự
                   </div>
-                ) : filteredList.map((e: any) => {
+                ) : filteredList.map((e: Employee) => {
                   const isSelected = emp?.id === e.id;
                   return (
                     <button
@@ -324,7 +323,32 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                 <InfoRow label="CCCD / Passport" value={emp?.idNumber} icon={IdCard} />
                 <InfoRow label="Ngày cấp" value={formatDate(emp?.idIssueDate)} icon={Calendar} />
                 <InfoRow label="Nơi cấp" value={emp?.idIssuePlace} icon={MapPin} />
-                <InfoRow label="VNID" value={emp?.vnId} icon={Hash} />
+                <div className="flex flex-col gap-1.5 h-full">
+                  <div className="flex items-center gap-1.5 text-sg-subtext uppercase tracking-widest text-[9px] font-black">
+                    <Hash size={12} strokeWidth={3} className="text-sg-muted" /> VNID
+                  </div>
+                  {emp?.vnId ? (
+                    (() => {
+                      const parts = String(emp.vnId).split('|');
+                      const name = parts[0];
+                      const url = parts.length > 1 ? parts.slice(1).join('|') : null;
+                      return (
+                        <div 
+                          onClick={() => {
+                            if (url) window.open(url, '_blank');
+                            else toast.info('Tài liệu cũ chưa có bộ nhớ trên máy chủ Cloud.');
+                          }}
+                          className="flex items-center gap-2 mt-0.5 px-3 py-1.5 bg-purple-500/10 rounded-xl border border-purple-500/20 w-fit max-w-full group cursor-pointer transition-colors hover:bg-purple-500/20"
+                        >
+                          <FileText size={14} strokeWidth={2.5} className="text-purple-500 shrink-0 group-hover:scale-110 transition-transform" />
+                          <span className="text-[13px] font-bold text-sg-heading truncate group-hover:text-purple-500 transition-colors" title={name}>{name}</span>
+                        </div>
+                      )
+                    })()
+                  ) : (
+                    <div className="font-semibold text-[13px] text-sg-heading leading-tight truncate">—</div>
+                  )}
+                </div>
               </SectionCard>
 
               {/* Thông tin liên hệ */}
@@ -539,7 +563,7 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                             <EditField label="CCCD / Passport" value={editForm.idNumber} onChange={v => setEditForm(f => ({...f, idNumber: v}))} />
                             <EditField label="Ngày cấp" value={editForm.idIssueDate} onChange={v => setEditForm(f => ({...f, idIssueDate: v}))} type="date" />
                             <EditField label="Nơi cấp" value={editForm.idIssuePlace} onChange={v => setEditForm(f => ({...f, idIssuePlace: v}))} />
-                            <EditField label="VNID" value={editForm.vnId} onChange={v => setEditForm(f => ({...f, vnId: v}))} />
+                            <EditField label="VNID" value={editForm.vnId} onChange={v => setEditForm(f => ({...f, vnId: v}))} type="file" />
                             <EditField label="MST cá nhân" value={editForm.taxCode} onChange={v => setEditForm(f => ({...f, taxCode: v}))} />
                             <EditField label="Số sổ bảo hiểm" value={editForm.insuranceBook} onChange={v => setEditForm(f => ({...f, insuranceBook: v}))} />
                           </div>
@@ -622,7 +646,7 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
                       await updateEmployee.mutateAsync({ id: editForm.id, data: payload });
                       toast.success('Đã cập nhật hồ sơ thành công');
                       setEditOpen(false);
-                    } catch (e: any) {
+                    } catch (e) {
                       toast.error(e?.message || 'Có lỗi xảy ra khi cập nhật hồ sơ');
                     }
                   }}
@@ -650,7 +674,7 @@ export function EmployeeProfileScreen({ routeParams }: { routeParams?: URLSearch
 /* Reusable Sub-Components */
 /* ═══════════════════════════════════════════════════════ */
 
-function SectionCard({ title, icon: Icon, color, iconBg, iconBorder, children }: { title: string; icon: any; color: string; iconBg?: string; iconBorder?: string; children: React.ReactNode }) {
+function SectionCard({ title, icon: Icon, color, iconBg, iconBorder, children }: { title: string; icon: React.ElementType; color: string; iconBg?: string; iconBorder?: string; children: React.ReactNode }) {
   return (
     <div className="p-6 rounded-3xl bg-sg-card border border-sg-border shadow-sg-sm flex flex-col gap-5">
       <div className="flex items-center gap-3 pb-4 border-b border-sg-border/60">
@@ -666,7 +690,7 @@ function SectionCard({ title, icon: Icon, color, iconBg, iconBorder, children }:
   );
 }
 
-function InfoRow({ label, value, icon: Icon, valueClassName }: { label: string; value?: string | number | null; icon?: any; valueClassName?: string }) {
+function InfoRow({ label, value, icon: Icon, valueClassName }: { label: string; value?: string | number | null; icon?: React.ElementType; valueClassName?: string }) {
   return (
     <div className="flex items-start gap-4">
       {Icon && (
@@ -684,7 +708,7 @@ function InfoRow({ label, value, icon: Icon, valueClassName }: { label: string; 
   );
 }
 
-function EditSection({ title, icon: Icon, color, children }: { title: string; icon?: any; color?: string; children: React.ReactNode }) {
+function EditSection({ title, icon: Icon, color, children }: { title: string; icon?: React.ElementType; color?: string; children: React.ReactNode }) {
   const colorMap: Record<string, { text: string; bg: string; border: string; accent: string }> = {
     'sg-red': { text: 'text-sg-red', bg: 'bg-sg-red/10', border: 'border-sg-red/20', accent: 'border-l-sg-red' },
     'blue-500': { text: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20', accent: 'border-l-blue-500' },
@@ -715,7 +739,7 @@ function EditSection({ title, icon: Icon, color, children }: { title: string; ic
 }
 
 function EditField({ label, value, onChange, type = 'text', options, required }: {
-  label: string; value?: any; onChange: (v: string) => void; type?: string;
+  label: string; value?: string | number; onChange: (v: string) => void; type?: string;
   options?: { v: string; l: string }[]; required?: boolean;
 }) {
   const baseInputClasses = "h-11 w-full rounded-xl px-4 text-[14px] font-bold text-sg-heading transition-all duration-200 bg-sg-bg/80 border border-sg-border/70 shadow-sm hover:border-sg-border focus:outline-none focus:border-sg-red focus:ring-2 focus:ring-sg-red/10 focus:shadow-md";
@@ -743,6 +767,39 @@ function EditField({ label, value, onChange, type = 'text', options, required }:
       </div>
     );
   }
+
+  if (type === 'file') {
+    return (
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[10px] font-black text-sg-subtext/80 uppercase tracking-widest pl-0.5 flex items-center gap-1">
+          {label}
+          {required && <span className="text-sg-red">*</span>}
+        </label>
+        <div className="relative">
+          <input
+            type="file"
+            onChange={e => {
+              if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                const url = URL.createObjectURL(file);
+                onChange(`${file.name}|${url}`);
+              }
+            }}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          />
+          <div className={`${baseInputClasses} flex items-center justify-between pr-2!`}>
+             <span className="text-sg-muted overflow-hidden text-ellipsis whitespace-nowrap text-[13px] font-medium">
+               {value ? String(value).split('|')[0] : "Tải lên tệp hoặc ảnh..."}
+             </span>
+             <div className="text-purple-500 bg-purple-500/10 px-3 py-1.5 rounded-sg-sm text-[10px] font-black uppercase tracking-widest whitespace-nowrap ml-2 border border-purple-500/20 flex items-center gap-1.5 transition-colors group-hover:bg-purple-500/20">
+                <UploadCloud size={13} strokeWidth={3} /> CHỌN TỆP
+             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-[10px] font-black text-sg-subtext/80 uppercase tracking-widest pl-0.5 flex items-center gap-1">
